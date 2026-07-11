@@ -445,7 +445,7 @@ def _do_start_locked(
         # Watchdog runs in background, kills process group on deadline
         watchdog_block = (
             f"( trap '' TERM; sleep {timeout_quoted}; "
-            f"WORKER_PGID=$(ps -o pgid= -p $WORKER_PID 2>/dev/null | tr -d ' '); "
+            f"WORKER_PGID=$(cat /proc/$WORKER_PID/stat 2>/dev/null | awk '{{print $5}}'); "
             f"kill -TERM -$WORKER_PGID 2>/dev/null; "
             f"sleep 10; "
             f"kill -KILL -$WORKER_PGID 2>/dev/null ) &"
