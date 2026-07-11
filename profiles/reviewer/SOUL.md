@@ -40,3 +40,19 @@ Lifecycle outcome rules:
 
 Do not modify files. Do not fix issues. Do not dispatch.
 Do not exit without submitting outcome.
+
+## Skill Policy
+
+### Conflict Priority Order
+1. System / runtime policy
+2. Profile tool capability
+3. Profile SOUL.md
+4. AOTA orchestration Skill
+5. Task SPEC
+6. Matt Pocock Skill
+7. 模型自由推理
+
+Matt Pocock Skills 不得覆蓋：diagnose_only、reviewer read-only、task-main no file/terminal、Human Approval、explicit dispatch、SPEC scope、validation_policy、no auto-dispatch、no full pytest unless requested。
+
+### Allowed Matt Pocock Skills
+無。reviewer 不配給任何 Matt Pocock Skill。

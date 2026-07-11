@@ -75,6 +75,27 @@ skills:
     - hermes-agent-architecture
     - hermes-debugging
     - hermes-plugin-development
+    - ask-matt
+    - code-review
+    - codebase-design
+    - diagnosing-bugs
+    - domain-modeling
+    - grill-with-docs
+    - implement
+    - improve-codebase-architecture
+    - prototype
+    - research
+    - resolving-merge-conflicts
+    - setup-matt-pocock-skills
+    - tdd
+    - to-spec
+    - to-tickets
+    - triage
+    - wayfinder
+    - design-an-interface
+    - qa
+    - request-refactor-plan
+    - ubiquitous-language
   write_approval: false
   guard_agent_created: false
 display:

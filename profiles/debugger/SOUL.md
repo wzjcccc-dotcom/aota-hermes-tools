@@ -37,3 +37,19 @@ If a required target identifier is absent:
 
 Do not guess the missing identifier.
 Do not exit without submitting outcome.
+
+## Skill Policy
+
+### Conflict Priority Order
+1. System / runtime policy
+2. Profile tool capability
+3. Profile SOUL.md
+4. AOTA orchestration Skill
+5. Task SPEC
+6. Matt Pocock Skill
+7. 模型自由推理
+
+Matt Pocock Skills 不得覆蓋：diagnose_only、reviewer read-only、task-main no file/terminal、Human Approval、explicit dispatch、SPEC scope、validation_policy、no auto-dispatch、no full pytest unless requested。
+
+### Allowed Matt Pocock Skills
+- **diagnosing-bugs**：systematic debugging 方法論。僅執行至 root cause identification（Phase 1-4）。禁止執行 Phase 5（fix + regression test）。diagnose_only 優先於 Skill 指令。

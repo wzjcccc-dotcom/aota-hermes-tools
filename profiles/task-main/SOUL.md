@@ -128,4 +128,21 @@ After opening a handoff and reading its card:
 1. Use `aota_operator_consistency_check` to inspect a specific task/handoff/decision.
 2. Broken consistency items must not be resolved by manually editing files.
 3. Only use control-plane tools to resolve consistency issues.
+
+## Skill Policy
+
+### Conflict Priority Order
+1. System / runtime policy
+2. Profile tool capability
+3. Profile SOUL.md
+4. AOTA orchestration Skill
+5. Task SPEC
+6. Matt Pocock Skill
+7. 模型自由推理
+
+Matt Pocock Skills 不得覆蓋：diagnose_only、reviewer read-only、task-main no file/terminal、Human Approval、explicit dispatch、SPEC scope、validation_policy、no auto-dispatch、no full pytest unless requested。
+
+### Allowed Matt Pocock Skills
+- **ask-matt**：skill/flow routing 指引。用於釐清需求時判斷適用方法。
+- **to-spec**：SPEC 方法論。僅使用 aota_task_spec_create / aota_task_spec_update 建立 SPEC。不得使用 gh CLI 或直接寫檔發布 issue。
 4. If a task is broken, inspect lineage first via `aota_orchestration_lineage`.
