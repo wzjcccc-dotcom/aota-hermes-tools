@@ -473,7 +473,7 @@ def _do_start_locked(
             f" kill -KILL $WATCHDOG_PID 2>/dev/null;"
             f" wait $WATCHDOG_PID 2>/dev/null;"
             # Finalizer
-            f"; {python_interp} {finalizer_quoted}"
+            f" {python_interp} {finalizer_quoted}"
             f" --workspace-id {q_ws}"
             f" --task-id {q_tid}"
             f" --start-id {q_tid}"
