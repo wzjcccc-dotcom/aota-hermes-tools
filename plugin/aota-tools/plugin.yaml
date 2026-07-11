@@ -1,0 +1,36 @@
+name: aota-tools
+version: 0.13.0
+description: "AOTA narrow tools: path info, bounded file read, content search, Git status/diff evidence, web fetch, file copy, task spec artifact management, profile task start with approval enforcement (P8-C), profile task status with needs_input lifecycle, profile task cancel with durable termination intent, profile task approve for human checkpoint enforcement, durable handoff (P8-D) for orchestrator re-entry, durable orchestration decision + controlled follow-up (P8-E), operator recovery with awaiting-user resume, decision listing/opening, and lineage timeline (P9), and operator inbox + consistency audit (P10)."
+author: AOTA
+kind: standalone
+provides_tools:
+  - aota_runtime_info
+  - aota_path_info
+  - aota_read_file
+  - aota_search_files
+  - aota_repo_status_readonly
+  - aota_repo_diff_readonly
+  - aota_web_fetch
+  - aota_file_copy
+  - aota_task_spec_create
+  - aota_task_spec_update
+  - aota_profile_task_start
+  - aota_profile_task_status
+  - aota_profile_task_cancel
+  - aota_profile_task_approve
+  - aota_worker_outcome_submit
+  - aota_debugger_report_submit
+  - aota_reviewer_report_submit
+  - aota_coder_report_submit
+  - aota_handoff_list
+  - aota_handoff_open
+  - aota_handoff_ack
+  - aota_orchestration_decision_record
+  - aota_followup_task_create
+  - aota_orchestration_decision_resume
+  - aota_orchestration_decision_list
+  - aota_orchestration_decision_open
+  - aota_orchestration_lineage
+  - aota_operator_inbox_list
+  - aota_operator_inbox_open
+  - aota_operator_consistency_check

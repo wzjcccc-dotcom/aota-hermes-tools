@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.deploy-backups/
+.env
+*.log
+runtime-data/
+profile-tasks/
+handoffs/
+decisions/
