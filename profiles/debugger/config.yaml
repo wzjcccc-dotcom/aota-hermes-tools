@@ -12,6 +12,9 @@ agent:
     - file
     - terminal
     - delegation
+    - aota_handoff
+    - aota_operator
+    - aota_orchestration
   reasoning_effort: max
   task_completion_guidance: true
 toolsets:

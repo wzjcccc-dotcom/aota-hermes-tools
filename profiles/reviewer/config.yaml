@@ -9,6 +9,9 @@ agent:
     - aota_task_spec
     - aota_profile_task
     - aota_web_readonly
+    - aota_handoff
+    - aota_operator
+    - aota_orchestration
   reasoning_effort: max
   task_completion_guidance: true
 toolsets:

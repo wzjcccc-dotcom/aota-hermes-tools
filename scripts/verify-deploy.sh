@@ -230,16 +230,20 @@ check_profile_isolation() {
         return
     fi
 
-    if grep -q 'aota_profile_task' "${runtime_cfg}" 2>/dev/null; then
-        fail "${profile} has aota_profile_task (should be isolated!)"
+    # Extract only the 'toolsets:' section (not disabled_toolsets)
+    local toolsets_section
+    toolsets_section=$(sed -n '/^toolsets:/,/^ [a-z]/p' "${runtime_cfg}" | grep '^  - aota_')
+
+    if echo "${toolsets_section}" | grep -q 'aota_profile_task' 2>/dev/null; then
+        fail "${profile} has aota_profile_task in toolsets (should be isolated!)"
     else
-        pass "${profile}: aota_profile_task NOT present (correctly isolated)"
+        pass "${profile}: aota_profile_task NOT in toolsets (correctly isolated)"
     fi
 
-    if grep -q 'aota_task_spec' "${runtime_cfg}" 2>/dev/null; then
-        fail "${profile} has aota_task_spec (should be isolated!)"
+    if echo "${toolsets_section}" | grep -q 'aota_task_spec' 2>/dev/null; then
+        fail "${profile} has aota_task_spec in toolsets (should be isolated!)"
     else
-        pass "${profile}: aota_task_spec NOT present (correctly isolated)"
+        pass "${profile}: aota_task_spec NOT in toolsets (correctly isolated)"
     fi
 }
 

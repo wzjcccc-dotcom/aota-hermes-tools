@@ -305,15 +305,34 @@ def _do_lineage(args: dict) -> dict[str, Any]:
                 continue
             _add_node(node)
 
-            # Forward: task -> produced_handoff
+            # Forward: task -> produced_handoff (vertical link, not cycle)
             hid = _find_handoff_by_task_id(workspace_id, cid)
             if hid and hid not in visited_ids:
                 queue.append((hid, "handoff"))
 
-            # Backward: task -> predecessor_task
+            # Backward: task -> predecessor_task (horizontal link)
+            # Cycle detection: follow predecessor chain to check if it loops back
             pid = _get_predecessor_task_id(workspace_id, cid)
-            if pid and pid not in visited_ids:
-                queue.append((pid, "task"))
+            if pid:
+                if pid == cid:
+                    # Self-reference is a cycle
+                    cycle_detected = True
+                elif pid not in visited_ids:
+                    queue.append((pid, "task"))
+                else:
+                    # pid already visited — check if following predecessor chain
+                    # from pid leads back to cid (true cycle)
+                    _check_pid = pid
+                    _visited_chain = {cid}
+                    while _check_pid:
+                        if _check_pid == cid:
+                            cycle_detected = True
+                            break
+                        if _check_pid in _visited_chain:
+                            break  # already in our chain but didn't reach cid
+                        _visited_chain.add(_check_pid)
+                        _check_pid = _get_predecessor_task_id(workspace_id, _check_pid)
+                    # If not a cycle, it's a cross-reference — do nothing
 
         elif ctype == "handoff":
             node = _read_handoff_compact(workspace_id, cid)
@@ -324,12 +343,12 @@ def _do_lineage(args: dict) -> dict[str, Any]:
                 continue
             _add_node(node)
 
-            # Forward: handoff -> produced_decision
+            # Forward: handoff -> produced_decision (vertical link, not cycle)
             did = _find_decision_by_handoff_id(workspace_id, cid)
             if did and did not in visited_ids:
                 queue.append((did, "decision"))
 
-            # Backward: handoff -> source_task
+            # Backward: handoff -> source_task (vertical link, not cycle)
             sid = _get_handoff_source_task_id(workspace_id, cid)
             if sid and sid not in visited_ids:
                 queue.append((sid, "task"))
@@ -343,17 +362,21 @@ def _do_lineage(args: dict) -> dict[str, Any]:
                 continue
             _add_node(node)
 
-            # Forward: decision -> created_followup
+            # Forward: decision -> created_followup (forward creation, not cycle)
             ftid = _get_followup_task_id(workspace_id, cid)
             if ftid and ftid not in visited_ids:
                 queue.append((ftid, "task"))
 
-            # Backward: decision -> source_handoff
+            # Backward: decision -> source_handoff (vertical link, not cycle)
             dec = _read_full_decision(workspace_id, cid)
             if dec:
                 hid_from_dec = dec.get("handoff_id", "")
                 if hid_from_dec and hid_from_dec not in visited_ids:
                     queue.append((hid_from_dec, "handoff"))
+
+    # If queue still has items and we hit MAX_NODES, set truncated
+    if queue and len(timeline) >= MAX_NODES and not cycle_detected:
+        truncated = True
 
     return {
         "status": "ok",
