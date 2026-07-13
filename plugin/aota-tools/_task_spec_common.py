@@ -20,6 +20,22 @@ from typing import Any, Optional
 
 from ._workspace import WorkspaceError
 
+from ._role_contracts import (
+    SPEC_SCHEMA_VERSION as ROLE_SCHEMA_VERSION,
+    PROCESS_PATHS,
+    VALIDATION_TIERS,
+    HUMAN_CHECKPOINT_VALUES,
+    get_fields_for_kind,
+    get_render_order,
+    get_prompt_projection,
+    validate_role_contract,
+    apply_defaults,
+    validate_implementation_semantics,
+    validate_diagnosis_semantics,
+    validate_review_semantics,
+    validate_architecture_semantics,
+)
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -28,18 +44,21 @@ TASK_KIND_PROFILE_HINT: dict[str, str] = {
     "implementation": "coder",
     "diagnosis": "debugger",
     "review": "reviewer",
+    "architecture": "architect",
 }
 
 HUMAN_CHECKPOINT_POLICY_MAP: dict[str, str] = {
     "implementation": "required_before_start",
     "diagnosis": "not_required_for_readonly_diagnosis",
     "review": "not_required_for_readonly_review",
+    "architecture": "not_required_for_readonly_architecture",
 }
 
 SOURCE_MUTATION_POLICY_MAP: dict[str, str] = {
     "implementation": "allowed_after_approval",
     "diagnosis": "forbidden",
     "review": "forbidden",
+    "architecture": "forbidden",
 }
 
 EXECUTION_POLICY_LINES: dict[str, list[str]] = {
@@ -61,10 +80,17 @@ EXECUTION_POLICY_LINES: dict[str, list[str]] = {
         "- Profile execution is a separate action.",
         "- Human approval is not required for read-only review tasks.",
     ],
+    "architecture": [
+        "- This SPEC is a draft artifact.",
+        "- Creating or updating this SPEC does not start execution.",
+        "- Profile execution is a separate action.",
+        "- Human approval is not required for read-only architecture review tasks.",
+    ],
 }
 
 RISK_LEVELS = ("low", "medium", "high")
-TASK_KINDS = ("implementation", "diagnosis", "review")
+TASK_KINDS = ("implementation", "diagnosis", "review", "architecture")
+ARCHITECTURE_MODES = ("design_review", "spec_preflight")
 STATUS_DRAFT = "draft"
 STATUS_NEEDS_INPUT = "needs_input"
 
@@ -97,7 +123,17 @@ MUTABLE_SPEC_FIELDS = (
     "validation_policy",
     "stop_conditions",
     "evidence_required",
+    "process_path",
+    "validation_tier",
+    "human_checkpoints",
+    "role_contract",
 )
+
+SPEC_SCHEMA_VERSION_CURRENT = 2  # P11-K: role-specific contract
+SPEC_SCHEMA_VERSION_LEGACY = 1   # P1-P11: common contract
+
+# New shared fields added in P11-K
+NEW_SHARED_FIELDS = ("process_path", "validation_tier", "human_checkpoints")
 
 
 # ---------------------------------------------------------------------------
@@ -165,12 +201,15 @@ def validate_semantic_rules(
     task_kind: str,
     write_scope: list[str],
     subject_task_id: Optional[str] = None,
+    architecture_mode: Optional[str] = None,
 ) -> Optional[str]:
     """Validate task-kind-specific rules.
 
     * **implementation** — *write_scope* must be non-empty
     * **diagnosis** — *write_scope* must be empty []
     * **review** — *write_scope* must be empty [] and *subject_task_id* required
+    * **architecture** — *write_scope* must be empty [], *subject_task_id* required,
+      and *architecture_mode* must be a valid mode
     """
     if task_kind == "implementation":
         if not write_scope:
@@ -185,6 +224,13 @@ def validate_semantic_rules(
             return "review tasks must have an empty write_scope"
         if not subject_task_id:
             return "review tasks require a subject_task_id"
+    elif task_kind == "architecture":
+        if write_scope:
+            return "architecture tasks must have an empty write_scope"
+        if not subject_task_id:
+            return "architecture tasks require a subject_task_id"
+        if architecture_mode not in ARCHITECTURE_MODES:
+            return f"architecture tasks require a valid architecture_mode (design_review or spec_preflight), got {architecture_mode!r}"
     return None
 
 
@@ -199,6 +245,89 @@ def check_scope_overlap(
         items = ", ".join(sorted(overlap))
         return f"write_scope and forbidden_scope overlap on: {items}"
     return None
+
+
+# ---------------------------------------------------------------------------
+# P11-K: Shared field validators
+# ---------------------------------------------------------------------------
+
+def validate_process_path(process_path: Optional[str]) -> Optional[str]:
+    """Validate process_path value."""
+    if process_path is None:
+        return None  # Optional field
+    if process_path not in PROCESS_PATHS:
+        return f"process_path must be one of {PROCESS_PATHS}, got {process_path!r}"
+    return None
+
+
+def validate_validation_tier(tier: Any) -> Optional[str]:
+    """Validate validation_tier value."""
+    if tier is None:
+        return None  # Optional field
+    if not isinstance(tier, int) or isinstance(tier, bool):
+        return f"validation_tier must be an integer, got {type(tier).__name__}"
+    if tier not in VALIDATION_TIERS:
+        return f"validation_tier must be one of {VALIDATION_TIERS}, got {tier}"
+    return None
+
+
+def validate_human_checkpoints(checkpoints: list[str]) -> Optional[str]:
+    """Validate human_checkpoints list."""
+    if not isinstance(checkpoints, list):
+        return "human_checkpoints must be a list"
+    for i, cp in enumerate(checkpoints):
+        if not isinstance(cp, str):
+            return f"human_checkpoints[{i}] is not a string"
+        if cp not in HUMAN_CHECKPOINT_VALUES:
+            return f"human_checkpoints[{i}] has invalid value {cp!r}, must be one of {HUMAN_CHECKPOINT_VALUES}"
+    return None
+
+
+def validate_role_contract_for_task(
+    task_kind: str,
+    role_contract: Optional[dict[str, Any]],
+    architecture_mode: Optional[str] = None,
+) -> list[dict[str, Any]]:
+    """Full role contract validation including semantic rules.
+    
+    Returns list of error dicts (empty = valid).
+    """
+    if role_contract is None:
+        role_contract = {}
+    if not isinstance(role_contract, dict):
+        return [{
+            "code": "ROLE_CONTRACT_INVALID_TYPE",
+            "task_kind": task_kind,
+            "field": "role_contract",
+            "reason": f"role_contract must be a dict, got {type(role_contract).__name__}",
+        }]
+    
+    errors = list(validate_role_contract(task_kind, role_contract, architecture_mode))
+    
+    # Run semantic validators
+    if task_kind == "implementation":
+        errors.extend(validate_implementation_semantics(role_contract))
+    elif task_kind == "diagnosis":
+        errors.extend(validate_diagnosis_semantics(role_contract))
+    elif task_kind == "review":
+        errors.extend(validate_review_semantics(role_contract))
+    elif task_kind == "architecture":
+        errors.extend(validate_architecture_semantics(role_contract, architecture_mode))
+    
+    return errors
+
+
+def role_contract_errors_to_message(errors: list[dict[str, Any]]) -> str:
+    """Convert role contract validation errors to a human-readable message."""
+    if not errors:
+        return ""
+    parts = []
+    for e in errors:
+        code = e.get("code", "UNKNOWN")
+        field = e.get("field", "")
+        reason = e.get("reason", "")
+        parts.append(f"[{code}] {field}: {reason}")
+    return "; ".join(parts)
 
 
 # ---------------------------------------------------------------------------
@@ -282,6 +411,15 @@ def render_spec_md(
     evidence_required: list[str],
     subject_task_id: Optional[str],
     parent_task_id: Optional[str],
+    architecture_mode: Optional[str] = None,
+    subject_spec_revision: Optional[int] = None,
+    subject_spec_sha256: Optional[str] = None,
+    # P11-K new fields
+    process_path: Optional[str] = None,
+    validation_tier: Optional[int] = None,
+    human_checkpoints: Optional[list[str]] = None,
+    role_contract: Optional[dict[str, Any]] = None,
+    spec_schema_version: int = 2,
 ) -> str:
     """Render a deterministic SPEC.md document.
 
@@ -299,6 +437,7 @@ def render_spec_md(
     lines.append(f"- Risk Level: {risk_level}")
     lines.append(f"- Revision: {revision}")
     lines.append(f"- Status: {status}")
+    lines.append(f"- Spec Schema Version: {spec_schema_version}")
     lines.append("")
     lines.append("## Goal")
     lines.append(goal)
@@ -319,7 +458,7 @@ def render_spec_md(
         for item in write_scope:
             lines.append(f"- {item}")
     else:
-        lines.append("- None")
+        lines.append("- None (enforced)")
     lines.append("")
     lines.append("## Forbidden Scope")
     if forbidden_scope:
@@ -347,10 +486,66 @@ def render_spec_md(
     for item in evidence_required:
         lines.append(f"- {item}")
     lines.append("")
+
+    # P11-K: New shared fields
+    lines.append("## Process Path")
+    lines.append(f"- {process_path or 'standard'}")
+    lines.append("")
+    lines.append("## Validation Tier")
+    lines.append(f"- {validation_tier or '0'}")
+    lines.append("")
+    lines.append("## Human Checkpoints")
+    hc = human_checkpoints or []
+    if hc:
+        for item in hc:
+            lines.append(f"- {item}")
+    else:
+        lines.append("- None")
+    lines.append("")
+
+    # P11-K: Role-specific contract fields
+    if role_contract:
+        render_order = get_render_order(task_kind, architecture_mode)
+        for field_name in render_order:
+            value = role_contract.get(field_name)
+            # Convert snake_case to Title Case for section heading
+            heading = field_name.replace("_", " ").title()
+            lines.append(f"## {heading}")
+            if value is not None:
+                if isinstance(value, bool):
+                    lines.append(f"- {'True' if value else 'False'}")
+                elif isinstance(value, dict):
+                    for sub_key, sub_val in value.items():
+                        sub_heading = sub_key.replace("_", " ").title()
+                        lines.append(f"- {sub_heading}: {sub_val}")
+                elif isinstance(value, list):
+                    if len(value) > 0:
+                        for item in value:
+                            lines.append(f"- {item}")
+                    else:
+                        lines.append("- None")
+                elif isinstance(value, str):
+                    lines.append(f"- {value}")
+                else:
+                    lines.append(f"- {value}")
+            else:
+                lines.append("- None")
+            lines.append("")
+
     lines.append("## Related Tasks")
     lines.append(f"- Subject Task: {subject_task_id or 'None'}")
     lines.append(f"- Parent Task: {parent_task_id or 'None'}")
     lines.append("")
+
+    if architecture_mode:
+        lines.append("## Architecture Mode")
+        lines.append(f"- Mode: {architecture_mode}")
+        if subject_spec_revision is not None:
+            lines.append(f"- Subject SPEC Revision: {subject_spec_revision}")
+        if subject_spec_sha256:
+            lines.append(f"- Subject SPEC SHA-256: {subject_spec_sha256}")
+        lines.append("")
+
     lines.append("## Execution Policy")
     for line in EXECUTION_POLICY_LINES[task_kind]:
         lines.append(line)
@@ -374,6 +569,10 @@ def build_spec_dict(
     validation_policy: list[str],
     stop_conditions: list[str],
     evidence_required: list[str],
+    process_path: Optional[str] = None,
+    validation_tier: Optional[int] = None,
+    human_checkpoints: Optional[list[str]] = None,
+    role_contract: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Build the ``spec`` sub-dict for meta.json."""
     return {
@@ -387,6 +586,10 @@ def build_spec_dict(
         "validation_policy": validation_policy,
         "stop_conditions": stop_conditions,
         "evidence_required": evidence_required,
+        "process_path": process_path,
+        "validation_tier": validation_tier,
+        "human_checkpoints": human_checkpoints or [],
+        "role_contract": role_contract or {},
     }
 
 
@@ -406,10 +609,14 @@ def build_meta(
     source_mutation_policy: str,
     spec_sha256: str,
     spec: dict[str, Any],
+    architecture_mode: Optional[str] = None,
+    subject_spec_revision: Optional[int] = None,
+    subject_spec_sha256: Optional[str] = None,
+    spec_schema_version: int = SPEC_SCHEMA_VERSION_CURRENT,
 ) -> dict[str, Any]:
     """Build the full ``meta.json`` dict."""
     return {
-        "schema_version": 1,
+        "schema_version": spec_schema_version,
         "task_id": task_id,
         "workspace_id": workspace_id,
         "workspace_root_at_creation": workspace_root_at_creation,
@@ -422,6 +629,9 @@ def build_meta(
         "updated_at": updated_at,
         "subject_task_id": subject_task_id,
         "parent_task_id": parent_task_id,
+        "architecture_mode": architecture_mode,
+        "subject_spec_revision": subject_spec_revision,
+        "subject_spec_sha256": subject_spec_sha256,
         "human_checkpoint_policy": human_checkpoint_policy,
         "source_mutation_policy": source_mutation_policy,
         "spec_sha256": spec_sha256,

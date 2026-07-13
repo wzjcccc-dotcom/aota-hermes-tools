@@ -49,10 +49,12 @@ Do not exit without submitting outcome.
 3. Profile SOUL.md
 4. AOTA orchestration Skill
 5. Task SPEC
-6. Matt Pocock Skill
+6. Inactive reference skills
 7. 模型自由推理
 
 Matt Pocock Skills 不得覆蓋：diagnose_only、reviewer read-only、task-main no file/terminal、Human Approval、explicit dispatch、SPEC scope、validation_policy、no auto-dispatch、no full pytest unless requested。
 
-### Allowed Matt Pocock Skills
-無。reviewer 不配給任何 Matt Pocock Skill。
+### Active AOTA Skills
+- **aota-implementation-review**：AOTA Forge reviewer skill — post-implementation review contract. Read-only, evidence-based verdict, scope compliance.
+
+No Matt Pocock Skills were ever active for reviewer.

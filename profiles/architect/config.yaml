@@ -1,0 +1,109 @@
+_config_version: 33
+model:
+  default: deepseek-v4-flash
+  provider: opencode-go
+agent:
+  max_turns: 40
+  disabled_toolsets:
+    - aota_fs_copy
+    - aota_task_spec
+    - aota_profile_task
+    - aota_handoff
+    - aota_operator
+    - aota_orchestration
+  reasoning_effort: max
+  task_completion_guidance: true
+toolsets:
+  - aota_core
+  - aota_fs_readonly
+  - aota_repo_readonly
+  - aota_web_readonly
+  - aota_worker_outcome
+  - aota_architect_artifact
+
+plugins:
+  enabled:
+    - aota-tools
+  disabled: []
+providers:
+  agnes:
+    api: http://100.123.10.71:8792/v1
+    key_env: AMF_PROXY_AGNES_KEY
+    models:
+      - agnes-2.0-flash
+    name: Agnes AI via AOTA Proxy
+  opencode-go:
+    key_env: OPENCODE_GO_API_KEY
+    api: http://100.123.10.71:8792/v1
+    models:
+      - deepseek-v4-flash
+      - deepseek-v4-pro
+      - kimi-k2.6
+terminal:
+  backend: local
+  timeout: 600
+  cwd: .
+  persistent_shell: false
+  lifetime_seconds: 300
+delegation:
+  max_concurrent_children: 0
+  max_spawn_depth: 0
+  orchestrator_enabled: false
+memory:
+  memory_enabled: false
+  user_profile_enabled: false
+compression:
+  enabled: false
+skills:
+  disabled:
+    - aota-evidence-first-debugging
+    - aota-implementation-review
+    - aota-profile-task-orchestration
+    - aota-spec-driven-implementation
+    - aota-verification
+    - ask-matt
+    - code-review
+    - codebase-design
+    - design-an-interface
+    - diagnosing-bugs
+    - domain-modeling
+    - grill-with-docs
+    - hermes-agent-architecture
+    - hermes-debugging
+    - hermes-override-sync
+    - hermes-plugin-development
+    - implement
+    - improve-codebase-architecture
+    - petdex
+    - prototype
+    - qa
+    - request-refactor-plan
+    - research
+    - resolving-merge-conflicts
+    - setup-matt-pocock-skills
+    - simplify-code
+    - tdd
+    - to-spec
+    - to-tickets
+    - triage
+    - ubiquitous-language
+    - wayfinder
+  write_approval: false
+  guard_agent_created: false
+display:
+  interface: cli
+  streaming: true
+  show_reasoning: false
+  personality: kawaii
+  language: en
+security:
+  redact_secrets: true
+  tirith_enabled: false
+tool_loop_guardrails:
+  warnings_enabled: true
+  hard_stop_enabled: false
+tool_output:
+  max_bytes: 50000
+  max_lines: 2000
+  max_line_length: 2000
+timezone: Asia/Taipei

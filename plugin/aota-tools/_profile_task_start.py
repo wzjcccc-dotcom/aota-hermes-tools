@@ -13,7 +13,9 @@ import os
 import shlex
 import sys
 import tempfile
+import re
 from pathlib import Path
+from typing import Mapping
 
 from ._profile_task_common import (
     validate_task_id,
@@ -83,6 +85,11 @@ SCHEMA = {
                     "Default: null (no timeout)."
                 ),
             },
+            "origin_session_id": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Optional originating Hermes session ID when trusted invocation context is unavailable.",
+            },
         },
         "required": [
             "workspace_id",
@@ -99,9 +106,9 @@ SCHEMA = {
 # Handler
 # ---------------------------------------------------------------------------
 
-def handle(args: dict, **_kwargs) -> str:
+def handle(args: dict, **kwargs) -> str:
     try:
-        return _do_start(args)
+        return _do_start(args, trusted_session_id=kwargs.get("session_id"))
     except WorkspaceError as e:
         return json.dumps(
             {"status": "rejected", "error": str(e)}, sort_keys=True
@@ -112,7 +119,17 @@ def handle(args: dict, **_kwargs) -> str:
         )
 
 
-def _do_start(args: dict) -> str:
+def _validate_origin_session_id(value: object) -> str | None:
+    if value is None or value == "":
+        return None
+    if not isinstance(value, str) or len(value) > 200:
+        raise WorkspaceError("invalid_origin_session_id")
+    if not re.fullmatch(r"[A-Za-z0-9._:-]+", value):
+        raise WorkspaceError("invalid_origin_session_id")
+    return value
+
+
+def _do_start(args: dict, trusted_session_id: object = None) -> str:
     # ------------------------------------------------------------------
     # Extract parameters
     # ------------------------------------------------------------------
@@ -121,6 +138,11 @@ def _do_start(args: dict) -> str:
     expected_revision: int = args.get("expected_revision", 0)
     expected_spec_sha256: str = args.get("expected_spec_sha256", "")
     timeout_seconds_raw = args.get("timeout_seconds")
+    origin_session_id = _validate_origin_session_id(trusted_session_id)
+    origin_source: str | None = "hermes_session" if origin_session_id else None
+    if origin_session_id is None:
+        origin_session_id = _validate_origin_session_id(args.get("origin_session_id"))
+        origin_source = "explicit_argument" if origin_session_id else None
 
     # Validate timeout_seconds
     timeout_seconds: int | None = None
@@ -175,6 +197,8 @@ def _do_start(args: dict) -> str:
             meta_path=meta_path,
             spec_path=spec_path,
             lock_fd=lock_fd,
+            origin_session_id=origin_session_id,
+            origin_source=origin_source,
         )
     finally:
         release_lock(lock_fd)
@@ -191,6 +215,8 @@ def _do_start_locked(
     meta_path: Path,
     spec_path: Path,
     lock_fd: int,
+    origin_session_id: str | None,
+    origin_source: str | None,
 ) -> str:
     # ------------------------------------------------------------------
     # 5. Load meta.json + SPEC.md
@@ -319,6 +345,48 @@ def _do_start_locked(
                 "review_missing_subject: review task requires subject_task_id"
             )
         _verify_subject_reviewable(workspace_id, subject_task_id)
+        # P11-K: Review subject SPEC binding verification
+        bound_revision = existing_meta.get("subject_spec_revision")
+        bound_sha256 = existing_meta.get("subject_spec_sha256")
+        # Only verify if binding exists (legacy review tasks may not have binding)
+        if bound_revision is not None and bound_sha256:
+            subject_dir = get_task_dir(workspace_id, subject_task_id)
+            subject_meta = load_meta(subject_dir)
+            current_subject_revision = subject_meta.get("revision")
+            current_subject_sha256 = subject_meta.get("spec_sha256")
+            if current_subject_revision != bound_revision or current_subject_sha256 != bound_sha256:
+                raise WorkspaceError(
+                    f"review_subject_stale: subject SPEC has changed since review binding. "
+                    f"bound revision={bound_revision}, current={current_subject_revision}; "
+                    f"bound hash={bound_sha256[:12]}..., current={current_subject_sha256[:12] if current_subject_sha256 else 'None'}..."
+                )
+
+    if task_kind == "architecture":
+        if not subject_task_id:
+            raise WorkspaceError(
+                "architecture_missing_subject: architecture task requires subject_task_id"
+            )
+        _verify_subject_exists(workspace_id, subject_task_id)
+        # P11-J.1-A: For spec_preflight, verify subject SPEC binding
+        architecture_mode = existing_meta.get("architecture_mode")
+        if architecture_mode == "spec_preflight":
+            bound_revision = existing_meta.get("subject_spec_revision")
+            bound_sha256 = existing_meta.get("subject_spec_sha256")
+            if bound_revision is None or not bound_sha256:
+                raise WorkspaceError(
+                    "preflight_binding_missing: spec_preflight task missing subject_spec_revision/subject_spec_sha256"
+                )
+            # Read current subject meta and verify match
+            subject_dir = get_task_dir(workspace_id, subject_task_id)
+            subject_meta = load_meta(subject_dir)
+            current_revision = subject_meta.get("revision")
+            current_sha256 = subject_meta.get("spec_sha256")
+            if current_revision != bound_revision or current_sha256 != bound_sha256:
+                raise WorkspaceError(
+                    f"preflight_stale: subject SPEC has changed since preflight binding. "
+                    f"bound revision={bound_revision}, current={current_revision}; "
+                    f"bound hash={bound_sha256[:12]}..., current={current_sha256[:12] if current_sha256 else 'None'}..."
+                )
 
     # ------------------------------------------------------------------
     # 15. Runner availability preflight
@@ -335,6 +403,11 @@ def _do_start_locked(
     read_scope_list: list[str] = spec.get("read_scope", [])
     write_scope_list: list[str] = spec.get("write_scope", [])
     forbidden_scope_list: list[str] = spec.get("forbidden_scope", [])
+    architecture_mode: str | None = existing_meta.get("architecture_mode")
+    role_contract: dict = spec.get("role_contract", {})
+    process_path: str | None = spec.get("process_path")
+    validation_tier: int | None = spec.get("validation_tier")
+    human_checkpoints: list[str] = spec.get("human_checkpoints", [])
 
     worker_prompt = generate_worker_prompt(
         task_id=task_id,
@@ -347,6 +420,11 @@ def _do_start_locked(
         write_scope=write_scope_list,
         forbidden_scope=forbidden_scope_list,
         subject_task_id=subject_task_id,
+        architecture_mode=architecture_mode,
+        role_contract=role_contract,
+        process_path=process_path,
+        validation_tier=validation_tier,
+        human_checkpoints=human_checkpoints,
     )
 
     # --------------------------------------------------------------------------
@@ -385,30 +463,17 @@ def _do_start_locked(
     q_sha = shlex.quote(expected_spec_sha256)
     q_wr = shlex.quote(str(workspace_root))
 
-    # P8-C.5: Inject trusted execution context into worker env
-    # Also pass API keys + base URL from Hermes delegation config for worker auth.
-    # opencode-go ProviderConfig resolves:
-    #   api_key from OPENCODE_GO_API_KEY env var
-    #   base_url from OPENCODE_GO_BASE_URL env var (default: https://opencode.ai/zen/go/v1)
-    # The profile config's `api` and `key_env` fields are NOT read by
-    # the hardcoded PROVIDER_REGISTRY entry — only these env vars matter.
-    _opencode_key = ""
-    _opencode_base_url = ""
-    _hermes_config_path = Path(os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes"))) / "config.yaml"
-    if _hermes_config_path.exists():
-        try:
-            import yaml as _yaml
-            _cfg = _yaml.safe_load(_hermes_config_path.read_text("utf-8"))
-            _del = _cfg.get("delegation", {})
-            _opencode_key = _del.get("api_key", "")
-            _opencode_base_url = _del.get("base_url", "")
-        except Exception:
-            pass
+    # P8-C.5: Inject trusted execution context into worker env.
+    # Credential routing is Profile-driven: read the derived Profile's model
+    # provider, use its key_env only as the parent environment lookup name,
+    # and use its api as the child base URL.  Never read delegation credentials.
+    _provider_name, _provider_config = _load_profile_provider_config(derived_profile)
+    _opencode_key_env, _opencode_base_url = _resolve_profile_credentials(_provider_config)
+    # Pass the credential by environment-name mapping, never by interpolating
+    # its value into the visible launcher command.
     _opencode_export = (
-        f"export OPENCODE_GO_API_KEY={shlex.quote(_opencode_key)}; "
+        f'export OPENCODE_GO_API_KEY="${{{_opencode_key_env}}}"; '
         f"export OPENCODE_GO_BASE_URL={shlex.quote(_opencode_base_url)}; "
-        f"export AMF_PROXY_AGNES_KEY={shlex.quote(_opencode_key)}; "
-        if _opencode_key else ""
     )
     timeout_iso_deadline: str | None = None
     timeout_quoted: str = ""
@@ -426,6 +491,10 @@ def _do_start_locked(
     worker_log_path = task_dir / f"worker.{task_id}.log"
     q_worker_log = shlex.quote(str(worker_log_path))
 
+    # P11-L.1C: Only trusted launch-time verified revision/SHA are injected.
+    # These override (not inherit) any parent-propagated values — the env_exports
+    # are prepended to the shell command, creating a sanitized child environment
+    # that does NOT trust parent-process AOTA_PROFILE_TASK_SPEC_* values.
     env_exports = (
         f"export AOTA_PROFILE_TASK_WORKSPACE_ID={shlex.quote(workspace_id)}; "
         f"export AOTA_PROFILE_TASK_ID={shlex.quote(task_id)}; "
@@ -433,6 +502,9 @@ def _do_start_locked(
         f"export AOTA_PROFILE_TASK_PROFILE={shlex.quote(derived_profile)};"
         f"{_opencode_export}"
         f"export AOTA_PROFILE_TASK_DIR={shlex.quote(str(task_dir))};"
+        # Bound SPEC identity — frozen at spawn, overrides any parent value
+        f"export AOTA_PROFILE_TASK_SPEC_REVISION={shlex.quote(str(current_revision))}; "
+        f"export AOTA_PROFILE_TASK_SPEC_SHA256={q_sha};"
     )
     if timeout_seconds is not None:
         env_exports += (
@@ -554,6 +626,9 @@ def _do_start_locked(
 
     new_meta = dict(existing_meta)
     new_meta["status"] = "running"
+    new_meta["origin_session_id"] = origin_session_id
+    new_meta["origin_profile"] = None
+    new_meta["origin_source"] = origin_source
     new_meta["execution"] = {
         "start_id": task_id,
         "profile": derived_profile,
@@ -571,6 +646,17 @@ def _do_start_locked(
             "size_bytes": 0,
             "truncated": False,
         },
+    }
+
+    # P11-L.1C: Launch binding receipt — frozen at spawn boundary, not a separate
+    # drift-able authority. Records that the binding was injected into child env.
+    new_meta["execution"]["launch_binding"] = {
+        "injected": True,
+        "spec_revision": current_revision,
+        "spec_sha256": actual_spec_sha256,
+        "injector_version": 1,
+        "injector_source": "aota_profile_task_start",
+        "injected_at": now,
     }
 
     # P11-A: Add timeout metadata when configured
@@ -646,23 +732,155 @@ def _do_start_locked(
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _verify_profile_available(profile: str) -> None:
-    """Verify the Named Profile directory exists and is readable.
+_NAMED_PROFILE_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}")
 
-    Raises WorkspaceError if the profile is unavailable.
+
+def _resolve_global_hermes_root_with_source(
+    *,
+    environ: Mapping[str, str] | None = None,
+    home: Path | None = None,
+) -> tuple[Path, str]:
+    """Resolve the one trusted global Hermes root from the runtime contract.
+
+    Hermes sets ``HERMES_HOME`` to either the global root or the current
+    profile home.  A profile-local value is recognised only for the exact
+    ``<global-root>/profiles/<profile>`` layout; deeper nesting is invalid
+    rather than guessed.  No filesystem search or cwd fallback is used.
     """
-    hermes_home = os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes"))
-    profile_dir = Path(hermes_home) / "profiles" / profile
+    env = os.environ if environ is None else environ
+    raw_home = env.get("HERMES_HOME")
+    source = "HERMES_HOME" if raw_home else "default_home"
+    candidate = Path(raw_home).expanduser() if raw_home else (
+        (Path.home() if home is None else Path(home)) / ".hermes"
+    )
+    candidate = candidate.resolve()
+
+    if candidate.name == "profiles":
+        raise WorkspaceError(f"HERMES_ROOT_INVALID: root_source={source}")
+
+    if candidate.parent.name == "profiles":
+        global_root = candidate.parent.parent.resolve()
+        # ``.../profiles/current/profiles/target`` is not a supported profile
+        # home.  Treat it as an invalid launch context instead of climbing again.
+        if global_root.parent.name == "profiles":
+            raise WorkspaceError(f"HERMES_ROOT_INVALID: root_source={source}")
+        return global_root, source
+
+    return candidate, source
+
+
+def resolve_global_hermes_root(
+    *,
+    environ: Mapping[str, str] | None = None,
+    home: Path | None = None,
+) -> Path:
+    """Return the global Hermes root for global or profile-local HERMES_HOME."""
+    root, _source = _resolve_global_hermes_root_with_source(
+        environ=environ,
+        home=home,
+    )
+    return root
+
+
+def _validate_named_profile(profile: object) -> str:
+    if not isinstance(profile, str) or not _NAMED_PROFILE_RE.fullmatch(profile):
+        raise WorkspaceError("invalid_profile_name")
+    return profile
+
+
+def _profile_resolution_details(
+    profile: str,
+    global_root: Path,
+    root_source: str,
+) -> str:
+    profile_dir = global_root / "profiles" / profile
+    return (
+        f"profile={profile!r} resolved_global_root={global_root} "
+        f"resolved_profile_dir={profile_dir} root_source={root_source}"
+    )
+
+
+def resolve_named_profile_dir(
+    profile: object,
+    *,
+    environ: Mapping[str, str] | None = None,
+    home: Path | None = None,
+) -> Path:
+    """Resolve one Named Profile inside the trusted global Hermes tree."""
+    profile_name = _validate_named_profile(profile)
+    global_root, root_source = _resolve_global_hermes_root_with_source(
+        environ=environ,
+        home=home,
+    )
+    profiles_root = global_root / "profiles"
+    profile_dir = profiles_root / profile_name
+    details = _profile_resolution_details(profile_name, global_root, root_source)
     if not profile_dir.is_dir():
-        raise WorkspaceError(
-            f"profile_unavailable: profile '{profile}' not found at {profile_dir}"
-        )
-    # Check config.yaml exists
+        raise WorkspaceError(f"profile_unavailable: {details}")
+
+    resolved_profiles_root = profiles_root.resolve()
+    resolved_profile_dir = profile_dir.resolve()
+    try:
+        resolved_profile_dir.relative_to(resolved_profiles_root)
+    except ValueError:
+        raise WorkspaceError(f"profile_path_escape: {details}")
+    return resolved_profile_dir
+
+
+def _resolve_named_profile_config_path(profile: object) -> Path:
+    """Resolve the target profile config without permitting symlink escape."""
+    profile_dir = resolve_named_profile_dir(profile)
     config_path = profile_dir / "config.yaml"
     if not config_path.is_file():
-        raise WorkspaceError(
-            f"profile_unavailable: profile '{profile}' has no config.yaml"
-        )
+        raise WorkspaceError(f"profile_unavailable: profile={profile!r} has no config.yaml")
+    resolved_config_path = config_path.resolve()
+    try:
+        resolved_config_path.relative_to(profile_dir)
+    except ValueError:
+        raise WorkspaceError(f"profile_config_path_escape: profile={profile!r}")
+    return resolved_config_path
+
+
+def _verify_profile_available(profile: str) -> None:
+    """Verify the target Named Profile and its config under the global root."""
+    _resolve_named_profile_config_path(profile)
+
+
+def _load_profile_provider_config(profile: str) -> tuple[str | None, dict]:
+    """Load derived Profile provider settings without reading credentials."""
+    fallback_env = "OPENCODE_GO_API_KEY"
+    config_path = _resolve_named_profile_config_path(profile)
+    try:
+        import yaml as _yaml
+
+        config = _yaml.safe_load(config_path.read_text("utf-8"))
+        if not isinstance(config, dict):
+            return None, {"key_env": fallback_env}
+        model = config.get("model")
+        provider_name = model.get("provider") if isinstance(model, dict) else None
+        providers = config.get("providers")
+        provider = providers.get(provider_name) if isinstance(providers, dict) else None
+        if not isinstance(provider_name, str) or not isinstance(provider, dict):
+            return None, {"key_env": fallback_env}
+        result = dict(provider)
+        key_env = result.get("key_env")
+        result["key_env"] = key_env.strip() if isinstance(key_env, str) and key_env.strip() else fallback_env
+        return provider_name, result
+    except Exception:
+        return None, {"key_env": fallback_env}
+
+
+def _resolve_profile_credentials(provider_config: dict) -> tuple[str, str]:
+    """Return credential env-name mapping and URL without reading secrets."""
+    key_env = provider_config.get("key_env") or "OPENCODE_GO_API_KEY"
+    if not isinstance(key_env, str) or not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", key_env):
+        key_env = "OPENCODE_GO_API_KEY"
+    profile_api = provider_config.get("api")
+    base_url = (
+        profile_api.strip() if isinstance(profile_api, str) and profile_api.strip()
+        else os.environ.get("OPENCODE_GO_BASE_URL", "")
+    )
+    return key_env, base_url
 
 
 def _verify_subject_reviewable(workspace_id: str, subject_task_id: str) -> None:
@@ -686,6 +904,16 @@ def _verify_subject_reviewable(workspace_id: str, subject_task_id: str) -> None:
             f"subject_not_reviewable: subject '{subject_task_id}' "
             f"has status '{subject_status}', "
             f"must be one of: {', '.join(sorted(_REVIEWABLE_STATES))}"
+        )
+
+
+def _verify_subject_exists(workspace_id: str, subject_task_id: str) -> None:
+    """Verify the subject task exists (for architecture review)."""
+    subject_dir = get_task_dir(workspace_id, subject_task_id)
+    if not subject_dir.is_dir():
+        raise WorkspaceError(
+            f"subject_not_found: subject task '{subject_task_id}' "
+            f"not found in workspace '{workspace_id}'"
         )
 
 

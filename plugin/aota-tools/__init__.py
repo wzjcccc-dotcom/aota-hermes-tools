@@ -11,6 +11,7 @@ Provides:
   aota_handoff:       aota_handoff_list, aota_handoff_open, aota_handoff_ack
   aota_orchestration: aota_orchestration_decision_record, aota_followup_task_create
   aota_operator:      aota_operator_inbox_list, aota_operator_inbox_open, aota_operator_consistency_check
+  aota_plan_read:     aota_plan_open
 """
 
 from __future__ import annotations
@@ -94,6 +95,12 @@ from ._coder_report_submit import (
     TOOL_NAME as _coder_report_submit_name,
     TOOLSET_NAME as _coder_report_submit_ts,
 )
+from ._architect_report_submit import (
+    handle as _handle_architect_report_submit,
+    SCHEMA as _architect_report_submit_schema,
+    TOOL_NAME as _architect_report_submit_name,
+    TOOLSET_NAME as _architect_report_submit_ts,
+)
 
 # P8-D tools
 from ._handoff_list import (
@@ -146,6 +153,12 @@ from ._orchestration_lineage import (
     TOOL_NAME as _orchestration_lineage_name,
 )
 
+from ._plan_open import (
+    handle as _handle_plan_open,
+    SCHEMA as _plan_open_schema,
+    TOOL_NAME as _plan_open_name,
+)
+
 # P10 tools
 from ._operator_inbox_list import (
     handle as _handle_operator_inbox_list,
@@ -185,12 +198,16 @@ TOOLSET_WORKER_OUTCOME = "aota_worker_outcome"
 TOOLSET_DEBUGGER_ARTIFACT = "aota_debugger_artifact"
 TOOLSET_REVIEWER_ARTIFACT = "aota_reviewer_artifact"
 TOOLSET_CODER_ARTIFACT = "aota_coder_artifact"
+TOOLSET_ARCHITECT_ARTIFACT = "aota_architect_artifact"
 
 # P8-D toolset
 TOOLSET_HANDOFF = "aota_handoff"
 
 # P8-E toolset
 TOOLSET_ORCHESTRATION = "aota_orchestration"
+
+# PF-WI-02 toolset
+TOOLSET_PLAN_READ = "aota_plan_read"
 
 # P10 toolset
 TOOLSET_OPERATOR = "aota_operator"
@@ -393,6 +410,15 @@ def register(ctx) -> None:
         description=_coder_report_submit_schema["description"],
     )
 
+    # P11-J: aota_architect_artifact
+    ctx.register_tool(
+        name=_architect_report_submit_name,
+        toolset=TOOLSET_ARCHITECT_ARTIFACT,
+        schema=_architect_report_submit_schema,
+        handler=_handle_architect_report_submit,
+        description=_architect_report_submit_schema["description"],
+    )
+
     # P8-D: aota_handoff
     ctx.register_tool(
         name=_handoff_list_name,
@@ -460,6 +486,15 @@ def register(ctx) -> None:
         schema=_orchestration_lineage_schema,
         handler=_handle_orchestration_lineage,
         description=_orchestration_lineage_schema["description"],
+    )
+
+    # PF-WI-02: aota_plan_read (registered but intentionally profile-disabled)
+    ctx.register_tool(
+        name=_plan_open_name,
+        toolset=TOOLSET_PLAN_READ,
+        schema=_plan_open_schema,
+        handler=_handle_plan_open,
+        description=_plan_open_schema["description"],
     )
 
     # P10: aota_operator

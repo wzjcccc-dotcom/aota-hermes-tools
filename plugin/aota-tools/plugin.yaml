@@ -1,6 +1,6 @@
 name: aota-tools
-version: 0.13.0
-description: "AOTA narrow tools: path info, bounded file read, content search, Git status/diff evidence, web fetch, file copy, task spec artifact management, profile task start with approval enforcement (P8-C), profile task status with needs_input lifecycle, profile task cancel with durable termination intent, profile task approve for human checkpoint enforcement, durable handoff (P8-D) for orchestrator re-entry, durable orchestration decision + controlled follow-up (P8-E), operator recovery with awaiting-user resume, decision listing/opening, and lineage timeline (P9), and operator inbox + consistency audit (P10)."
+version: 0.17.1
+description: "AOTA narrow tools + delivery outbox bridge (P11-L.1B)."
 author: AOTA
 kind: standalone
 provides_tools:
@@ -22,6 +22,7 @@ provides_tools:
   - aota_debugger_report_submit
   - aota_reviewer_report_submit
   - aota_coder_report_submit
+  - aota_architect_report_submit
   - aota_handoff_list
   - aota_handoff_open
   - aota_handoff_ack
@@ -34,3 +35,4 @@ provides_tools:
   - aota_operator_inbox_list
   - aota_operator_inbox_open
   - aota_operator_consistency_check
+  - aota_plan_open

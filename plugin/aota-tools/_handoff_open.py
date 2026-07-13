@@ -1,7 +1,7 @@
 """aota_handoff_open — open exact handoff and return compact role card content (P8-D).
 
 Reads handoff metadata + compact role card (CARD.json / DIAGNOSIS_CARD.json /
-REVIEW_CARD.json). Does NOT auto-read full artifacts (RESULT.md / DIAGNOSIS.md /
+REVIEW_CARD.json / ARCHITECT_CARD.json). Does NOT auto-read full artifacts (RESULT.md / DIAGNOSIS.md /
 REVIEW.md). If card missing, returns card_missing=true and handoff stays pending.
 """
 
@@ -16,7 +16,8 @@ from ._handoff_common import (
     find_handoff_path,
     get_handoff_filename,
     read_handoff,
-    read_role_card_content,
+    read_role_card_projection,
+    validate_task_id,
     validate_handoff_id,
     validate_workspace_id,
 )
@@ -30,7 +31,7 @@ SCHEMA = {
         "Open an exact durable handoff and return its metadata plus compact "
         "role card content (CARD.json / DIAGNOSIS_CARD.json / REVIEW_CARD.json). "
         "Does NOT auto-open full report artifacts (RESULT.md / DIAGNOSIS.md / "
-        "REVIEW.md). If the role card is missing, returns card_missing=true and "
+        "REVIEW.md / ARCHITECT_REVIEW.md). If the role card is missing, returns card_missing=true and "
         "the handoff stays pending."
     ),
     "parameters": {
@@ -95,20 +96,25 @@ def _do_open(args: dict) -> dict[str, Any]:
     # Read role card from task directory
     task_id = handoff_data.get("task_id", "")
     role_artifact = handoff_data.get("role_artifact", {})
+    if not isinstance(role_artifact, dict):
+        role_artifact = {}
     card_name: Optional[str] = role_artifact.get("card_name")
 
     # Security: derive task_dir using known task_id (not from handoff content for path)
-    task_dir = PROFILE_TASK_ROOT / workspace_id / task_id
+    task_dir = (
+        PROFILE_TASK_ROOT / workspace_id / task_id
+        if isinstance(task_id, str) and validate_task_id(task_id) is None
+        else PROFILE_TASK_ROOT / workspace_id
+    )
 
     card_content: Optional[str] = None
     card_missing: bool = True
+    card_read_reason = "unrecognized_card"
 
-    # Only read if card_name is a known safe value
-    known_cards = {"CARD.json", "DIAGNOSIS_CARD.json", "REVIEW_CARD.json"}
-    if card_name in known_cards:
-        content, missing = read_role_card_content(task_dir, card_name)
-        card_content = content
-        card_missing = missing
+    if isinstance(task_id, str) and validate_task_id(task_id) is None:
+        card_content, card_missing, card_read_reason = read_role_card_projection(
+            task_dir, handoff_data.get("profile"), card_name
+        )
 
     # Build result (handoff metadata + card content)
     result: dict[str, Any] = {
@@ -128,6 +134,7 @@ def _do_open(args: dict) -> dict[str, Any]:
         "needs_input_reason": handoff_data.get("needs_input_reason"),
         "card_missing": card_missing,
         "card_content": card_content,
+        "card_read_reason": card_read_reason,
     }
 
     # P9: add decision metadata if a decision exists for this handoff

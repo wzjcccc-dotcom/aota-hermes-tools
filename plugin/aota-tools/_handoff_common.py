@@ -55,6 +55,11 @@ _ROLE_ARTIFACT_MAP: dict[str, dict[str, Optional[str]]] = {
         "card_name": "REVIEW_CARD.json",
         "full_name": "REVIEW.md",
     },
+    "architect": {
+        "kind": "architecture",
+        "card_name": "ARCHITECT_CARD.json",
+        "full_name": "ARCHITECT_REVIEW.md",
+    },
 }
 
 
@@ -640,8 +645,8 @@ def read_role_card_content(
     if not card_name:
         return None, True
 
-    # Security: only known card names are allowed
-    known_cards = {"CARD.json", "DIAGNOSIS_CARD.json", "REVIEW_CARD.json"}
+    # Security: derive the allowlist from the single trusted role mapping.
+    known_cards = {info["card_name"] for info in _ROLE_ARTIFACT_MAP.values()}
     if card_name not in known_cards:
         return None, True
 
@@ -656,3 +661,34 @@ def read_role_card_content(
         return content, False
     except (OSError, UnicodeDecodeError):
         return None, True
+
+
+def read_role_card_projection(
+    task_dir: Path,
+    profile: Optional[str],
+    declared_card_name: Optional[str],
+) -> tuple[Optional[str], bool, str]:
+    """Read the card authorized for *profile* with a bounded reason."""
+    role_info = _ROLE_ARTIFACT_MAP.get(profile or "")
+    if not role_info:
+        return None, True, "unrecognized_profile"
+    expected_name = role_info["card_name"]
+    if declared_card_name != expected_name:
+        return None, True, "unrecognized_card"
+
+    card_path = task_dir / expected_name
+    if card_path.is_symlink():
+        return None, True, "card_non_regular"
+    if not card_path.exists():
+        return None, True, "card_missing"
+    if not card_path.is_file():
+        return None, True, "card_non_regular"
+    try:
+        content = card_path.read_text("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None, True, "card_unreadable"
+    try:
+        json.loads(content)
+    except json.JSONDecodeError:
+        return None, True, "card_parse_failed"
+    return content, False, "ok"

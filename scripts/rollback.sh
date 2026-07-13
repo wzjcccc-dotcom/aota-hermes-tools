@@ -10,16 +10,14 @@ set -euo pipefail
 # =============================================================================
 
 CANONICAL_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-RUNTIME_PLUGIN_DIR="/home/hermeswebui/.hermes/plugins/aota-tools"
-RUNTIME_SKILL_DIR="/home/hermeswebui/.hermes/skills/aota-profile-task-orchestration"
+RUNTIME_HERMES_HOME="${AOTA_HERMES_HOME_HOST-/home/latios/.hermes}"
+RUNTIME_PLUGIN_DIR=""
+RUNTIME_SKILLS_ROOT=""
+RUNTIME_PROFILES_ROOT=""
 BACKUP_ROOT="${CANONICAL_ROOT}/.deploy-backups"
 
 # ---------- Configuration ----------
 declare -A PROFILE_MAP
-PROFILE_MAP["task-main"]="/home/hermeswebui/.hermes/profiles/task-main"
-PROFILE_MAP["coder"]="/home/hermeswebui/.hermes/profiles/coder"
-PROFILE_MAP["debugger"]="/home/hermeswebui/.hermes/profiles/debugger"
-PROFILE_MAP["reviewer"]="/home/hermeswebui/.hermes/profiles/reviewer"
 
 # ---------- Colors for output ----------
 RED='\033[0;31m'
@@ -30,6 +28,37 @@ NC='\033[0m' # No Color
 info()  { echo -e "${GREEN}[INFO]${NC}  $*"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; }
+
+configure_runtime_paths() {
+    local requested_root="${RUNTIME_HERMES_HOME}"
+
+    if [[ -z "${requested_root}" || "${requested_root}" == "/" || "${requested_root}" != /* || "${requested_root}" == *[[:cntrl:]]* ]]; then
+        error "AOTA_HERMES_HOME_HOST must be an existing absolute directory other than /"
+        exit 1
+    fi
+
+    if ! RUNTIME_HERMES_HOME="$(realpath -e -- "${requested_root}" 2>/dev/null)" || [ ! -d "${RUNTIME_HERMES_HOME}" ]; then
+        error "AOTA_HERMES_HOME_HOST does not resolve to an existing directory: ${requested_root}"
+        exit 1
+    fi
+
+    RUNTIME_PLUGIN_DIR="${RUNTIME_HERMES_HOME}/plugins/aota-tools"
+    RUNTIME_SKILLS_ROOT="${RUNTIME_HERMES_HOME}/skills"
+    RUNTIME_PROFILES_ROOT="${RUNTIME_HERMES_HOME}/profiles"
+
+    if [ ! -d "${RUNTIME_HERMES_HOME}/plugins" ] || [ ! -d "${RUNTIME_PROFILES_ROOT}" ]; then
+        error "Runtime root must contain plugins/ and profiles/: ${RUNTIME_HERMES_HOME}"
+        exit 1
+    fi
+
+    PROFILE_MAP["task-main"]="${RUNTIME_PROFILES_ROOT}/task-main"
+    PROFILE_MAP["coder"]="${RUNTIME_PROFILES_ROOT}/coder"
+    PROFILE_MAP["debugger"]="${RUNTIME_PROFILES_ROOT}/debugger"
+    PROFILE_MAP["reviewer"]="${RUNTIME_PROFILES_ROOT}/reviewer"
+    PROFILE_MAP["architect"]="${RUNTIME_PROFILES_ROOT}/architect"
+}
+
+configure_runtime_paths
 
 # =============================================================================
 # 1. List latest backup in .deploy-backups/
@@ -87,12 +116,17 @@ for profile_name in "${!PROFILE_MAP[@]}"; do
     fi
 done
 
-# Restore skill
-if [ -d "${BACKUP_DIR}/skills/aota-profile-task-orchestration" ]; then
-    info "Restoring skill..."
-    mkdir -p "${RUNTIME_SKILL_DIR}"
-    cp -a "${BACKUP_DIR}/skills/aota-profile-task-orchestration"/* "${RUNTIME_SKILL_DIR}/"
-    info "  Skill files restored."
+# Restore managed skills
+if [ -d "${BACKUP_DIR}/skills" ]; then
+    info "Restoring managed skills..."
+    for backup_skill_dir in "${BACKUP_DIR}/skills/"*/; do
+        skill_name="$(basename "${backup_skill_dir}")"
+        if [ -f "${backup_skill_dir}/SKILL.md" ]; then
+            mkdir -p "${RUNTIME_SKILLS_ROOT}/${skill_name}"
+            cp -a "${backup_skill_dir}/SKILL.md" "${RUNTIME_SKILLS_ROOT}/${skill_name}/SKILL.md"
+            info "  Restored SKILL.md for ${skill_name}"
+        fi
+    done
 fi
 
 # =============================================================================
@@ -119,8 +153,8 @@ info "All restored .py files pass py_compile."
 # =============================================================================
 echo ""
 echo "============================================================================="
-echo -e "${YELLOW}ACTION_REQUIRED${NC}: Hermes profile restart or plugin reload is required"
-echo "                 for the restored plugin changes to take effect."
+echo -e "${YELLOW}ACTION_REQUIRED${NC}: reload/restart requires Human Checkpoint"
+echo "                 before restored plugin changes can take effect."
 echo ""
 echo "  Rollback timestamp: ${LATEST_BACKUP}"
 echo "  Backup restored:    ${BACKUP_DIR}"

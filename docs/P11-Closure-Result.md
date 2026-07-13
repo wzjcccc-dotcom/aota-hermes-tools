@@ -230,6 +230,23 @@ Note: LLM-based workers consistently complete before the timeout deadline becaus
 | pre-existing touched: 0 | ✅ | 17 pre-existing tasks unchanged |
 | orphan processes: 0 | ✅ | zombie entries from watchdog test are dead processes |
 
+## 14b. P11-L.1C — Bound SPEC Launch Contract Closure
+
+| Item | Status | Evidence |
+|------|--------|----------|
+| `AOTA_PROFILE_TASK_SPEC_REVISION` injected at spawn | ✅ | `_profile_task_start.py` env_exports now includes export for this var with frozen `current_revision` value |
+| `AOTA_PROFILE_TASK_SPEC_SHA256` injected at spawn | ✅ | Same env_exports block includes export with frozen `expected_spec_sha256` value |
+| Sanitized child env (not inherit parent) | ✅ | env_exports are prepended to shell command before the worker process; shell `export` overrides any parent-propagated value |
+| Launch binding receipt in meta.execution | ✅ | `meta.json` execution block includes `launch_binding` with injected=true, spec_revision, spec_sha256, injector_version, injector_source, injected_at |
+| SecurityContext `binding_contract_missing` flag | ✅ | `_security_context.py` now detects when worker identity vars are present but SPEC binding vars are missing, setting `binding_contract_missing=True` |
+| Existing `validate_worker_spec_freshness` coverage | ✅ | `_validators.py` already checks `bound_spec_revision==0` and `bound_spec_sha256==""` → SECURITY_CONTEXT_INVALID; now the env vars are populated, these checks protect against stale SPEC |
+| fail-fast before mutation | ✅ | Mutation tools (`_file_copy.py`) call `validate_worker_spec_freshness` which blocks if binding missing or stale |
+| No separate drift-able binding authority | ✅ | Receipt embedded in meta.json execution block — no new standalone artifact |
+
+**Root Cause**: In `_profile_task_start.py` lines 506-518, the `env_exports` block set workspace/task/start/profile/dir/timeout vars but omitted `AOTA_PROFILE_TASK_SPEC_REVISION` and `AOTA_PROFILE_TASK_SPEC_SHA256`. The two bound SPEC env vars were lost at the spawn boundary and never reached the child `hermes -p <profile>` process, so `_security_context.py` always read empty strings for them.
+
+**Fix**: Added both exports to `env_exports` using already-verified `current_revision` and `expected_spec_sha256` (same values validated against meta.json and caller input). Added launch binding receipt to meta.json execution block. Added `binding_contract_missing` diagnostic flag to SecurityContext.
+
 ## 15. Remaining Gaps
 
 1. **LLM-based timeout live E2E**: LLM workers consistently complete tasks before the timeout deadline (they use reasoning to complete the task rather than executing `sleep 120`). Watchdog mechanism verified via standalone live test with `sleep 120` worker process — exit 143, process group killed, no orphans. This is a testing methodology limitation, not a code defect.

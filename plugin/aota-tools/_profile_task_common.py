@@ -13,6 +13,7 @@ from typing import Optional
 
 from ._task_spec_common import TASK_KIND_PROFILE_HINT, TASK_KINDS, STATUS_DRAFT
 from ._workspace import WorkspaceError
+from ._role_contracts import get_prompt_projection
 
 # ---------------------------------------------------------------------------
 # Task ID validation (P4 format: pt_<timestamp>_<random>)
@@ -211,6 +212,33 @@ _ROLE_SPECIFIC: dict[str, str] = {
         "Do not dispatch.\n"
         "Do not exit without submitting outcome."
     ),
+    "architecture": (
+        "You are performing an independent read-only architecture review.\n"
+        "- Read your own architecture review SPEC and meta\n"
+        "- Read the subject task SPEC, meta, and any design artifacts\n"
+        "- Evaluate design adequacy, blast radius, rollback, compatibility\n"
+        "- For spec_preflight: verify SPEC is ready for worker execution\n"
+        "- For design_review: verify design addresses the right problem\n"
+        "- Distinguish: blocking issues, required corrections, optional improvements, residual risks\n"
+        "- Do not modify files\n"
+        "- Do not fix issues\n"
+        "- Do not start or delegate another Profile Task\n"
+        "\n"
+        "Before exit:\n"
+        "1. Call aota_architect_report_submit with your verdict and evidence.\n"
+        "2. Call aota_worker_outcome_submit with your terminal outcome.\n"
+        "\n"
+        "Lifecycle outcome rules:\n"
+        "- A completed review with any verdict (approve/approve_with_changes/block/inconclusive):\n"
+        "  call aota_worker_outcome_submit outcome=completed\n"
+        "- Required evidence is unavailable:\n"
+        "  call aota_worker_outcome_submit outcome=needs_input reason=<bounded reason>\n"
+        "- Review process itself fails:\n"
+        "  call aota_worker_outcome_submit outcome=failed\n"
+        "\n"
+        "Do not modify files. Do not fix issues. Do not dispatch.\n"
+        "Do not exit without submitting outcome."
+    ),
 }
 
 _TIMEOUT_AWARE_INSTRUCTION = """\nThis task has a hard timeout configured. If you exceed the time limit, the\nprocess will be terminated with SIGTERM (and SIGKILL after a grace period).\nUse your time efficiently and submit your outcome before the deadline.\n"""
@@ -229,6 +257,11 @@ def generate_worker_prompt(
     write_scope: list[str] | None = None,
     forbidden_scope: list[str] | None = None,
     subject_task_id: str | None = None,
+    architecture_mode: str | None = None,
+    role_contract: dict | None = None,
+    process_path: str | None = None,
+    validation_tier: str | None = None,
+    human_checkpoints: list[str] | None = None,
 ) -> str:
     """Generate the fixed one-shot worker prompt.
 
@@ -253,6 +286,19 @@ def generate_worker_prompt(
         )
         role_instructions = subject_context + role_instructions
 
+    # Build subject context for architecture tasks
+    if task_kind == "architecture" and subject_task_id:
+        arch_context = (
+            f"\nSubject Task ID:\n{subject_task_id}\n"
+            f"\nArchitecture Mode: {architecture_mode or 'unknown'}\n"
+            f"\nThe subject task artifacts are at:\n"
+            f"<AOTA_PROFILE_TASK_ROOT>/{workspace_id}/{subject_task_id}/\n"
+            f"\nYou must also read:\n"
+            f"- subject SPEC.md and meta.json\n"
+            f"- subject scope.json (if exists)\n"
+        )
+        role_instructions = arch_context + role_instructions
+
     # Build scope constraints section
     scope_lines: list[str] = []
     if read_scope is not None or write_scope is not None or forbidden_scope is not None:
@@ -268,7 +314,46 @@ def generate_worker_prompt(
                 scope_lines.append(f"- Forbidden: {item}")
         scope_lines.append("- NEVER modify any path outside write_scope.")
         scope_lines.append("- If modification outside write_scope is required: STOP and report needs_input.")
-    scope_constraints = "\n".join(scope_lines)
+    # Build role contract section
+    role_contract_lines: list[str] = []
+    if role_contract:
+        projection_fields = get_prompt_projection(task_kind, architecture_mode)
+        if projection_fields:
+            role_contract_lines.append("")
+            role_contract_lines.append("Role Contract:")
+            for field_name in projection_fields:
+                value = role_contract.get(field_name)
+                if value is None:
+                    continue
+                if isinstance(value, (list, dict)) and len(value) == 0:
+                    continue
+                # Convert snake_case to Title Case
+                title = field_name.replace("_", " ").title()
+                if isinstance(value, list):
+                    role_contract_lines.append(f"{title}:")
+                    for item in value:
+                        role_contract_lines.append(f"- {item}")
+                elif isinstance(value, dict):
+                    role_contract_lines.append(f"{title}:")
+                    for k, v in value.items():
+                        role_contract_lines.append(f"{k}: {v}")
+                elif isinstance(value, bool):
+                    role_contract_lines.append(f"{title}:")
+                    role_contract_lines.append(str(value))
+                else:
+                    role_contract_lines.append(f"{title}:")
+                    role_contract_lines.append(str(value))
+
+    # Build combined middle section
+    all_middle_lines = list(scope_lines)
+    # Add process_path / validation_tier / human_checkpoints
+    all_middle_lines.append(f"Process Path: {process_path or 'standard'}")
+    all_middle_lines.append(f"Validation Tier: {validation_tier or '0'}")
+    all_middle_lines.append(f"Human Checkpoints: {', '.join(human_checkpoints) if human_checkpoints else 'none'}")
+    # Append role contract lines (which include their own blank line separator)
+    all_middle_lines.extend(role_contract_lines)
+
+    combined_middle = "\n".join(all_middle_lines)
 
     return _WORKER_PROMPT_TEMPLATE.format(
         task_id=task_id,
@@ -278,7 +363,7 @@ def generate_worker_prompt(
         meta_path=meta_path,
         spec_path=spec_path,
         role_specific_instructions=role_instructions,
-        scope_constraints=scope_constraints,
+        scope_constraints=combined_middle,
     )
 
 

@@ -137,12 +137,12 @@ After opening a handoff and reading its card:
 3. Profile SOUL.md
 4. AOTA orchestration Skill
 5. Task SPEC
-6. Matt Pocock Skill
+6. Inactive reference skills
 7. 模型自由推理
 
 Matt Pocock Skills 不得覆蓋：diagnose_only、reviewer read-only、task-main no file/terminal、Human Approval、explicit dispatch、SPEC scope、validation_policy、no auto-dispatch、no full pytest unless requested。
 
-### Allowed Matt Pocock Skills
-- **ask-matt**：skill/flow routing 指引。用於釐清需求時判斷適用方法。
-- **to-spec**：SPEC 方法論。僅使用 aota_task_spec_create / aota_task_spec_update 建立 SPEC。不得使用 gh CLI 或直接寫檔發布 issue。
-4. If a task is broken, inspect lineage first via `aota_orchestration_lineage`.
+### Active AOTA Skills
+- **aota-profile-task-orchestration**：AOTA Forge delivery orchestration — flow classification, SPEC lifecycle, handoffs, decisions, delivery flow model.
+
+Matt Pocock Skills (ask-matt, to-spec) are now inactive for task-main. They are retained as global reference but not loaded in this profile.

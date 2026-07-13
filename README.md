@@ -1,6 +1,6 @@
-# AOTA Profile Task Control Plane — Canonical Source Repository
+# AOTA Forge — Canonical Source Repository
 
-This repository is the **canonical source of truth** for the AOTA (Architect-Overseer Task Automation) Hermes Profile Task Control Plane plugin, profiles, orchestration skill, and deploy toolchain.
+This repository is the **canonical source of truth** for AOTA Forge — a controlled agentic software delivery control plane driven by specifications, role separation, bounded tools, durable handoffs, and human checkpoints. It contains the AOTA Profile Task plugin, profiles, AOTA Forge skills, and deploy toolchain.
 
 ---
 
@@ -8,29 +8,47 @@ This repository is the **canonical source of truth** for the AOTA (Architect-Ove
 
 | Path | Content |
 |------|---------|
-| `plugin/aota-tools/` | 40 Python files + `plugin.yaml` — the AOTA narrow-tools plugin |
+| `plugin/aota-tools/` | 52 Python files + `plugin.yaml` — the AOTA narrow-tools plugin |
 | `profiles/task-main/` | Task-Main (architect/orchestrator) profile config + SOUL.md |
 | `profiles/coder/` | Coder worker profile config + SOUL.md |
 | `profiles/debugger/` | Debugger worker profile config + SOUL.md |
 | `profiles/reviewer/` | Reviewer worker profile config + SOUL.md |
-| `skills/aota-profile-task-orchestration/` | Orchestration skill (SKILL.md) |
+| `skills/aota-profile-task-orchestration/` | AOTA Forge delivery orchestration skill (SKILL.md) |
+| `skills/aota-spec-driven-implementation/` | AOTA Forge coder skill (SKILL.md) |
+| `skills/aota-evidence-first-debugging/` | AOTA Forge debugger skill (SKILL.md) |
+| `skills/aota-implementation-review/` | AOTA Forge reviewer skill (SKILL.md) |
 | `scripts/deploy.sh` | Canonical → runtime deployment script |
 | `scripts/rollback.sh` | Rollback to previous deployment |
 | `scripts/verify-deploy.sh` | Read-only deploy verification (no modifications) |
 | `scripts/cleanup-controlled-run.py` | Controlled run cleanup utility |
-| `VERSION` | Canonical version (`0.13.0`) |
+| `VERSION` | Canonical version (`0.17.1`) |
 
 ---
 
-## Runtime Destination Paths
+## Host Deploy and Container Runtime Paths
 
-When deployed, sources are copied to these Hermes runtime locations:
+The deploy, verify, and rollback scripts operate only on the host deploy destination:
 
-| Source | Runtime Destination |
-|--------|-------------------|
-| `plugin/aota-tools/*.py + plugin.yaml` | `/home/hermeswebui/.hermes/plugins/aota-tools/` |
-| `profiles/*/config.yaml + SOUL.md` | `/home/hermeswebui/.hermes/profiles/*/` |
-| `skills/aota-profile-task-orchestration/SKILL.md` | `/home/hermeswebui/.hermes/skills/aota-profile-task-orchestration/` |
+```text
+/home/latios/.hermes
+```
+
+Use `AOTA_HERMES_HOME_HOST=/custom/path` to select another existing absolute host root. The value must not be `/`, relative, empty, or contain control characters.
+
+Docker Compose bind-mounts that host root into the WebUI container runtime view:
+
+```text
+host:      /home/latios/.hermes
+container: /home/hermeswebui/.hermes
+```
+
+The container path is explanatory only; it is never a deployment target.
+
+| Source | Host deploy destination |
+|--------|-------------------------|
+| `plugin/aota-tools/*.py + plugin.yaml` | `${AOTA_HERMES_HOME_HOST-/home/latios/.hermes}/plugins/aota-tools/` |
+| `profiles/*/config.yaml + SOUL.md` | `${AOTA_HERMES_HOME_HOST-/home/latios/.hermes}/profiles/*/` |
+| `skills/*/SKILL.md` | `${AOTA_HERMES_HOME_HOST-/home/latios/.hermes}/skills/*/` |
 
 Profile-local `plugins/aota-tools` symlinks point to the global runtime plugin directory (not to this canonical repo).
 
@@ -99,22 +117,23 @@ The rollback script:
 
 | Profile | Enabled Toolsets | Role |
 |---------|-----------------|------|
-| **task-main** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_task_spec, aota_profile_task, aota_handoff, aota_orchestration, aota_operator | Architect, orchestrator — approves, dispatches, reviews lineage |
-| **coder** | aota_core, aota_fs_readonly, aota_worker_outcome, aota_coder_artifact | Implementation worker — bounded writes only |
+| **task-main** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_task_spec, aota_profile_task, aota_handoff, aota_orchestration, aota_operator | Orchestrator — flow classification, SPEC, dispatch, decisions |
+| **coder** | aota_core, aota_fs_readonly, aota_worker_outcome, aota_coder_artifact | Implementation worker — spec-driven, bounded writes |
 | **debugger** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_debugger_artifact | Read-only diagnosis, no mutation |
 | **reviewer** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_worker_outcome, aota_reviewer_artifact | Read-only review, no mutation |
+| **architect** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_architect_artifact | Read-only design review & spec preflight |
 
-- **30 tools** provided by the plugin (listed in `plugin.yaml` `provides_tools`)
-- **14 toolsets** defined in `__init__.py`: `aota_core`, `aota_fs_readonly`, `aota_repo_readonly`, `aota_web_readonly`, `aota_fs_copy`, `aota_task_spec`, `aota_profile_task`, `aota_worker_outcome`, `aota_debugger_artifact`, `aota_reviewer_artifact`, `aota_coder_artifact`, `aota_handoff`, `aota_orchestration`, `aota_operator`
-- **4 profiles** (task-main, coder, debugger, reviewer)
+- **32 tools** provided by the plugin (listed in `plugin.yaml` `provides_tools`)
+- **16 toolsets** defined in `__init__.py`: `aota_core`, `aota_fs_readonly`, `aota_repo_readonly`, `aota_web_readonly`, `aota_fs_copy`, `aota_task_spec`, `aota_profile_task`, `aota_worker_outcome`, `aota_debugger_artifact`, `aota_reviewer_artifact`, `aota_coder_artifact`, `aota_architect_artifact`, `aota_handoff`, `aota_orchestration`, `aota_operator`, `aota_plan_read`
+- **5 profiles** (task-main, coder, debugger, reviewer, architect)
 
-Worker profiles (coder, debugger, reviewer) are isolated from `aota_profile_task` and `aota_task_spec` toolsets — they cannot create, approve, start, or cancel profile tasks.
+Worker profiles (coder, debugger, reviewer, architect) are isolated from `aota_profile_task` and `aota_task_spec` toolsets — they cannot create, approve, start, or cancel profile tasks.
 
 ---
 
 ## Versioning
 
-- **`VERSION`** file at repository root holds the canonical version (`0.13.0`)
+- **`VERSION`** file at repository root holds the canonical version (`0.17.1`)
 - **`plugin.yaml`** in `plugin/aota-tools/` has a `version:` field that must match `VERSION`
 - Both files are compared during deploy and verify
 
@@ -135,9 +154,72 @@ This repository contains **no secrets, API keys, or runtime credentials**. Provi
 
 ---
 
-## 工具功能中文使用說明（30 個工具）
+## AOTA Forge Delivery Lifecycle
 
-AOTA（Architect-Overseer Task Automation）外掛程式提供 30 個狹義工具（narrow tools），分屬於 14 個工具集（toolsets），支援 4 個 Hermes 設定檔（task-main、coder、debugger、reviewer）。以下依工具集分組說明每個工具的功能、參數與使用時機。
+AOTA Forge defines three flow paths:
+
+| Path | Applies to | Flow |
+|------|-----------|------|
+| **Fast** | Clear requirements, low risk, local changes | SPEC → approval → coder → minimal validation → decision |
+| **Standard** | Multi-file, new features, medium risk | Convergence → SPEC → architect preflight (if risk warrants) → coder → reviewer (if needed) → validation (if needed) → decision |
+| **Deep** | Control plane, auth, migrations, high blast radius | Convergence → DESIGN → architect design_review → SPEC → architect spec_preflight → Human approval → coder → reviewer → E2E → close |
+
+**Architect gate**: Available (P11-J). Architect profile performs pre-construction design review and spec preflight. Verdict: approve / approve_with_changes / block / inconclusive. block/inconclusive prevents implementation. approve_with_changes requires correction before proceeding.
+
+**Debug flow**: Diagnosis task → debugger (read-only) → diagnosis report → task-main decision → optional implementation follow-up.
+
+## Role Matrix
+
+| Profile | Responsibility | Write access | Main Skill |
+|---------|---------------|-------------|------------|
+| task-main | Convergence, classification, SPEC, orchestration | no | aota-profile-task-orchestration |
+| coder | Implementation | current native write, future bounded | aota-spec-driven-implementation |
+| debugger | Diagnosis | no | aota-evidence-first-debugging |
+| reviewer | Post-implementation review | no | aota-implementation-review |
+| architect | Pre-construction design review & spec preflight | no | aota-architecture-review |
+
+**Note on coder write access**: Coder currently has native terminal/file access (unrestricted capability). Skill-level terminal constraints are behavioral only, not tool-layer enforcement. Tool-layer security boundaries will be implemented in P11-N/P11-L.
+
+## Validation Model
+
+| Tier | Name | Examples |
+|------|------|---------|
+| 0 | Static | syntax, importability, config parse, schema parse |
+| 1 | Local Smoke | single function, single CLI, single endpoint, small fixture |
+| 2 | Integration | multi-module interaction, service API, task state transition |
+| 3 | Runtime | reload/restart, running process, container, profile loading |
+| 4 | Live E2E | real session, profile task startup, background worker, handoff, decision |
+
+Rules: task-main determines required tier. No default full pytest. Tier 0 ≠ Tier 3. Source correctness ≠ runtime-loaded. Historical E2E ≠ current live PASS.
+
+## Security Model
+
+### Mutation Audit Boundary (P11-N.2)
+
+All mutation tool security rejections are automatically audited by the Tool Layer's `mutation_audit_boundary`. This trusted boundary:
+
+- Catches `SecurityError` subclasses → writes denied audit → re-raises original error
+- Generates `audit_event_id` per tool call for exactly-once tracking
+- Fail-closed: if audit writer fails, raises `AUDIT_GAP` and blocks the mutation
+- Sanitizes target paths (redacts absolute paths, removes control characters)
+- Identity from trusted env vars only — never from model input
+- Does NOT wrap report/outcome submit tools (they must remain submittable after security failure)
+
+## Known Gaps (updated)
+
+- ~~WORKSPACE_ESCAPE manual audit gap~~ — **Closed in P11-N.2**
+- Worker log tee (still open)
+- Git task baseline (P11-L)
+- Task-owned change attribution (P11-L)
+- Unrestricted coder terminal (P11-L)
+- P11-L bounded construction tools
+- P11-M bounded diagnostics
+
+---
+
+## 工具功能中文使用說明（31 個工具）
+
+AOTA（Architect-Overseer Task Automation）外掛程式提供 31 個狹義工具（narrow tools），分屬於 15 個工具集（toolsets），支援 5 個 Hermes 設定檔（task-main、coder、debugger、reviewer、architect）。以下依工具集分組說明每個工具的功能、參數與使用時機。
 
 ---
 
@@ -495,5 +577,6 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 30 個狹義工�
 | **coder** | aota_core, aota_fs_readonly, aota_worker_outcome, aota_coder_artifact | 實作工作者—僅有界限寫入權限 |
 | **debugger** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_debugger_artifact | 唯讀診斷，不進行修改 |
 | **reviewer** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_worker_outcome, aota_reviewer_artifact | 唯讀審查，不進行修改 |
+| **architect** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_architect_artifact | 唯讀設計審查與規格預檢 |
 
-工作者設定檔（coder、debugger、reviewer）與 `aota_profile_task` 及 `aota_task_spec` 工具集隔離——它們無法建立、核准、啟動或取消設定檔任務。
+工作者設定檔（coder、debugger、reviewer、architect）與 `aota_profile_task` 及 `aota_task_spec` 工具集隔離——它們無法建立、核准、啟動或取消設定檔任務。

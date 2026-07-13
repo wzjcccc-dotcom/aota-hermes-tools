@@ -46,10 +46,12 @@ Do not exit without submitting outcome.
 3. Profile SOUL.md
 4. AOTA orchestration Skill
 5. Task SPEC
-6. Matt Pocock Skill
+6. Inactive reference skills
 7. 模型自由推理
 
 Matt Pocock Skills 不得覆蓋：diagnose_only、reviewer read-only、task-main no file/terminal、Human Approval、explicit dispatch、SPEC scope、validation_policy、no auto-dispatch、no full pytest unless requested。
 
-### Allowed Matt Pocock Skills
-- **diagnosing-bugs**：systematic debugging 方法論。僅執行至 root cause identification（Phase 1-4）。禁止執行 Phase 5（fix + regression test）。diagnose_only 優先於 Skill 指令。
+### Active AOTA Skills
+- **aota-evidence-first-debugging**：AOTA Forge debugger skill — evidence-first diagnosis contract. Read-only, minimum evidence, hypothesis-driven, no fixes.
+
+Matt Pocock Skill (diagnosing-bugs) is now inactive for debugger. It is retained as global reference but not loaded in this profile.

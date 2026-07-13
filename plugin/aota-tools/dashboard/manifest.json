@@ -1,0 +1,10 @@
+{
+  "name": "aota-agent-runs",
+  "version": "0.1.0",
+  "label": "Agent Runs",
+  "description": "Read-only AOTA Profile Task Agent Runs dashboard.",
+  "tab": {
+    "path": "/aota-agent-runs",
+    "label": "Agent Runs"
+  }
+}

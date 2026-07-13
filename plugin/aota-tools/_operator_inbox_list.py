@@ -297,7 +297,7 @@ def _do_list(args: dict) -> dict[str, Any]:
         needs_input_reason = execution.get("needs_input_reason")
 
         # C1. Draft tasks
-        if status == "draft" and task_kind in ("implementation", "diagnosis", "review"):
+        if status == "draft" and task_kind in ("implementation", "diagnosis", "review", "architecture"):
             approval = get_approval(workspace_id, task_id)
 
             if task_kind == "implementation":

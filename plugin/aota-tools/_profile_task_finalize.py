@@ -712,6 +712,7 @@ def run_finalize(
                 existing_hid = find_existing_handoff(
                     workspace_id, task_id, start_id
                 )
+                handoff_id_for_outbox: str | None = None
                 if existing_hid is None:
                     task_kind = meta.get("task_kind", "")
                     subject_task_id = meta.get("subject_task_id")
@@ -728,6 +729,44 @@ def run_finalize(
                         task_dir=task_dir,
                     )
                     write_handoff_atomic(workspace_id, handoff_data)
+                    handoff_id_for_outbox = handoff_data.get("handoff_id")
+                else:
+                    handoff_id_for_outbox = existing_hid
+
+                # ------------------------------------------------------------------
+                # P11-L.1B: Produce delivery outbox event AFTER terminal state +
+                # handoff are both durable.  Best-effort — failure does NOT revert
+                # terminal state or handoff.
+                # ------------------------------------------------------------------
+                try:
+                    # Load _delivery_outbox via importlib (standalone CLI compat)
+                    _outbox_mod_path = (
+                        Path(__file__).resolve().parent / "_delivery_outbox.py"
+                    )
+                    _ob_spec = importlib.util.spec_from_file_location(
+                        "_delivery_outbox", str(_outbox_mod_path)
+                    )
+                    if _ob_spec and _ob_spec.loader:
+                        _ob_mod = importlib.util.module_from_spec(_ob_spec)
+                        _ob_spec.loader.exec_module(_ob_mod)
+                        _origin_sid: str | None = meta.get("origin_session_id")
+                        _ob_mod.write_outbox_event(
+                            workspace_id=workspace_id,
+                            task_id=task_id,
+                            start_id=start_id,
+                            profile=profile,
+                            terminal_status=new_status,
+                            handoff_id=handoff_id_for_outbox,
+                            origin_session_id=_origin_sid,
+                            needs_input_reason=needs_input_reason,
+                            completed_at=completed_at,
+                        )
+                except Exception as e:
+                    # Outbox failure is non-fatal — task state is already durable.
+                    print(
+                        f"OUTBOX_EVENT_FAILED: {e}",
+                        file=sys.stderr,
+                    )
             except Exception as e:
                 # Handoff write failure → task remains terminal, log but don't revert
                 print(

@@ -9,7 +9,11 @@ set -euo pipefail
 # =============================================================================
 
 CANONICAL_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-RUNTIME_PLUGIN_DIR="/home/hermeswebui/.hermes/plugins/aota-tools"
+RUNTIME_HERMES_HOME="${AOTA_HERMES_HOME_HOST-/home/latios/.hermes}"
+RUNTIME_PLUGIN_DIR=""
+RUNTIME_SKILLS_ROOT=""
+RUNTIME_PROFILES_ROOT=""
+RUNTIME_PLUGIN_RESOLVED=""
 
 # ---------- Colors for output ----------
 RED='\033[0;31m'
@@ -22,6 +26,38 @@ pass()   { echo -e "${GREEN}[PASS]${NC}  $*"; }
 warn()   { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 fail()   { echo -e "${RED}[FAIL]${NC}  $*"; FAILED=1; }
 header() { echo ""; echo "===== $* ====="; }
+fatal() { echo -e "${RED}[FAIL]${NC} $*" >&2; exit 1; }
+
+configure_runtime_paths() {
+    local requested_root="${RUNTIME_HERMES_HOME}"
+
+    if [[ -z "${requested_root}" || "${requested_root}" == "/" || "${requested_root}" != /* || "${requested_root}" == *[[:cntrl:]]* ]]; then
+        fatal "AOTA_HERMES_HOME_HOST must be an existing absolute directory other than /"
+    fi
+
+    if ! RUNTIME_HERMES_HOME="$(realpath -e -- "${requested_root}" 2>/dev/null)" || [ ! -d "${RUNTIME_HERMES_HOME}" ]; then
+        fatal "AOTA_HERMES_HOME_HOST does not resolve to an existing directory: ${requested_root}"
+    fi
+
+    RUNTIME_PLUGIN_DIR="${RUNTIME_HERMES_HOME}/plugins/aota-tools"
+    RUNTIME_SKILLS_ROOT="${RUNTIME_HERMES_HOME}/skills"
+    RUNTIME_PROFILES_ROOT="${RUNTIME_HERMES_HOME}/profiles"
+
+    if [ ! -d "${RUNTIME_HERMES_HOME}/plugins" ] || [ ! -d "${RUNTIME_PROFILES_ROOT}" ]; then
+        fatal "Runtime root must contain plugins/ and profiles/: ${RUNTIME_HERMES_HOME}"
+    fi
+
+    if ! RUNTIME_PLUGIN_RESOLVED="$(realpath -e -- "${RUNTIME_PLUGIN_DIR}" 2>/dev/null)" || [ ! -d "${RUNTIME_PLUGIN_RESOLVED}" ] || [ "${RUNTIME_PLUGIN_RESOLVED}" = "/" ]; then
+        fatal "Runtime plugin directory must exist and be a directory: ${RUNTIME_PLUGIN_DIR}"
+    fi
+
+    case "${RUNTIME_PLUGIN_RESOLVED}" in
+        "${RUNTIME_HERMES_HOME}"/*) ;;
+        *) fatal "Runtime plugin directory escapes runtime root: ${RUNTIME_PLUGIN_RESOLVED}" ;;
+    esac
+}
+
+configure_runtime_paths
 
 FAILED=0
 
@@ -146,7 +182,24 @@ if [ "${COMPILE_FAILED}" -eq 0 ]; then
 fi
 
 # =============================================================================
-# 6. Tool count (count provides_tools in plugin.yaml)
+# 6. Managed skills
+# =============================================================================
+header "Managed Skills"
+
+for canonical_skill_dir in "${CANONICAL_ROOT}/skills/"*/; do
+    skill_name="$(basename "${canonical_skill_dir}")"
+    runtime_skill="${RUNTIME_SKILLS_ROOT}/${skill_name}/SKILL.md"
+    if [ -f "${canonical_skill_dir}/SKILL.md" ]; then
+        if [ -f "${runtime_skill}" ]; then
+            pass "Runtime skill exists: ${skill_name}"
+        else
+            fail "Runtime skill missing: ${runtime_skill}"
+        fi
+    fi
+done
+
+# =============================================================================
+# 7. Tool count (count provides_tools in plugin.yaml)
 # =============================================================================
 header "Tool Count"
 
@@ -167,7 +220,7 @@ if [ -f "${RUNTIME_PLUGIN_DIR}/plugin.yaml" ]; then
 fi
 
 # =============================================================================
-# 7. Toolset count (count unique toolsets in __init__.py)
+# 8. Toolset count (count unique toolsets in __init__.py)
 # =============================================================================
 header "Toolset Count"
 
@@ -178,28 +231,31 @@ if [ -f "${CANONICAL_ROOT}/plugin/aota-tools/__init__.py" ]; then
 fi
 
 # =============================================================================
-# 8. Profile-local aota-tools symlink check
+# 9. Profile-local aota-tools symlink check
 # =============================================================================
 header "Profile Symlink Check"
 
-for profile in task-main coder debugger reviewer; do
-    SYMLINK_PATH="/home/hermeswebui/.hermes/profiles/${profile}/plugins/aota-tools"
+for profile in task-main coder debugger reviewer architect; do
+    SYMLINK_PATH="${RUNTIME_PROFILES_ROOT}/${profile}/plugins/aota-tools"
     if [ -L "${SYMLINK_PATH}" ]; then
-        TARGET=$(readlink "${SYMLINK_PATH}")
-        if [ "${TARGET}" = "${RUNTIME_PLUGIN_DIR}" ]; then
-            pass "${profile}/plugins/aota-tools -> ${TARGET}"
+        RAW_TARGET="$(readlink -- "${SYMLINK_PATH}" 2>/dev/null || true)"
+        RESOLVED_TARGET="$(readlink -f -- "${SYMLINK_PATH}" 2>/dev/null || true)"
+        if [ -z "${RESOLVED_TARGET}" ]; then
+            fail "profile=${profile} reason=broken_symlink raw_target=${RAW_TARGET:-unresolved}"
+        elif [ "${RESOLVED_TARGET}" = "${RUNTIME_PLUGIN_RESOLVED}" ]; then
+            pass "profile=${profile} target=${RUNTIME_PLUGIN_RESOLVED} raw_target=${RAW_TARGET}"
         else
-            warn "${profile}/plugins/aota-tools points to ${TARGET} (expected ${RUNTIME_PLUGIN_DIR})"
+            fail "profile=${profile} reason=target_mismatch raw_target=${RAW_TARGET:-unresolved}"
         fi
     elif [ -e "${SYMLINK_PATH}" ]; then
-        warn "${profile}/plugins/aota-tools exists but is not a symlink"
+        fail "profile=${profile} reason=not_a_symlink"
     else
-        warn "${profile}/plugins/aota-tools does not exist"
+        fail "profile=${profile} reason=missing_symlink"
     fi
 done
 
 # =============================================================================
-# 9. task-main toolsets check
+# 10. task-main toolsets check
 # =============================================================================
 header "task-main Toolsets"
 
@@ -211,19 +267,19 @@ if [ -f "${CANONICAL_ROOT}/profiles/task-main/config.yaml" ]; then
 fi
 
 # Also check runtime
-if [ -f "/home/hermeswebui/.hermes/profiles/task-main/config.yaml" ]; then
-    RT_TASK_MAIN_COUNT=$(grep -c '^  - aota_' "/home/hermeswebui/.hermes/profiles/task-main/config.yaml" || true)
+if [ -f "${RUNTIME_PROFILES_ROOT}/task-main/config.yaml" ]; then
+    RT_TASK_MAIN_COUNT=$(grep -c '^  - aota_' "${RUNTIME_PROFILES_ROOT}/task-main/config.yaml" || true)
     info "Runtime task-main: ${RT_TASK_MAIN_COUNT} toolsets"
 fi
 
 # =============================================================================
-# 10. coder/debugger/reviewer isolation check
+# 11. coder/debugger/reviewer isolation check
 # =============================================================================
 header "Worker Profile Isolation Check"
 
 check_profile_isolation() {
     local profile=$1
-    local runtime_cfg="/home/hermeswebui/.hermes/profiles/${profile}/config.yaml"
+    local runtime_cfg="${RUNTIME_PROFILES_ROOT}/${profile}/config.yaml"
 
     if [ ! -f "${runtime_cfg}" ]; then
         warn "Runtime config not found for ${profile}"
@@ -252,7 +308,7 @@ check_profile_isolation "debugger"
 check_profile_isolation "reviewer"
 
 # =============================================================================
-# 11. Runtime freshness hint (compare mtimes)
+# 12. Runtime freshness hint (compare mtimes)
 # =============================================================================
 header "Runtime Freshness Hint"
 

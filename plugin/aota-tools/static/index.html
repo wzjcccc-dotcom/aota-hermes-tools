@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>子代理執行狀況</title><link rel="stylesheet" href="/dashboard-plugins/aota-agent-runs/static/dashboard.css"></head>
+<body><main class="dashboard">
+  <header class="page-header"><div><h1>子代理執行狀況</h1><p>Profile Task Agent Runs</p></div><a class="button secondary" href="/">返回 WebUI</a></header>
+  <section class="toolbar" aria-label="篩選"><div class="filters" id="typeFilters"><button data-run-type="all" class="selected">全部代理</button><button data-run-type="profile">Profile Task</button><button data-run-type="delegate">Delegate</button></div><div class="filters" id="statusFilters"><button data-status="running" class="selected">執行中</button><button data-status="all">全部</button><button data-status="completed">已完成</button><button data-status="failed">失敗</button></div><div class="toolbar-end"><div class="filters scope-filters" id="scopeFilters"><button data-scope="current">目前會話</button><button data-scope="all" class="selected">所有會話</button></div><button id="refreshButton" class="button">重新整理</button></div></section>
+  <div class="summary-line"><span id="counts" aria-live="polite"></span><span id="scopeHint" class="hint"></span><span id="updatedAt" class="updated"></span></div>
+  <p id="liveStatus" class="live-status" role="status" hidden></p><p id="error" class="error" role="alert" hidden></p><section id="runs" class="runs" aria-live="polite"><p class="state">載入中…</p></section>
+</main><script src="/dashboard-plugins/aota-agent-runs/static/dashboard.js"></script></body></html>

@@ -1,6 +1,6 @@
 _config_version: 33
 model:
-  default: deepseek-v4-pro
+  default: deepseek-v4-flash
   provider: opencode-go
 agent:
   max_turns: 40
@@ -45,7 +45,7 @@ providers:
       - agnes-2.0-flash
     name: Agnes AI via AOTA Proxy
   opencode-go:
-    key_env: AMF_PROXY_AGNES_KEY
+    key_env: OPENCODE_GO_API_KEY
     api: http://100.123.10.71:8792/v1
     models:
       - deepseek-v4-flash
@@ -68,34 +68,38 @@ compression:
   enabled: false
 skills:
   disabled:
+    - aota-evidence-first-debugging
+    - aota-profile-task-orchestration
+    - aota-spec-driven-implementation
     - aota-verification
-    - hermes-override-sync
-    - simplify-code
-    - petdex
-    - hermes-agent-architecture
-    - hermes-debugging
-    - hermes-plugin-development
     - ask-matt
     - code-review
     - codebase-design
+    - design-an-interface
     - diagnosing-bugs
     - domain-modeling
     - grill-with-docs
+    - hermes-agent-architecture
+    - hermes-debugging
+    - hermes-override-sync
+    - hermes-plugin-development
     - implement
     - improve-codebase-architecture
+    - petdex
     - prototype
+    - qa
+    - request-refactor-plan
     - research
     - resolving-merge-conflicts
     - setup-matt-pocock-skills
+    - simplify-code
     - tdd
     - to-spec
     - to-tickets
     - triage
-    - wayfinder
-    - design-an-interface
-    - qa
-    - request-refactor-plan
     - ubiquitous-language
+    - wayfinder
+    - aota-architecture-review
   write_approval: false
   guard_agent_created: false
 display:

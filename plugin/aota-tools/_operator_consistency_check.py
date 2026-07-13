@@ -73,6 +73,12 @@ from ._task_spec_common import (
     TASK_KINDS,
     read_json,
 )
+from ._role_contracts import (
+    validate_role_contract,
+    validate_implementation_semantics,
+    validate_diagnosis_semantics,
+    validate_architecture_semantics,
+)
 
 TOOL_NAME = "aota_operator_consistency_check"
 TOOLSET_NAME = "aota_operator"
@@ -116,6 +122,7 @@ _KNOWN_CARD_NAMES = {
     "CARD.json": "coder",
     "DIAGNOSIS_CARD.json": "debugger",
     "REVIEW_CARD.json": "reviewer",
+    "ARCHITECT_CARD.json": "architect",
 }
 
 
@@ -212,6 +219,66 @@ def _run_task_checks(
     predecessor_task_id = orchestration_ctx.get("predecessor_task_id") if orchestration_ctx else None
     source_decision_id = orchestration_ctx.get("source_decision_id") if orchestration_ctx else None
     source_handoff_id = orchestration_ctx.get("source_handoff_id") if orchestration_ctx else None
+
+    # P11-K: Schema version, spec fields, and role contract checks
+    schema_version = meta.get("schema_version", 1)
+
+    # 1. SCHEMA_VERSION_LEGACY_WARNING
+    if schema_version == 1:
+        checks.append({
+            "code": "SCHEMA_VERSION_LEGACY",
+            "status": "warning",
+            "evidence": f"Task {task_id} uses legacy schema_version=1 (no role contract)",
+        })
+
+    # 2. PROCESS_PATH_INVALID
+    spec = meta.get("spec", {})
+    process_path = spec.get("process_path")
+    if process_path is not None:
+        if process_path not in ("fast", "standard", "deep"):
+            checks.append({
+                "code": "PROCESS_PATH_INVALID",
+                "status": "broken",
+                "evidence": f"Task {task_id} has invalid process_path: {process_path!r}",
+            })
+
+    # 3. VALIDATION_TIER_INVALID
+    validation_tier = spec.get("validation_tier")
+    if validation_tier is not None:
+        if not isinstance(validation_tier, int) or isinstance(validation_tier, bool):
+            checks.append({
+                "code": "VALIDATION_TIER_INVALID",
+                "status": "broken",
+                "evidence": f"Task {task_id} has invalid validation_tier type: {type(validation_tier).__name__}",
+            })
+        elif validation_tier not in (0, 1, 2, 3, 4):
+            checks.append({
+                "code": "VALIDATION_TIER_INVALID",
+                "status": "broken",
+                "evidence": f"Task {task_id} has invalid validation_tier: {validation_tier}",
+            })
+
+    # 6. HUMAN_CHECKPOINTS_INVALID
+    human_checkpoints = spec.get("human_checkpoints", [])
+    if human_checkpoints:
+        if not isinstance(human_checkpoints, list):
+            checks.append({
+                "code": "HUMAN_CHECKPOINTS_INVALID",
+                "status": "broken",
+                "evidence": f"Task {task_id} human_checkpoints is not a list",
+            })
+        else:
+            valid_values = {"deploy", "reload", "restart", "docker", "host_write",
+                           "runtime_write", "migration", "destructive_file_operation",
+                           "secret_change", "live_worker"}
+            for i, cp in enumerate(human_checkpoints):
+                if not isinstance(cp, str) or cp not in valid_values:
+                    checks.append({
+                        "code": "HUMAN_CHECKPOINTS_INVALID",
+                        "status": "broken",
+                        "evidence": f"Task {task_id} human_checkpoints[{i}] has invalid value: {cp!r}",
+                    })
+                    break
 
     # A. Terminal task should have completion receipt
     if status in TERMINAL_STATUSES:
@@ -385,6 +452,124 @@ def _run_task_checks(
                         })
             except Exception:
                 pass
+
+    # P11-K: Review subject SPEC binding (if schema_version >= 2)
+    if task_kind == "review" and schema_version >= 2:
+        bound_rev = meta.get("subject_spec_revision")
+        bound_hash = meta.get("subject_spec_sha256")
+        subject_tid = meta.get("subject_task_id")
+        if subject_tid:
+            if bound_rev is None or not bound_hash:
+                checks.append({
+                    "code": "REVIEW_BINDING_MISSING",
+                    "status": "warning",
+                    "evidence": f"Review task {task_id} (schema v2) missing subject_spec_revision or subject_spec_sha256",
+                })
+            else:
+                # Verify subject hasn't changed
+                subject_dir = get_task_dir(workspace_id, subject_tid)
+                if subject_dir.is_dir():
+                    try:
+                        s_meta = load_meta(subject_dir)
+                        s_rev = s_meta.get("revision")
+                        s_hash = s_meta.get("spec_sha256")
+                        if s_rev != bound_rev or s_hash != bound_hash:
+                            checks.append({
+                                "code": "REVIEW_SUBJECT_STALE",
+                                "status": "broken",
+                                "evidence": f"Subject SPEC changed since review binding: bound rev={bound_rev}, current={s_rev}",
+                            })
+                    except Exception:
+                        pass
+
+    # Architecture-specific checks
+    if task_kind == "architecture":
+        # architecture task must not have APPROVAL.json
+        approval_path = task_dir / "APPROVAL.json"
+        if approval_path.exists():
+            checks.append({
+                "code": "ARCHITECTURE_HAS_APPROVAL",
+                "status": "warning",
+                "evidence": f"Architecture task {task_id} has APPROVAL.json but architecture tasks do not require approval",
+            })
+        # architecture_mode must be valid
+        arch_mode = meta.get("architecture_mode", "")
+        if arch_mode not in ("design_review", "spec_preflight"):
+            checks.append({
+                "code": "ARCHITECTURE_MODE_INVALID",
+                "status": "broken",
+                "evidence": f"Architecture task {task_id} has invalid architecture_mode: {arch_mode!r}",
+            })
+        # write_scope must be empty
+        spec = meta.get("spec", {})
+        if spec.get("write_scope", []):
+            checks.append({
+                "code": "ARCHITECTURE_WRITE_SCOPE_NOT_EMPTY",
+                "status": "broken",
+                "evidence": f"Architecture task {task_id} has non-empty write_scope",
+            })
+        # subject_task_id must exist
+        if not meta.get("subject_task_id"):
+            checks.append({
+                "code": "ARCHITECTURE_MISSING_SUBJECT",
+                "status": "broken",
+                "evidence": f"Architecture task {task_id} missing subject_task_id",
+            })
+
+        # P11-J.1-A: spec_preflight must have subject SPEC binding
+        if arch_mode == "spec_preflight":
+            bound_rev = meta.get("subject_spec_revision")
+            bound_hash = meta.get("subject_spec_sha256")
+            if bound_rev is None or not bound_hash:
+                checks.append({
+                    "code": "PREFLIGHT_BINDING_MISSING",
+                    "status": "broken",
+                    "evidence": f"Architecture spec_preflight task {task_id} missing subject_spec_revision or subject_spec_sha256",
+                })
+            elif subject_task_id:
+                # Verify subject SPEC hasn't changed
+                subject_dir = get_task_dir(workspace_id, subject_task_id)
+                if subject_dir.is_dir():
+                    try:
+                        s_meta = load_meta(subject_dir)
+                        s_rev = s_meta.get("revision")
+                        s_hash = s_meta.get("spec_sha256")
+                        if s_rev != bound_rev or s_hash != bound_hash:
+                            checks.append({
+                                "code": "PREFLIGHT_STALE",
+                                "status": "broken",
+                                "evidence": f"Subject SPEC changed since preflight binding: bound rev={bound_rev}, current={s_rev}",
+                            })
+                    except Exception:
+                        pass
+
+    # P11-K: Role contract consistency (schema_version >= 2 only)
+    if schema_version >= 2:
+        role_contract = spec.get("role_contract", {})
+        if not isinstance(role_contract, dict):
+            checks.append({
+                "code": "ROLE_CONTRACT_INVALID_TYPE",
+                "status": "broken",
+                "evidence": f"Task {task_id} role_contract is not a dict",
+            })
+        elif task_kind:
+            # Import validation
+            errors = list(validate_role_contract(task_kind, role_contract, arch_mode))
+            if task_kind == "implementation":
+                errors.extend(validate_implementation_semantics(role_contract))
+            elif task_kind == "diagnosis":
+                errors.extend(validate_diagnosis_semantics(role_contract))
+            elif task_kind == "architecture":
+                errors.extend(validate_architecture_semantics(role_contract, arch_mode))
+            if errors:
+                error_msgs = []
+                for e in errors:
+                    error_msgs.append(f"{e.get('field', '')}: {e.get('reason', '')}")
+                checks.append({
+                    "code": "ROLE_CONTRACT_VIOLATION",
+                    "status": "warning",
+                    "evidence": f"Task {task_id} role contract violations: {'; '.join(error_msgs[:3])}",
+                })
 
     # T. Reopen_required from reviewer: predecessor_task_id=review subject
     if predecessor_task_id and source_decision_id:
