@@ -1,0 +1,139 @@
+schema_version: 1
+package: aota-forge-plan
+source_root: ${AOTA_SOURCE_ROOT}
+
+# Every entry is either copied to a Hermes runtime target or retained as a
+# source-only declaration.  The deploy/backup/rollback helpers expand the
+# environment placeholders without reading private .env files.
+groups:
+  plugin:
+    kind: copy
+    source_root: ${AOTA_SOURCE_ROOT}/plugin/aota-tools
+    runtime_root: ${AOTA_HERMES_HOME_HOST}/plugins/aota-tools
+    files:
+      - pattern: "*.py"
+        destination: "{relative_path}"
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: plugin.yaml
+        destination: plugin.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  profiles:
+    kind: copy
+    source_root: ${AOTA_SOURCE_ROOT}/profiles
+    runtime_root: ${AOTA_HERMES_HOME_HOST}/profiles
+    files:
+      - source: task-main/config.yaml
+        destination: task-main/config.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: task-main/SOUL.md
+        destination: task-main/SOUL.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: architect/config.yaml
+        destination: architect/config.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: architect/SOUL.md
+        destination: architect/SOUL.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: reviewer/config.yaml
+        destination: reviewer/config.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: reviewer/SOUL.md
+        destination: reviewer/SOUL.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: coder/config.yaml
+        destination: coder/config.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: coder/SOUL.md
+        destination: coder/SOUL.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: debugger/config.yaml
+        destination: debugger/config.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: debugger/SOUL.md
+        destination: debugger/SOUL.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  skills:
+    kind: copy
+    source_root: ${AOTA_SOURCE_ROOT}/skills
+    runtime_root: ${AOTA_HERMES_HOME_HOST}/skills
+    files:
+      - pattern: "*/SKILL.md"
+        destination: "{relative_path}"
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  compose:
+    kind: source_only
+    source_root: ${AOTA_HERMES_STACK_ROOT}
+    runtime_root: ${AOTA_HERMES_STACK_ROOT}
+    files:
+      - source: docker-compose.yml
+        destination: docker-compose.yml
+        file_type: compose
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: .env.example
+        destination: .env.example
+        file_type: env-example
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  scripts:
+    kind: source_only
+    source_root: ${AOTA_SOURCE_ROOT}
+    runtime_root: ${AOTA_SOURCE_ROOT}
+    files:
+      - pattern: "scripts/*.sh"
+        destination: "{relative_path}"
+        file_type: shell
+        required: true
+        expected_mode: preserve
+        managed: true
+      - pattern: "scripts/*.py"
+        destination: "{relative_path}"
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true

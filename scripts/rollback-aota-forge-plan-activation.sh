@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Manifest-driven rollback.  Runtime restart remains a Human Checkpoint action.
+# Package-only rollback.  It never restarts or recreates Hermes.
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if [ "$#" -gt 0 ]; then
     exec python3 "${ROOT}/scripts/aota_forge_plan_package.py" rollback "$1"

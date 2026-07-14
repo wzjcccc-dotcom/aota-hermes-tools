@@ -12,8 +12,8 @@ registration, but registered handlers receive no trusted invocation principal,
 session, toolset, or workspace binding. Therefore this foundation currently
 uses an **unactivated deployment-injected fallback contract**:
 
-- `AOTA_TRUSTED_PRINCIPAL=task-main`
-- `AOTA_TRUSTED_AUTHORITIES=plan_read,plan_write`
+- `AOTA_TRUSTED_PRINCIPAL=<Human-supplied principal at activation>`
+- `AOTA_TRUSTED_AUTHORITIES=<Human-supplied authority list at activation>`
 - optional `AOTA_TRUSTED_WORKSPACE_ID=<registered workspace id>`
 - optional bounded `AOTA_ORIGIN_SESSION_ID=<id>`
 
