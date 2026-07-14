@@ -1,4 +1,4 @@
-"""AOTA Tools plugin for Hermes — P2 read-only narrow tools + P3 web/fetch + file copy + P4 task spec artifact + P5 profile task start + P6 profile task status + P7 profile task cancel + P8-D durable handoff + P10 operator inbox.
+"""AOTA Tools plugin for Hermes — P2 read-only narrow tools + P3 web/fetch + file copy + P4 task spec artifact + P5 profile task start + P6 profile task status + P7 profile task cancel + P8-D durable handoff + P10 operator inbox + PF-WI-05 Plan→SPEC traceability.
 
 Provides:
   aota_core:          aota_runtime_info
@@ -158,6 +158,19 @@ from ._plan_open import (
     SCHEMA as _plan_open_schema,
     TOOL_NAME as _plan_open_name,
 )
+from ._plan_mutation import (
+    handle_create as _handle_plan_create,
+    handle_update as _handle_plan_update,
+    CREATE_SCHEMA as _plan_create_schema,
+    UPDATE_SCHEMA as _plan_update_schema,
+    CREATE_TOOL_NAME as _plan_create_name,
+    UPDATE_TOOL_NAME as _plan_update_name,
+)
+from ._work_classifier import (
+    handle as _handle_work_classify,
+    SCHEMA as _work_classify_schema,
+    TOOL_NAME as _work_classify_name,
+)
 
 # P10 tools
 from ._operator_inbox_list import (
@@ -206,8 +219,10 @@ TOOLSET_HANDOFF = "aota_handoff"
 # P8-E toolset
 TOOLSET_ORCHESTRATION = "aota_orchestration"
 
-# PF-WI-02 toolset
+# PF-WI-02 / PF-WI-03 toolsets
 TOOLSET_PLAN_READ = "aota_plan_read"
+TOOLSET_PLAN_WRITE = "aota_plan_write"
+TOOLSET_WORK_INTAKE = "aota_work_intake"
 
 # P10 toolset
 TOOLSET_OPERATOR = "aota_operator"
@@ -495,6 +510,31 @@ def register(ctx) -> None:
         schema=_plan_open_schema,
         handler=_handle_plan_open,
         description=_plan_open_schema["description"],
+    )
+
+    # PF-WI-03: aota_plan_write (registered but intentionally profile-disabled)
+    ctx.register_tool(
+        name=_plan_create_name,
+        toolset=TOOLSET_PLAN_WRITE,
+        schema=_plan_create_schema,
+        handler=_handle_plan_create,
+        description=_plan_create_schema["description"],
+    )
+    ctx.register_tool(
+        name=_plan_update_name,
+        toolset=TOOLSET_PLAN_WRITE,
+        schema=_plan_update_schema,
+        handler=_handle_plan_update,
+        description=_plan_update_schema["description"],
+    )
+
+    # PF-WI-04: source capability only; intentionally profile-disabled.
+    ctx.register_tool(
+        name=_work_classify_name,
+        toolset=TOOLSET_WORK_INTAKE,
+        schema=_work_classify_schema,
+        handler=_handle_work_classify,
+        description=_work_classify_schema["description"],
     )
 
     # P10: aota_operator

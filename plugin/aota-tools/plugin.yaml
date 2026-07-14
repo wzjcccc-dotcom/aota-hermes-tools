@@ -1,5 +1,5 @@
 name: aota-tools
-version: 0.17.1
+version: 0.17.6
 description: "AOTA narrow tools + delivery outbox bridge (P11-L.1B)."
 author: AOTA
 kind: standalone
@@ -36,3 +36,6 @@ provides_tools:
   - aota_operator_inbox_open
   - aota_operator_consistency_check
   - aota_plan_open
+  - aota_plan_create
+  - aota_plan_update
+  - aota_work_classify

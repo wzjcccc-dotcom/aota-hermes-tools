@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import shlex
+import subprocess
 import sys
 import tempfile
 import re
@@ -41,14 +42,23 @@ from ._task_spec_common import (
     utc_now_iso,
 )
 from ._workspace import WorkspaceError, resolve_workspace
+from ._spec_traceability import task_lineage
 
 TOOL_NAME = "aota_profile_task_start"
 TOOLSET_NAME = "aota_profile_task"
 
+# Deployment-owned Plan authority must never cross the Profile Task boundary.
+# Keep this allowlist exact: other AOTA worker/runtime variables are not removed.
+_TRUSTED_ORCHESTRATOR_ENV_KEYS = (
+    "AOTA_TRUSTED_PRINCIPAL",
+    "AOTA_TRUSTED_AUTHORITIES",
+    "AOTA_TRUSTED_WORKSPACE_ID",
+)
+
 SCHEMA = {
     "name": TOOL_NAME,
     "description": (
-        "Start one existing validated AOTA draft task using its fixed derived Named Profile. "
+        "Start one existing validated frozen AOTA task using its fixed derived Named Profile. "
         "This tool verifies exact revision and SPEC SHA-256, derives profile from task_kind, "
         "and uses the existing Hermes background completion rail. "
         "It does not accept arbitrary commands or profiles. "
@@ -100,6 +110,65 @@ SCHEMA = {
         "additionalProperties": False,
     },
 }
+
+
+def build_profile_task_worker_env(
+    parent_env: Mapping[str, str], *, task_markers: Mapping[str, str]
+) -> dict[str, str]:
+    """Return a worker-only env copy with orchestrator authority removed."""
+    child_env = dict(parent_env)
+    for key in _TRUSTED_ORCHESTRATOR_ENV_KEYS:
+        child_env.pop(key, None)
+    child_env.update(task_markers)
+    return child_env
+
+
+def _trusted_env_unset_command() -> str:
+    """Return the exact child-shell sanitization prefix; never accepts caller keys."""
+    return f"unset {' '.join(_TRUSTED_ORCHESTRATOR_ENV_KEYS)};"
+
+
+def run_worker_env_sanitization_smoke() -> dict[str, str]:
+    """Isolated env-only smoke; it never mutates this process environment."""
+    parent_env = {
+        "PATH": os.environ.get("PATH", ""),
+        "HOME": os.environ.get("HOME", ""),
+        "AOTA_RUNTIME_ROOT": "/fixture/runtime",
+        "AOTA_TRUSTED_PRINCIPAL": "task-main",
+        "AOTA_TRUSTED_AUTHORITIES": "plan_read,plan_write",
+        "AOTA_TRUSTED_WORKSPACE_ID": "fixture",
+    }
+    markers = {
+        "AOTA_PROFILE_TASK_ID": "pt_20260714T000000_deadbeef",
+        "AOTA_PROFILE_TASK_START_ID": "pt_20260714T000000_deadbeef",
+        "AOTA_PROFILE_TASK_PROFILE": "coder",
+    }
+    before_parent = dict(parent_env)
+    before_process = dict(os.environ)
+    child_env = build_profile_task_worker_env(parent_env, task_markers=markers)
+    partial_env = build_profile_task_worker_env(
+        {"AOTA_TRUSTED_PRINCIPAL": "", "PATH": parent_env["PATH"]},
+        task_markers=markers,
+    )
+    assert parent_env == before_parent and dict(os.environ) == before_process
+    assert all(key not in child_env for key in _TRUSTED_ORCHESTRATOR_ENV_KEYS)
+    assert all(key not in partial_env for key in _TRUSTED_ORCHESTRATOR_ENV_KEYS)
+    assert all(child_env[key] == value for key, value in markers.items())
+    assert child_env["AOTA_RUNTIME_ROOT"] == "/fixture/runtime"
+    nested_check = (
+        "import os, subprocess, sys; keys="
+        + repr(_TRUSTED_ORCHESTRATOR_ENV_KEYS)
+        + "; assert all(key not in os.environ for key in keys); "
+        + "subprocess.run([sys.executable, '-c', "
+        + repr("import os; assert all(key not in os.environ for key in " + repr(_TRUSTED_ORCHESTRATOR_ENV_KEYS) + ")")
+        + "], check=True)"
+    )
+    shell_command = (
+        f"{_trusted_env_unset_command()} exec {shlex.quote(sys.executable)} "
+        f"-c {shlex.quote(nested_check)}"
+    )
+    subprocess.run(["/bin/sh", "-c", shell_command], env=parent_env, check=True)
+    return {"status": "PASS", "trusted_keys": "absent", "nested_process": "absent"}
 
 
 # ---------------------------------------------------------------------------
@@ -241,13 +310,13 @@ def _do_start_locked(
         )
 
     # ------------------------------------------------------------------
-    # 8. Status gate: only allow draft
+    # 8. Status gate: a frozen binding is required while lifecycle remains draft.
     # ------------------------------------------------------------------
     current_status = existing_meta.get("status", "")
-    if current_status != STATUS_DRAFT:
+    legacy_spec = existing_meta.get("schema_version", 0) < 3
+    if current_status != STATUS_DRAFT or (not legacy_spec and existing_meta.get("frozen_revision") != existing_meta.get("revision")):
         raise WorkspaceError(
-            f"task_not_startable: task '{task_id}' has status "
-            f"'{current_status}', expected '{STATUS_DRAFT}'"
+            f"task_not_startable: task '{task_id}' requires its current draft revision to be frozen"
         )
 
     # ------------------------------------------------------------------
@@ -491,12 +560,12 @@ def _do_start_locked(
     worker_log_path = task_dir / f"worker.{task_id}.log"
     q_worker_log = shlex.quote(str(worker_log_path))
 
-    # P11-L.1C: Only trusted launch-time verified revision/SHA are injected.
-    # These override (not inherit) any parent-propagated values — the env_exports
-    # are prepended to the shell command, creating a sanitized child environment
-    # that does NOT trust parent-process AOTA_PROFILE_TASK_SPEC_* values.
+    # The terminal rail inherits task-main's environment. This child shell is
+    # the single worker launch boundary: remove only trusted Plan authority,
+    # then inject worker-owned markers and bounded launch values below.
     env_exports = (
-        f"export AOTA_PROFILE_TASK_WORKSPACE_ID={shlex.quote(workspace_id)}; "
+        _trusted_env_unset_command()
+        + f"export AOTA_PROFILE_TASK_WORKSPACE_ID={shlex.quote(workspace_id)}; "
         f"export AOTA_PROFILE_TASK_ID={shlex.quote(task_id)}; "
         f"export AOTA_PROFILE_TASK_START_ID={shlex.quote(task_id)}; "
         f"export AOTA_PROFILE_TASK_PROFILE={shlex.quote(derived_profile)};"
@@ -658,6 +727,9 @@ def _do_start_locked(
         "injector_source": "aota_profile_task_start",
         "injected_at": now,
     }
+    lineage = task_lineage(existing_meta.get("spec", {}).get("source_traceability"))
+    if lineage is not None:
+        new_meta["execution"]["source_plan"] = lineage
 
     # P11-A: Add timeout metadata when configured
     if timeout_seconds is not None:

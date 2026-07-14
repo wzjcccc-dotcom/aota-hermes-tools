@@ -43,6 +43,7 @@ from ._task_spec_common import (
     role_contract_errors_to_message,
     apply_defaults,
 )
+from ._spec_traceability import build_trusted_snapshot, validate_traceability_input
 
 TOOL_NAME = "aota_task_spec_create"
 TOOLSET_NAME = "aota_task_spec"
@@ -160,8 +161,12 @@ SCHEMA = {
             },
             "role_contract": {
                 "type": "object",
-                "description": "Role-specific contract fields. Required fields and allowed fields depend on task_kind. See tool description for per-kind schema. Forbidden fields will be rejected.",
+                "description": "Role-specific contract fields. Required fields and allowed fields depend on task_kind. See tool description for per-kind schema. Forbidden fields from other task kinds will be rejected.",
                 "default": {},
+            },
+            "traceability": {
+                "type": "object",
+                "description": "Optional strict source reference: {mode: standalone} or {mode: plan_linked, plan_id, milestone_id, work_item_id, architect_review_id?}. Trusted revision/SHA fields are never accepted.",
             },
         },
         "required": [
@@ -221,6 +226,7 @@ def _do_create(args: dict) -> str:
     validation_tier: int | None = args.get("validation_tier")
     human_checkpoints: list[str] = args.get("human_checkpoints") or []
     role_contract: dict | None = args.get("role_contract") or {}
+    traceability_input: dict | None = args.get("traceability")
 
     # ------------------------------------------------------------------
     # 1. Validate scope expressions
@@ -281,6 +287,14 @@ def _do_create(args: dict) -> str:
     from ._workspace import resolve_workspace
 
     workspace_root = resolve_workspace(workspace_id)
+
+    # ------------------------------------------------------------------
+    # 3a. Validate the optional source reference against the trusted Plan.
+    # ------------------------------------------------------------------
+    source_traceability = None
+    parsed_traceability = validate_traceability_input(traceability_input)
+    if parsed_traceability is not None:
+        source_traceability = build_trusted_snapshot(workspace_id, parsed_traceability)
 
     # ------------------------------------------------------------------
     # 4. Validate field limits
@@ -375,6 +389,7 @@ def _do_create(args: dict) -> str:
         validation_tier=validation_tier,
         human_checkpoints=human_checkpoints,
         role_contract=role_contract,
+        source_traceability=source_traceability,
         spec_schema_version=SPEC_SCHEMA_VERSION_CURRENT,
     )
 
@@ -410,6 +425,7 @@ def _do_create(args: dict) -> str:
         validation_tier=validation_tier,
         human_checkpoints=human_checkpoints,
         role_contract=role_contract,
+        source_traceability=source_traceability,
     )
 
     human_checkpoint_policy = HUMAN_CHECKPOINT_POLICY_MAP[task_kind]

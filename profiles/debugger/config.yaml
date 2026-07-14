@@ -7,14 +7,17 @@ agent:
   max_iterations: 100
   disabled_toolsets:
     - aota_fs_copy
-    - aota_task_spec
+    - aota_handoff
+    - aota_orchestration
+    - aota_operator
+    - aota_plan_read
+    - aota_plan_write
     - aota_profile_task
+    - aota_task_spec
+    - aota_work_intake
+    - delegation
     - file
     - terminal
-    - delegation
-    - aota_handoff
-    - aota_operator
-    - aota_orchestration
   reasoning_effort: max
   task_completion_guidance: true
 toolsets:

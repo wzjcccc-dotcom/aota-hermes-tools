@@ -129,8 +129,8 @@ MUTABLE_SPEC_FIELDS = (
     "role_contract",
 )
 
-SPEC_SCHEMA_VERSION_CURRENT = 2  # P11-K: role-specific contract
-SPEC_SCHEMA_VERSION_LEGACY = 1   # P1-P11: common contract
+SPEC_SCHEMA_VERSION_LEGACY = 2   # P11-K: role-specific contract before traceability
+SPEC_SCHEMA_VERSION_CURRENT = 3  # PF-WI-05: verified Plan traceability
 
 # New shared fields added in P11-K
 NEW_SHARED_FIELDS = ("process_path", "validation_tier", "human_checkpoints")
@@ -419,7 +419,8 @@ def render_spec_md(
     validation_tier: Optional[int] = None,
     human_checkpoints: Optional[list[str]] = None,
     role_contract: Optional[dict[str, Any]] = None,
-    spec_schema_version: int = 2,
+    source_traceability: Optional[dict[str, Any]] = None,
+    spec_schema_version: int = SPEC_SCHEMA_VERSION_CURRENT,
 ) -> str:
     """Render a deterministic SPEC.md document.
 
@@ -537,6 +538,21 @@ def render_spec_md(
     lines.append(f"- Parent Task: {parent_task_id or 'None'}")
     lines.append("")
 
+    if spec_schema_version >= 3:
+        lines.append("## Source Traceability")
+        if source_traceability is None:
+            lines.append("- Mode: standalone")
+        else:
+            lines.append("- Mode: plan_linked")
+            lines.append(f"- Plan ID: {source_traceability['plan_id']}")
+            lines.append(f"- Plan Revision: {source_traceability['plan_revision']}")
+            lines.append(f"- Plan SHA-256: {source_traceability['plan_sha256']}")
+            lines.append(f"- Milestone ID: {source_traceability['milestone_id']}")
+            lines.append(f"- Work Item ID: {source_traceability['work_item_id']}")
+            lines.append(f"- Architect Review ID: {source_traceability['architect_review_id'] or 'None'}")
+            lines.append(f"- Verification Status: {source_traceability['verification_status']}")
+        lines.append("")
+
     if architecture_mode:
         lines.append("## Architecture Mode")
         lines.append(f"- Mode: {architecture_mode}")
@@ -573,6 +589,7 @@ def build_spec_dict(
     validation_tier: Optional[int] = None,
     human_checkpoints: Optional[list[str]] = None,
     role_contract: Optional[dict[str, Any]] = None,
+    source_traceability: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Build the ``spec`` sub-dict for meta.json."""
     return {
@@ -590,6 +607,7 @@ def build_spec_dict(
         "validation_tier": validation_tier,
         "human_checkpoints": human_checkpoints or [],
         "role_contract": role_contract or {},
+        "source_traceability": source_traceability,
     }
 
 

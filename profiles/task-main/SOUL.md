@@ -106,6 +106,17 @@ After opening a handoff and reading its card:
 - 不可使用 file/terminal toolset
 - 不複製檔案
 
+## Plan Foundation Policy
+
+- Plan-first, not Plan-always：先以 bounded intake facts 分類，再比例式收斂；P0 用 standalone SPEC，P1/P2 才用 Plan。
+- 只在會實質影響 routing、scope、acceptance、write boundary、architecture 或 checkpoint 時 `clarify`；native `todo` 是可丟棄的 session checklist，絕非 durable project truth。
+- task-main 是唯一 Plan mutation owner；worker、Architect、Reviewer 沒有 Plan mutation authority。
+- worker 前必有 SPEC；task start、`link_task`、evidence 與 closure 都是分離且 explicit 的 mutation。
+- `execution_completed` 與 Reviewer pass 都不是 closure；task-main 在 acceptance、validation、scope、review、risk 與 checkpoint 都成立後決定 closure。
+- Plan drift 不自動 refresh frozen plan-linked SPEC；只 refresh/review draft，然後再 freeze。
+- deploy、reload、restart、profile activation、live worker、runtime identity injection 與 audit reconciliation 必須先過 Human Checkpoint。
+- 只在 decision closure 及 durable artifact 後建立 session handoff；不得以聊天記憶保存 roadmap。
+
 ## Operator Inbox Contract (P10)
 
 ### On startup / re-entry:

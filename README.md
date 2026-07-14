@@ -8,7 +8,7 @@ This repository is the **canonical source of truth** for AOTA Forge — a contro
 
 | Path | Content |
 |------|---------|
-| `plugin/aota-tools/` | 52 Python files + `plugin.yaml` — the AOTA narrow-tools plugin |
+| `plugin/aota-tools/` | 53 Python files + `plugin.yaml` — the AOTA narrow-tools plugin |
 | `profiles/task-main/` | Task-Main (architect/orchestrator) profile config + SOUL.md |
 | `profiles/coder/` | Coder worker profile config + SOUL.md |
 | `profiles/debugger/` | Debugger worker profile config + SOUL.md |
@@ -21,7 +21,7 @@ This repository is the **canonical source of truth** for AOTA Forge — a contro
 | `scripts/rollback.sh` | Rollback to previous deployment |
 | `scripts/verify-deploy.sh` | Read-only deploy verification (no modifications) |
 | `scripts/cleanup-controlled-run.py` | Controlled run cleanup utility |
-| `VERSION` | Canonical version (`0.17.1`) |
+| `VERSION` | Canonical version (`0.17.6`) |
 
 ---
 
@@ -117,23 +117,25 @@ The rollback script:
 
 | Profile | Enabled Toolsets | Role |
 |---------|-----------------|------|
-| **task-main** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_task_spec, aota_profile_task, aota_handoff, aota_orchestration, aota_operator | Orchestrator — flow classification, SPEC, dispatch, decisions |
+| **task-main** | aota_work_intake, aota_plan_read, aota_plan_write, aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_task_spec, aota_profile_task, aota_handoff, aota_orchestration, aota_operator | Orchestrator — bounded routing, Plan/SPEC/task lifecycle, dispatch, decisions |
 | **coder** | aota_core, aota_fs_readonly, aota_worker_outcome, aota_coder_artifact | Implementation worker — spec-driven, bounded writes |
 | **debugger** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_debugger_artifact | Read-only diagnosis, no mutation |
 | **reviewer** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_worker_outcome, aota_reviewer_artifact | Read-only review, no mutation |
 | **architect** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_architect_artifact | Read-only design review & spec preflight |
 
-- **32 tools** provided by the plugin (listed in `plugin.yaml` `provides_tools`)
-- **16 toolsets** defined in `__init__.py`: `aota_core`, `aota_fs_readonly`, `aota_repo_readonly`, `aota_web_readonly`, `aota_fs_copy`, `aota_task_spec`, `aota_profile_task`, `aota_worker_outcome`, `aota_debugger_artifact`, `aota_reviewer_artifact`, `aota_coder_artifact`, `aota_architect_artifact`, `aota_handoff`, `aota_orchestration`, `aota_operator`, `aota_plan_read`
+- **35 tools** provided by the plugin (listed in `plugin.yaml` `provides_tools`)
+- **18 toolsets** defined in `__init__.py`: `aota_core`, `aota_fs_readonly`, `aota_repo_readonly`, `aota_web_readonly`, `aota_fs_copy`, `aota_task_spec`, `aota_profile_task`, `aota_worker_outcome`, `aota_debugger_artifact`, `aota_reviewer_artifact`, `aota_coder_artifact`, `aota_architect_artifact`, `aota_handoff`, `aota_orchestration`, `aota_operator`, `aota_plan_read`, `aota_plan_write`, `aota_work_intake`
+- task-main source config includes `aota_work_intake`, `aota_plan_read`, and `aota_plan_write`; Plan mutation remains fail-closed until deployment-owned trusted principal/authority injection is explicitly approved and performed.
+- `aota_work_classify` deterministically classifies bounded facts only and never creates a Plan, SPEC, task, or artifact. See `docs/aota-forge-plan/WORK-CLASSIFICATION.md`.
 - **5 profiles** (task-main, coder, debugger, reviewer, architect)
 
-Worker profiles (coder, debugger, reviewer, architect) are isolated from `aota_profile_task` and `aota_task_spec` toolsets — they cannot create, approve, start, or cancel profile tasks.
+Worker profiles (coder, debugger, reviewer, architect) are isolated from `aota_profile_task` and `aota_task_spec` toolsets — they cannot create, approve, start, or cancel profile tasks. They also explicitly disable `aota_work_intake`, `aota_plan_read`, and `aota_plan_write`; Profile Task launch removes deployment-owned `AOTA_TRUSTED_*` Plan authority from the worker child shell before worker markers are exported.
 
 ---
 
 ## Versioning
 
-- **`VERSION`** file at repository root holds the canonical version (`0.17.1`)
+- **`VERSION`** file at repository root holds the canonical version (`0.17.6`)
 - **`plugin.yaml`** in `plugin/aota-tools/` has a `version:` field that must match `VERSION`
 - Both files are compared during deploy and verify
 
@@ -165,6 +167,8 @@ AOTA Forge defines three flow paths:
 | **Deep** | Control plane, auth, migrations, high blast radius | Convergence → DESIGN → architect design_review → SPEC → architect spec_preflight → Human approval → coder → reviewer → E2E → close |
 
 **Architect gate**: Available (P11-J). Architect profile performs pre-construction design review and spec preflight. Verdict: approve / approve_with_changes / block / inconclusive. block/inconclusive prevents implementation. approve_with_changes requires correction before proceeding.
+
+**Plan lifecycle**: Intake Lite → preliminary classification → proportional convergence → final classification → P0 standalone SPEC or P1/P2 Plan → required Architect gate → freeze/approval → task → explicit `link_task` → evidence/review → task-main closure → durable handoff. `execution_completed` and Reviewer pass are not automatic closure. See `docs/aota-forge-plan/ORCHESTRATION-LIFECYCLE.md`.
 
 **Debug flow**: Diagnosis task → debugger (read-only) → diagnosis report → task-main decision → optional implementation follow-up.
 
@@ -217,9 +221,9 @@ All mutation tool security rejections are automatically audited by the Tool Laye
 
 ---
 
-## 工具功能中文使用說明（31 個工具）
+## 工具功能中文使用說明（35 個工具）
 
-AOTA（Architect-Overseer Task Automation）外掛程式提供 31 個狹義工具（narrow tools），分屬於 15 個工具集（toolsets），支援 5 個 Hermes 設定檔（task-main、coder、debugger、reviewer、architect）。以下依工具集分組說明每個工具的功能、參數與使用時機。
+AOTA（Architect-Overseer Task Automation）外掛程式提供 35 個狹義工具（narrow tools），分屬於 18 個工具集（toolsets），支援 5 個 Hermes 設定檔（task-main、coder、debugger、reviewer、architect）。以下依工具集分組說明每個工具的功能、參數與使用時機。
 
 ---
 
@@ -315,7 +319,7 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 31 個狹義工�
 ### aota_task_spec（任務規格工具集）
 
 #### 9. aota_task_spec_create
-- **功能**：建立一個有限制的 AOTA 任務規格成品（draft SPEC）。僅建立草稿，不核准也不開始執行。應在任何設定檔執行任務之前使用。支援三種任務類型：implementation（實作）、diagnosis（診斷）、review（審查）。含完整的範圍表示式驗證、語意規則檢查、欄位長度限制等。
+- **功能**：建立一個有限制的 AOTA 任務規格成品（draft SPEC）。可選擇以嚴格、經驗證的 Plan／milestone／work item 引用建立 `plan_linked` SPEC；未提供時為 P0 相容的 `standalone`。僅建立草稿，不核准也不開始執行。應在任何設定檔執行任務之前使用。支援三種任務類型：implementation（實作）、diagnosis（診斷）、review（審查）。含完整的範圍表示式驗證、語意規則檢查、欄位長度限制等。
 - **參數**：
   - `workspace_id`（必填）：工作區識別碼。
   - `task_kind`（必填）：implementation / diagnosis / review。
@@ -335,7 +339,7 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 31 個狹義工�
 - **回傳**：JSON，包含 `task_id`、`status`、`profile_hint`、`spec_sha256` 等。
 
 #### 10. aota_task_spec_update
-- **功能**：修改現有的草稿 AOTA 任務規格。需要樂觀修訂版號比對（optimistic revision matching）。不核准也不開始執行。可更新所有可變規格欄位，並在需要時清除舊的 `needs_input` 狀態與核准記錄。
+- **功能**：修改現有的草稿 AOTA 任務規格。需要樂觀修訂版號比對（optimistic revision matching）。不核准也不開始執行。可更新所有可變規格欄位，或以受限操作設定／清除／重新驗證 Plan traceability；freeze 會重新驗證 Plan 後凍結精確 revision，後續修改被拒絕。
 - **參數**：
   - `workspace_id`（必填）：工作區識別碼。
   - `task_id`（必填）：要更新的現有任務 ID。
@@ -348,7 +352,7 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 31 個狹義工�
 ### aota_profile_task（設定檔任務工具集）
 
 #### 11. aota_profile_task_start
-- **功能**：使用衍生自任務類型的固定命名設定檔，啟動一個現有的已驗證 AOTA 草稿任務。驗證精確的修訂版號與 SPEC SHA-256，從 task_kind 衍生設定檔（implementation→coder、diagnosis→debugger、review→reviewer），並使用 Hermes 背景完成軌道。對於實作任務：僅在收到明確的人員核准（精確修訂版/雜湊）後才可呼叫。
+- **功能**：使用衍生自任務類型的固定命名設定檔，啟動一個現有的已驗證且已freeze AOTA 草稿任務。驗證精確的修訂版號與 SPEC SHA-256，並僅從 frozen SPEC 傳遞有界 Plan lineage；不會更新 Plan。
 - **參數**：
   - `workspace_id`（必填）：工作區識別碼。
   - `task_id`（必填）：要啟動的現有 AOTA 任務 ID。
@@ -573,7 +577,7 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 31 個狹義工�
 
 | 設定檔 | 啟用的工具集 | 角色 |
 |---------|-------------|------|
-| **task-main** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_task_spec, aota_profile_task, aota_handoff, aota_orchestration, aota_operator | 架構師/編排者—核准、分派、審查世系 |
+| **task-main** | aota_work_intake, aota_plan_read, aota_plan_write, aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_task_spec, aota_profile_task, aota_handoff, aota_orchestration, aota_operator | 架構師/編排者—分類、Plan/SPEC lifecycle、核准、分派、審查世系 |
 | **coder** | aota_core, aota_fs_readonly, aota_worker_outcome, aota_coder_artifact | 實作工作者—僅有界限寫入權限 |
 | **debugger** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_debugger_artifact | 唯讀診斷，不進行修改 |
 | **reviewer** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_worker_outcome, aota_reviewer_artifact | 唯讀審查，不進行修改 |

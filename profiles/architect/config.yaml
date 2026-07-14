@@ -6,11 +6,14 @@ agent:
   max_turns: 40
   disabled_toolsets:
     - aota_fs_copy
-    - aota_task_spec
-    - aota_profile_task
     - aota_handoff
-    - aota_operator
     - aota_orchestration
+    - aota_operator
+    - aota_plan_read
+    - aota_plan_write
+    - aota_profile_task
+    - aota_task_spec
+    - aota_work_intake
   reasoning_effort: max
   task_completion_guidance: true
 toolsets:

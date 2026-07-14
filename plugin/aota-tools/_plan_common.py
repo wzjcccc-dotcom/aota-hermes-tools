@@ -113,6 +113,12 @@ _WORK_ITEM_TRANSITIONS = {
     "blocked": {"ready", "cancelled"},
     "closed": {"superseded"}, "cancelled": set(), "superseded": set(),
 }
+_DECISION_TRANSITIONS = {
+    "proposed": {"accepted", "rejected", "superseded"},
+    "accepted": {"superseded"},
+    "rejected": {"superseded"},
+    "superseded": set(),
+}
 
 
 class PlanError(ValueError):
@@ -277,6 +283,14 @@ def validate_work_item_transition(current: str, target: str) -> None:
     _enum(target, "target work item status", WORK_ITEM_STATUSES)
     if target == current or target not in _WORK_ITEM_TRANSITIONS[current]:
         raise PlanError(f"illegal work item status transition: {current} -> {target}")
+
+
+def validate_decision_transition(current: str, target: str) -> None:
+    """Validate one non-idempotent canonical Decision v1 status transition."""
+    _enum(current, "current decision status", DECISION_STATUSES)
+    _enum(target, "target decision status", DECISION_STATUSES)
+    if target == current or target not in _DECISION_TRANSITIONS[current]:
+        raise PlanError(f"illegal decision status transition: {current} -> {target}")
 
 
 def _validate_milestone(value: Any) -> Mapping[str, Any]:

@@ -32,7 +32,7 @@ TOOLSET_NAME = "aota_profile_task"
 SCHEMA = {
     "name": TOOL_NAME,
     "description": (
-        "Record explicit human checkpoint approval for a draft AOTA task. "
+        "Record explicit human checkpoint approval for an exact frozen AOTA revision. "
         "Creates APPROVAL.json in the task directory. "
         "Only for implementation tasks (diagnosis/review do not require approval). "
         "This tool does not start execution, modify SPEC, choose profile, or create "
@@ -122,12 +122,11 @@ def _do_approve(args: dict) -> str:
             f"(only implementation tasks require human checkpoint)"
         )
 
-    # 6. Status must be draft
+    # 6. Status must be draft with a frozen current revision
     current_status = meta.get("status", "")
-    if current_status != STATUS_DRAFT:
+    if current_status != STATUS_DRAFT or meta.get("frozen_revision") != meta.get("revision"):
         raise WorkspaceError(
-            f"task_not_approvable: task '{task_id}' has status "
-            f"'{current_status}', expected '{STATUS_DRAFT}'"
+            f"task_not_approvable: task '{task_id}' requires its current draft revision to be frozen"
         )
 
     # 7. Verify revision
@@ -162,11 +161,10 @@ def _do_approve(args: dict) -> str:
         # 9a. Re-load under lock
         meta_after_lock = load_meta(task_dir)
 
-        # Re-check status under lock
-        if meta_after_lock.get("status") != STATUS_DRAFT:
+        # Re-check status and frozen binding under lock
+        if meta_after_lock.get("status") != STATUS_DRAFT or meta_after_lock.get("frozen_revision") != current_revision:
             raise WorkspaceError(
-                f"task_not_approvable: status changed to "
-                f"'{meta_after_lock.get('status')}' during lock acquisition"
+                f"task_not_approvable: task state changed during lock acquisition"
             )
 
         # 9b. Check if APPROVAL.json already exists for same revision/hash

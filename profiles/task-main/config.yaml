@@ -11,6 +11,9 @@ agent:
   reasoning_effort: max
   task_completion_guidance: true
 toolsets:
+  - aota_work_intake
+  - aota_plan_read
+  - aota_plan_write
   - aota_core
   - aota_fs_readonly
   - aota_repo_readonly
@@ -22,6 +25,9 @@ toolsets:
   - aota_operator
 platform_toolsets:
   api_server:
+    - aota_work_intake
+    - aota_plan_read
+    - aota_plan_write
     - aota_core
     - aota_fs_readonly
     - aota_repo_readonly
@@ -32,6 +38,9 @@ platform_toolsets:
     - aota_orchestration
     - aota_operator
   cli:
+    - aota_work_intake
+    - aota_plan_read
+    - aota_plan_write
     - aota_core
     - aota_fs_readonly
     - aota_repo_readonly

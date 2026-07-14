@@ -40,6 +40,7 @@ from ._task_spec_common import (
     role_contract_errors_to_message,
     apply_defaults,
 )
+from ._spec_traceability import build_trusted_snapshot, validate_snapshot_for_freeze, validate_traceability_input
 
 TOOL_NAME = "aota_task_spec_update"
 TOOLSET_NAME = "aota_task_spec"
@@ -142,7 +143,15 @@ SCHEMA = {
             },
             "role_contract": {
                 "type": "object",
-                "description": "Role-specific contract fields. Required fields and allowed fields depend on task_kind. See tool description for per-kind schema. Forbidden fields will be rejected.",
+                "description": "Role-specific contract fields. Required fields and allowed fields depend on task_kind. See tool description for per-kind schema. Forbidden fields from other task kinds will be rejected.",
+            },
+            "traceability": {
+                "type": "object",
+                "description": "Bounded draft operation: set_plan_traceability, clear_plan_traceability, or refresh_plan_traceability. Trusted revision/SHA fields are never accepted.",
+            },
+            "freeze": {
+                "type": "boolean",
+                "description": "Freeze the exact current draft revision after revalidating its verified Plan reference. Must not be combined with another update.",
             },
         },
         "required": ["workspace_id", "task_id", "expected_revision"],
@@ -179,6 +188,10 @@ def _do_update(args: dict) -> str:
     validation_tier: int | None = args.get("validation_tier")
     human_checkpoints: list[str] | None = args.get("human_checkpoints")
     role_contract: dict | None = args.get("role_contract")
+    traceability_request: dict | None = args.get("traceability")
+    freeze_requested = args.get("freeze", False)
+    if not isinstance(freeze_requested, bool):
+        raise WorkspaceError("SPEC_TRACEABILITY_PAYLOAD_INVALID")
 
     # ------------------------------------------------------------------
     # 1. Resolve workspace
@@ -200,11 +213,19 @@ def _do_update(args: dict) -> str:
     architecture_mode: str | None = existing_meta.get("architecture_mode")
 
     # ------------------------------------------------------------------
-    # 3. Check status == "draft" or "needs_input"
+    # 3. Status gate: regular changes are draft/needs_input; freeze is draft only.
     # ------------------------------------------------------------------
     current_status = existing_meta.get("status", "")
     update_allowed = current_status in (STATUS_DRAFT, STATUS_NEEDS_INPUT)
-    if not update_allowed:
+    if freeze_requested:
+        disallowed = set(args) - {"workspace_id", "task_id", "expected_revision", "freeze"}
+        if disallowed:
+            raise WorkspaceError("SPEC_TRACEABILITY_PAYLOAD_INVALID")
+        if current_status != STATUS_DRAFT or existing_meta.get("frozen_revision") is not None:
+            raise WorkspaceError("SPEC_TRACEABILITY_FROZEN")
+    elif existing_meta.get("frozen_revision") is not None:
+        raise WorkspaceError("SPEC_TRACEABILITY_FROZEN")
+    elif not update_allowed:
         raise WorkspaceError(
             f"task_not_updatable: task '{task_id}' has status "
             f"'{current_status}', expected '{STATUS_DRAFT}' or '{STATUS_NEEDS_INPUT}'"
@@ -257,6 +278,15 @@ def _do_update(args: dict) -> str:
                 f"to {rev_after_lock} during lock acquisition"
             )
 
+        if freeze_requested:
+            return _freeze_locked(
+                workspace_id=workspace_id,
+                task_id=task_id,
+                task_dir=task_dir,
+                meta=meta_after_lock,
+                current_revision=current_revision,
+            )
+
         # ------------------------------------------------------------------
         # 8. Build patched spec dict
         # ------------------------------------------------------------------
@@ -274,6 +304,37 @@ def _do_update(args: dict) -> str:
                 if patched_spec.get(key) != args[key]:
                     patched_spec[key] = args[key]
                     change_detected = True
+
+        target_schema_version = existing_meta.get("schema_version", SPEC_SCHEMA_VERSION_CURRENT)
+        if traceability_request is not None:
+            if not isinstance(traceability_request, dict):
+                raise WorkspaceError("SPEC_TRACEABILITY_PAYLOAD_INVALID")
+            operation = traceability_request.get("operation")
+            existing_traceability = patched_spec.get("source_traceability")
+            if operation == "set_plan_traceability":
+                payload = dict(traceability_request)
+                payload.pop("operation", None)
+                payload["mode"] = "plan_linked"
+                parsed = validate_traceability_input(payload, required=True)
+                assert parsed is not None
+                patched_spec["source_traceability"] = build_trusted_snapshot(workspace_id, parsed)
+            elif operation == "clear_plan_traceability" and set(traceability_request) == {"operation"}:
+                patched_spec["source_traceability"] = None
+            elif operation == "refresh_plan_traceability" and set(traceability_request) == {"operation"}:
+                if existing_traceability is None:
+                    raise WorkspaceError("SPEC_TRACEABILITY_REQUIRED_FIELDS_MISSING")
+                parsed = validate_traceability_input({
+                    "mode": "plan_linked", "plan_id": existing_traceability.get("plan_id"),
+                    "milestone_id": existing_traceability.get("milestone_id"),
+                    "work_item_id": existing_traceability.get("work_item_id"),
+                    "architect_review_id": existing_traceability.get("architect_review_id"),
+                }, required=True)
+                assert parsed is not None
+                patched_spec["source_traceability"] = build_trusted_snapshot(workspace_id, parsed)
+            else:
+                raise WorkspaceError("SPEC_TRACEABILITY_PAYLOAD_INVALID")
+            target_schema_version = SPEC_SCHEMA_VERSION_CURRENT
+            change_detected = True
 
         # Also apply risk_level to patched_spec for re-validation
         # (risk_level appears in SPEC.md Identity section but not in spec dict)
@@ -410,7 +471,8 @@ def _do_update(args: dict) -> str:
             validation_tier=patched_spec.get("validation_tier"),
             human_checkpoints=patched_spec.get("human_checkpoints", []),
             role_contract=patched_spec.get("role_contract", {}),
-            spec_schema_version=existing_meta.get("schema_version", SPEC_SCHEMA_VERSION_CURRENT),
+            source_traceability=patched_spec.get("source_traceability"),
+            spec_schema_version=target_schema_version,
         )
 
         # Size check
@@ -441,6 +503,7 @@ def _do_update(args: dict) -> str:
         new_meta["risk_level"] = new_risk_level
         new_meta["spec_sha256"] = new_spec_sha256
         new_meta["spec"] = patched_spec
+        new_meta["schema_version"] = target_schema_version
         new_meta["status"] = new_status
 
         # Preserve created_at
@@ -491,8 +554,46 @@ def _do_update(args: dict) -> str:
             "meta_path": str(meta_path),
             "spec_sha256": new_spec_sha256,
             "human_checkpoint_policy": human_checkpoint_policy,
-            "spec_schema_version": existing_meta.get("schema_version", SPEC_SCHEMA_VERSION_CURRENT),
+            "spec_schema_version": target_schema_version,
             "error": None,
         },
         sort_keys=True,
     )
+
+
+def _freeze_locked(*, workspace_id: str, task_id: str, task_dir: Path, meta: dict, current_revision: int) -> str:
+    """Freeze one exact draft revision; linked references are revalidated first."""
+    spec = dict(meta["spec"])
+    source_traceability = spec.get("source_traceability")
+    if source_traceability is not None:
+        validate_snapshot_for_freeze(workspace_id, source_traceability)
+    task_kind = meta["task_kind"]
+    new_revision = current_revision + 1
+    now = utc_now_iso()
+    schema_version = meta.get("schema_version", SPEC_SCHEMA_VERSION_CURRENT)
+    frozen_spec_md = render_spec_md(
+        task_id=task_id, workspace_id=workspace_id, task_kind=task_kind,
+        profile_hint=TASK_KIND_PROFILE_HINT[task_kind], risk_level=meta["risk_level"],
+        revision=new_revision, status="frozen", goal=spec["goal"],
+        known_inputs=spec["known_inputs"], read_scope=spec["read_scope"],
+        write_scope=spec["write_scope"], forbidden_scope=spec["forbidden_scope"],
+        acceptance_criteria=spec["acceptance_criteria"], validation_policy=spec["validation_policy"],
+        stop_conditions=spec["stop_conditions"], evidence_required=spec["evidence_required"],
+        subject_task_id=meta.get("subject_task_id"), parent_task_id=meta.get("parent_task_id"),
+        architecture_mode=meta.get("architecture_mode"), subject_spec_revision=meta.get("subject_spec_revision"),
+        subject_spec_sha256=meta.get("subject_spec_sha256"), process_path=spec.get("process_path"),
+        validation_tier=spec.get("validation_tier"), human_checkpoints=spec.get("human_checkpoints", []),
+        role_contract=spec.get("role_contract", {}), source_traceability=source_traceability,
+        spec_schema_version=schema_version,
+    )
+    if len(frozen_spec_md.encode("utf-8")) > 65536:
+        raise WorkspaceError("SPEC.md exceeds 65536 bytes")
+    frozen_sha256 = compute_sha256(frozen_spec_md)
+    frozen_meta = dict(meta)
+    frozen_meta.update({"revision": new_revision, "updated_at": now,
+                        "frozen_at": now, "frozen_revision": new_revision, "spec_sha256": frozen_sha256})
+    atomic_write(task_dir / "SPEC.md", frozen_spec_md)
+    write_json(task_dir / "meta.json", frozen_meta)
+    return json.dumps({"status": "frozen", "task_id": task_id, "workspace_id": workspace_id,
+                       "revision": new_revision, "spec_sha256": frozen_sha256,
+                       "spec_schema_version": schema_version, "error": None}, sort_keys=True)
