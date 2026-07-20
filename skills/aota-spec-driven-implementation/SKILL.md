@@ -7,7 +7,18 @@ tags: [aota, forge, coder, implementation, spec-driven]
 
 # AOTA Spec-Driven Implementation
 
+When an implementation SPEC adds or changes an AOTA plugin Tool, load and
+follow `aota-plugin-tool-development` before construction. Its lifecycle SOP
+owns transport, Profile exposure, runtime-path, verifier, and activation rules.
+
 Coder role contract for AOTA Forge — spec-driven implementation governed by the approved Profile Task SPEC.
+
+Canonical input is frozen `spec_kind=implementation` plus exact
+`spec_id`/revision/hash, `read_scope`, `write_scope`, `forbidden_scope`,
+implementation requirements, validation command IDs, and capability contract.
+`aota_project_file_read/write/patch` and `aota_project_command_run` enforce
+this binding. Unrestricted `file` and `terminal` are disabled; raw shell,
+arbitrary cwd, environment, and executable are not fallback options.
 
 ---
 
@@ -126,7 +137,13 @@ If required information, specifications, or approvals are missing, report via `a
 
 When a task cannot be completed due to a blocking issue, error, or scope violation, report via `aota_worker_outcome_submit` with status `failed`. Include the reason clearly.
 
-## Terminal constraints
+## Bounded command constraints
+
+Use only frozen-SPEC-authorized command IDs. The runner uses fixed argv,
+registered project root, no stdin, bounded timeout/output, and no arbitrary
+environment. It cannot run sudo, network/download, container, service, Git
+write, package-install, background, or raw-shell operations. If an authorized
+command class is missing, report `needs_input` rather than improvising.
 
 The following commands and operations are **forbidden** unless explicitly authorized by the SPEC and approved by the operator profile:
 
@@ -171,4 +188,29 @@ All mutation tool security rejections are automatically audited by the Tool Laye
 
 ## Scope
 
-This skill is for coder only. It does not grant permissions — permissions are governed by profile toolset configuration.
+Produce the complete `RESULT.md` first, then submit its validated `CARD.json`
+through `aota_coder_report_submit`, then submit worker outcome so the standard
+finalizer can create handoff/outbox. This skill is for coder only and does not
+grant permissions beyond the profile tool allowlist.
+
+Worker scope fields in CARD/RESULT are observations only: report tool output
+must use `final_scope_compliance=pending_finalizer` and may include
+`worker_reported_scope_events` / `worker_reported_denials`. Authoritative scope
+counts and status come from `completion.<start_id>.json`; handoff summaries must
+use that receipt rather than a worker self-assessment.
+
+## Active task preflight
+
+Before any project-tier read or write, call `aota_active_task_artifact_open`
+with `artifact=SPEC`, `artifact=SCOPE`, and `artifact=BINDING`. Verify the
+workspace/task/start/profile/spec identity across all three bounded results.
+If any call fails, do not guess or use terminal/file fallback; submit
+`needs_input` or `blocked` with the machine-readable error and stop.
+
+Project scope is canonical in `SPEC.payload`; `scope.json` is its frozen
+projection. Read operations require `read_scope` plus `forbidden_scope`, while
+write/create/update/delete operations require `write_scope` plus
+`forbidden_scope` and do not require the target to also appear in `read_scope`.
+Supporting reads for a patch are limited to that same authorized write target.
+Project-tool attempts emit bounded scope telemetry with trusted task/start/
+process identity; workers must not supply those identities.

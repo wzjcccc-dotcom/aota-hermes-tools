@@ -41,6 +41,7 @@ from ._task_spec_common import (
     apply_defaults,
 )
 from ._spec_traceability import build_trusted_snapshot, validate_snapshot_for_freeze, validate_traceability_input
+from ._spec_contract import ContractError, canonical_hash, validate_spec
 
 TOOL_NAME = "aota_task_spec_update"
 TOOLSET_NAME = "aota_task_spec"
@@ -56,6 +57,7 @@ SCHEMA = {
         "- diagnosis: observed_symptoms (list[str], required), diagnostic_questions (list[str], required), reproduction_context, suspected_components, initial_hypotheses, evidence_plan, mutation_policy (readonly|isolated_reproduction_only), confidence_expectation (exploratory|probable|confirmed_required)\n"
         "- review: artifacts_under_review (list[str], required), review_dimensions (list[str], required), acceptance_mapping_required (bool), verdict_rules, inconclusive_conditions, independence_requirements\n"
         "- architecture: review_questions (list[str], required), gate_criteria (list[str], required), constraints, risk_focus + design_review: problem_statement (required), proposed_design (required), alternatives_considered, blast_radius, rollback_strategy, compatibility_strategy, unresolved_decisions, validation_strategy + spec_preflight: preflight_dimensions (required)\n"
+        "- stewardship (temporary WI-09B compatibility): project_id, allowed_project_artifacts, operation, forbidden_actions; write_scope must be empty\n"
         "Forbidden fields from other task kinds will be rejected."
     ),
     "parameters": {
@@ -159,6 +161,13 @@ SCHEMA = {
     },
 }
 
+SCHEMA["parameters"]["properties"].update({
+    "spec_id": {"type": "string", "description": "Canonical SPEC ID."},
+    "patch": {"type": "object", "description": "Closed canonical draft patch."},
+})
+SCHEMA["description"] += " Canonical updates require spec_id, expected_revision, and closed patch."
+SCHEMA["parameters"]["required"] = ["workspace_id"]
+
 
 # ---------------------------------------------------------------------------
 # Handler
@@ -178,6 +187,8 @@ def handle(args: dict, **_kwargs) -> str:
 
 
 def _do_update(args: dict) -> str:
+    if "patch" in args or "spec_id" in args:
+        return _do_update_contract(args)
     # ------------------------------------------------------------------
     # Extract params
     # ------------------------------------------------------------------
@@ -554,11 +565,58 @@ def _do_update(args: dict) -> str:
             "meta_path": str(meta_path),
             "spec_sha256": new_spec_sha256,
             "human_checkpoint_policy": human_checkpoint_policy,
+            "approval_status": "required" if task_kind == "implementation" else "not_required",
             "spec_schema_version": target_schema_version,
             "error": None,
         },
         sort_keys=True,
     )
+
+
+def _do_update_contract(args: dict) -> str:
+    """Update one WI-09C draft with optimistic revision concurrency."""
+    workspace_id = args.get("workspace_id", "")
+    task_id = args.get("spec_id") or args.get("task_id", "")
+    expected = args.get("expected_revision")
+    patch = args.get("patch")
+    if not isinstance(expected, int) or not isinstance(patch, dict):
+        raise WorkspaceError("spec_id, expected_revision, and patch are required")
+    task_dir = get_task_dir(workspace_id, task_id)
+    if not task_dir.is_dir():
+        raise WorkspaceError("spec not found")
+    lock_fd = acquire_lock(workspace_id, task_id, timeout=5.0)
+    try:
+        meta = load_meta(task_dir)
+        if meta.get("contract_version") != 1:
+            raise WorkspaceError("legacy SPEC is read-compatible but not mutable through the WI-09C update contract")
+        if meta.get("status") != "draft":
+            raise WorkspaceError("frozen SPEC is immutable; create a successor SPEC")
+        if meta.get("revision") != expected:
+            raise WorkspaceError("revision_conflict")
+        immutable = {"schema_version", "artifact_type", "spec_id", "project_id", "work_item_id", "created_at", "created_by", "resolved_profile", "spec_hash", "status", "revision", "frozen_at"}
+        if set(patch) & immutable:
+            raise WorkspaceError("patch attempts to mutate an immutable field")
+        allowed = {"objective", "summary", "context_refs", "related_artifacts", "acceptance_criteria", "constraints", "forbidden_actions", "expected_artifacts", "capability_contract", "payload", "supersedes_spec_id"}
+        if set(patch) - allowed:
+            raise WorkspaceError("patch has unknown field")
+        spec = dict(meta["spec"])
+        spec.update(patch)
+        spec["revision"] = expected + 1
+        spec["updated_at"] = utc_now_iso()
+        spec["spec_hash"] = None
+        try:
+            validate_spec(spec)
+        except ContractError as exc:
+            raise WorkspaceError(str(exc)) from exc
+        spec_md = json.dumps(spec, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        meta.update(spec)
+        meta.update({"spec": spec, "task_kind": spec["spec_kind"], "profile_hint": spec["resolved_profile"],
+                     "spec_sha256": compute_sha256(spec_md), "frozen_revision": None})
+        atomic_write(task_dir / "SPEC.md", spec_md)
+        write_json(task_dir / "meta.json", meta)
+        return json.dumps({"status": "updated", "spec_id": task_id, "revision": spec["revision"], "spec_hash": None}, sort_keys=True)
+    finally:
+        release_lock(lock_fd)
 
 
 def _freeze_locked(*, workspace_id: str, task_id: str, task_dir: Path, meta: dict, current_revision: int) -> str:
@@ -596,4 +654,5 @@ def _freeze_locked(*, workspace_id: str, task_id: str, task_dir: Path, meta: dic
     write_json(task_dir / "meta.json", frozen_meta)
     return json.dumps({"status": "frozen", "task_id": task_id, "workspace_id": workspace_id,
                        "revision": new_revision, "spec_sha256": frozen_sha256,
+                       "approval_status": "required" if meta.get("task_kind") == "implementation" else "not_required",
                        "spec_schema_version": schema_version, "error": None}, sort_keys=True)

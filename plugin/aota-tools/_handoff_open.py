@@ -1,8 +1,7 @@
 """aota_handoff_open — open exact handoff and return compact role card content (P8-D).
 
 Reads handoff metadata + compact role card (CARD.json / DIAGNOSIS_CARD.json /
-REVIEW_CARD.json / ARCHITECT_CARD.json). Does NOT auto-read full artifacts (RESULT.md / DIAGNOSIS.md /
-REVIEW.md). If card missing, returns card_missing=true and handoff stays pending.
+REVIEW_CARD.json / ARCHITECT_CARD.json / STEWARD_CARD.json). Does NOT auto-read full artifacts.
 """
 
 from __future__ import annotations
@@ -29,9 +28,9 @@ SCHEMA = {
     "name": TOOL_NAME,
     "description": (
         "Open an exact durable handoff and return its metadata plus compact "
-        "role card content (CARD.json / DIAGNOSIS_CARD.json / REVIEW_CARD.json). "
+        "role card content (including STEWARD_CARD.json). "
         "Does NOT auto-open full report artifacts (RESULT.md / DIAGNOSIS.md / "
-        "REVIEW.md / ARCHITECT_REVIEW.md). If the role card is missing, returns card_missing=true and "
+        "REVIEW.md / ARCHITECT_REVIEW.md / STEWARD_RESULT.md). If the role card is missing, returns card_missing=true and "
         "the handoff stays pending."
     ),
     "parameters": {

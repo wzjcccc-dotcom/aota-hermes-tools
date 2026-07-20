@@ -8,7 +8,7 @@ This repository is the **canonical source of truth** for AOTA Forge — a contro
 
 | Path | Content |
 |------|---------|
-| `plugin/aota-tools/` | 53 Python files + `plugin.yaml` — the AOTA narrow-tools plugin |
+| `plugin/aota-tools/` | 60 Python files + `plugin.yaml` — the AOTA narrow-tools plugin |
 | `profiles/task-main/` | Task-Main (architect/orchestrator) profile config + SOUL.md |
 | `profiles/coder/` | Coder worker profile config + SOUL.md |
 | `profiles/debugger/` | Debugger worker profile config + SOUL.md |
@@ -35,14 +35,17 @@ The deploy, verify, and rollback scripts operate only on the host deploy destina
 
 Use `AOTA_HERMES_HOME_HOST=/custom/path` to select another existing absolute host root. The value must not be `/`, relative, empty, or contain control characters.
 
-Docker Compose bind-mounts that host root into the WebUI container runtime view:
+Docker Compose exposes the same host root in both runtime views (Agent direct
+bind; WebUI named volume backed by the same host device):
 
 ```text
 host:      /home/latios/.hermes
+agent:     /home/hermes/.hermes
 container: /home/hermeswebui/.hermes
 ```
 
-The container path is explanatory only; it is never a deployment target.
+The host path is the only deployment, live-agent, and rollback authority. The
+container paths are explanatory only; they are never deployment targets.
 
 | Source | Host deploy destination |
 |--------|-------------------------|
@@ -50,7 +53,10 @@ The container path is explanatory only; it is never a deployment target.
 | `profiles/*/config.yaml + SOUL.md` | `${AOTA_HERMES_HOME_HOST-/home/latios/.hermes}/profiles/*/` |
 | `skills/*/SKILL.md` | `${AOTA_HERMES_HOME_HOST-/home/latios/.hermes}/skills/*/` |
 
-Profile-local `plugins/aota-tools` symlinks point to the global runtime plugin directory (not to this canonical repo).
+`deploy/profile-runtime-assembly.yaml` is the canonical Named Profile assembly
+manifest. Managed deployment projects the plugin files and each Profile's
+declared AOTA Skills into every Profile-local runtime directory, while the
+global plugin and Skill roots remain the shared source projections.
 
 ---
 
@@ -73,7 +79,9 @@ Canonical Source  ──[deploy.sh]──►  Deploy Copy  ──[copy]──►
 10. **Version verify** — compares `VERSION` with `plugin.yaml` version
 11. **Profile sync** — copies canonical `config.yaml` + `SOUL.md` to runtime profiles
 12. **Skill sync** — copies canonical skill to runtime skill dir
-13. **ACTION_REQUIRED** — always printed (plugin code changed)
+13. **Profile runtime assembly** — projects the plugin and Active AOTA Skills
+    declared by the canonical assembly manifest into every Named Profile
+14. **ACTION_REQUIRED** — always printed (a new session/process reload is required)
 
 ### Usage
 
@@ -117,17 +125,18 @@ The rollback script:
 
 | Profile | Enabled Toolsets | Role |
 |---------|-----------------|------|
-| **task-main** | aota_work_intake, aota_plan_read, aota_plan_write, aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_task_spec, aota_profile_task, aota_handoff, aota_orchestration, aota_operator | Orchestrator — bounded routing, Plan/SPEC/task lifecycle, dispatch, decisions |
-| **coder** | aota_core, aota_fs_readonly, aota_worker_outcome, aota_coder_artifact | Implementation worker — spec-driven, bounded writes |
+| **task-main** | orchestration/control-plane reads plus CodeGraph read/rebuild | Orchestrator — bounded routing, Plan/SPEC/task lifecycle, decisions; no source write |
+| **project-steward** | project read/steward mutation, CodeGraph read, steward artifact | Project facts, bounded docs/artifact continuity; no source/terminal/rebuild |
+| **coder** | readonly/project/CodeGraph read, Coder file mutation, fixed command runner, artifacts | Frozen-SPEC implementation; no unrestricted file or terminal |
 | **debugger** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_debugger_artifact | Read-only diagnosis, no mutation |
 | **reviewer** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_worker_outcome, aota_reviewer_artifact | Read-only review, no mutation |
 | **architect** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_architect_artifact | Read-only design review & spec preflight |
 
-- **35 tools** provided by the plugin (listed in `plugin.yaml` `provides_tools`)
-- **18 toolsets** defined in `__init__.py`: `aota_core`, `aota_fs_readonly`, `aota_repo_readonly`, `aota_web_readonly`, `aota_fs_copy`, `aota_task_spec`, `aota_profile_task`, `aota_worker_outcome`, `aota_debugger_artifact`, `aota_reviewer_artifact`, `aota_coder_artifact`, `aota_architect_artifact`, `aota_handoff`, `aota_orchestration`, `aota_operator`, `aota_plan_read`, `aota_plan_write`, `aota_work_intake`
+- **59 tools** provided by the plugin (listed in `plugin.yaml` `provides_tools`)
+- **28 toolsets** defined in `__init__.py`, including Coder frozen-SPEC file mutation and fixed command-runner surfaces.
 - task-main source config includes `aota_work_intake`, `aota_plan_read`, and `aota_plan_write`; Plan mutation remains fail-closed until deployment-owned trusted principal/authority injection is explicitly approved and performed.
 - `aota_work_classify` deterministically classifies bounded facts only and never creates a Plan, SPEC, task, or artifact. See `docs/aota-forge-plan/WORK-CLASSIFICATION.md`.
-- **5 profiles** (task-main, coder, debugger, reviewer, architect)
+- **6 profiles** (task-main, project-steward, architect, coder, reviewer, debugger)
 
 Worker profiles (coder, debugger, reviewer, architect) are isolated from `aota_profile_task` and `aota_task_spec` toolsets — they cannot create, approve, start, or cancel profile tasks. They also explicitly disable `aota_work_intake`, `aota_plan_read`, and `aota_plan_write`; Profile Task launch removes deployment-owned `AOTA_TRUSTED_*` Plan authority from the worker child shell before worker markers are exported.
 
@@ -146,13 +155,15 @@ Worker profiles (coder, debugger, reviewer, architect) are isolated from `aota_p
 - Full Hermes-runtime plugin import test may fail outside the Hermes environment (expected — import requires Hermes SDK, which is only available at runtime). The deploy script skips this gracefully.
 - `verify-deploy.sh` references runtime paths `/home/hermeswebui/.hermes/plugins/aota-tools/` and `/home/hermeswebui/.hermes/profiles/` — verification must be run on the Hermes host.
 - `.deploy-backups/` directory is gitignored but must exist at deploy time (created automatically by `deploy.sh`).
-- Profile `plugins/aota-tools` symlinks are managed by Hermes, not by this repo. Verify step checks they point to the correct runtime path.
+- Profile-local plugin and Skill projections are managed by this repo's
+  assembly manifest. `verify-deploy.sh` checks source/runtime hashes and the
+  post-bootstrap Skill snapshot for every Named Profile.
 
 ---
 
 ## No Secrets
 
-This repository contains **no secrets, API keys, or runtime credentials**. Provider keys in `config.yaml` reference environment variables (`AMF_PROXY_AGNES_KEY`) rather than embedding values. The reviewer profile has a `.env` file in its runtime directory that is **not** part of the canonical source — it must be maintained separately.
+This repository contains **no secrets, API keys, or runtime credentials**. Provider keys in `config.yaml` reference environment variables rather than embedding values. Profile Task workers use only the global Hermes `.env` and `auth.json`; any Profile-local `.env` is outside the credential authority and is never a fallback.
 
 ---
 
@@ -221,9 +232,166 @@ All mutation tool security rejections are automatically audited by the Tool Laye
 
 ---
 
-## 工具功能中文使用說明（35 個工具）
+## Post-Write Verification Read
 
-AOTA（Architect-Overseer Task Automation）外掛程式提供 35 個狹義工具（narrow tools），分屬於 18 個工具集（toolsets），支援 5 個 Hermes 設定檔（task-main、coder、debugger、reviewer、architect）。以下依工具集分組說明每個工具的功能、參數與使用時機。
+After a coder task writes files, a post-write verification read must be performed
+using `aota_project_file_read` (or equivalent bounded read tools) to confirm:
+
+1. The written content is correct and matches the intended changes.
+2. No file outside the SPEC `write_scope` was modified.
+3. No file in the `forbidden_scope` was accidentally touched.
+4. The SHA-256 of the written files matches expectations.
+
+This verification is distinct from validation commands (syntax checks, script
+execution) — it is a content-level fidelity check.
+
+---
+
+## CARD Non-Authoritative vs Receipt Authoritative Scope Result
+
+Worker task artifacts (CARD.json / RESULT.md) are **non-authoritative** for
+scope compliance, deployment verification, or runtime evidence. They represent
+the worker's self-reported summary.
+
+The **authoritative** source of scope truth is:
+
+| Purpose | Authoritative Source |
+|---------|---------------------|
+| Scope projection | `scope.json` (bound to SPEC id, revision, task/start identity, scope_digest) |
+| Worker action events | `scope-events.jsonl` (identity-bound with task_id, start_id, process_session_id) |
+| Workspace baseline | `workspace-baseline.json` (pre-existing dirty/untracked paths) |
+| Deployment state | `.deploy-receipts/<package>/<timestamp>/deployment.json` |
+| Task closure | Completion receipt (canonical `status=done`, `exit_code=0`, `outcome=completed`) |
+
+CARD/RESULT should be used for human-readable summaries and task-main review,
+but scope compliance, violation counts, and deployment parity must be verified
+from the authoritative sources above.
+
+---
+
+## Active-Task SPEC / SCOPE / BINDING Access
+
+Every worker task reads its own frozen `SPEC`, `SCOPE`, and bounded `BINDING`
+through `aota_active_task_artifact_open` before performing any project-tier
+work. The three results must agree on:
+
+- `workspace_id`
+- `task_id` / `start_id`
+- `project_id`
+- `resolved_profile`
+- `spec_id` / `spec_revision`
+
+Missing, mismatched, or denied reads fail closed with `needs_input` or
+`blocked`. Workers never guess project IDs, switch Profiles, or fall back to
+terminal/file reads. Subject reads (reviewer/debugger/architect reading the
+reviewed task SPEC) are available only when the frozen binding explicitly
+permits them.
+
+---
+
+## Scope Propagation and Current-Task Event Isolation
+
+Scope propagation follows these rules:
+
+| Source | Priority | Scope Origin |
+|--------|----------|-------------|
+| `spec.payload.{read,write,forbidden}_scope` | Highest | Canonical frozen SPEC |
+| Legacy top-level `{read,write,forbidden}_scope` | Fallback | Pre-schema-v1 SPECs |
+
+`scope.json` is an atomic, immutable projection bound to the SPEC identity.
+Payload keys take precedence even when their value is `[]`.
+
+**Current-task event isolation** means:
+
+1. Task start captures a workspace baseline (`workspace-baseline.json`) of
+   pre-existing tracked-dirty and untracked paths with content fingerprints.
+2. Worker actions produce `scope-events.jsonl` entries bound to the current
+   task identity (`task_id`, `start_id`, `process_session_id`).
+3. Events with a foreign `task_id`, `start_id`, or `process_session_id` are
+   counted as invalid/foreign and excluded from current-task attribution.
+4. Postflight comparison reports only deltas from the baseline as new worker
+   observations.
+5. Workspace-wide Git diff is never a current-task worker action by itself.
+6. Unattributed project deltas (no matching scope event) fail closed.
+
+---
+
+## Git Backup Procedure (Human / Host Checkpoint)
+
+Before any deployment that changes managed source files, create a Git backup
+checkpoint:
+
+```bash
+cd /home/latios/workspace/aota-hermes-tools
+git status --short
+git add -A
+git commit -m "deploy checkpoint: <description>"
+git tag deploy-checkpoint-<date>-<description>
+```
+
+This is a **Human/Host Checkpoint** — it is never executed by an automated
+worker (coder, debugger, reviewer). It provides a durable Git baseline for:
+
+- Diff comparison before/after deployment
+- Rollback reference (revert to checkpoint commit)
+- Change attribution
+
+If the workspace has uncommitted changes that cannot be committed (e.g.
+unrelated dirty paths in an already-dirty workspace), skip the commit and
+note the limitation in the deployment receipt or task handoff. Do not use
+`git diff --check` as coder validation — that is deferred to reviewer and
+the Human/Host Git checkpoint.
+
+---
+
+## CodeGraph Update Procedure (Human / Host Checkpoint)
+
+After a deployment that changes tool, Profile, or Skill definitions, refresh
+the CodeGraph index:
+
+```bash
+aota_codegraph_rebuild(workspace_id="aota-hermes-tools", project_id="aota-hermes-tools")
+```
+
+This is a **Human/Host Checkpoint** — it is never executed by an automated
+worker. CodeGraph rebuild requires the `aota_codegraph_rebuild` toolset which
+is restricted to task-main only.
+
+After rebuild, verify by querying a known symbol:
+
+```bash
+aota_codegraph_query(workspace_id="aota-hermes-tools", project_id="aota-hermes-tools", search="<known_tool_or_class>")
+```
+
+CodeGraph reads (`aota_codegraph_status`, `aota_codegraph_query`,
+`aota_codegraph_explore`) are available to all profiles. Only task-main
+may trigger a rebuild.
+
+---
+
+## Limitations from Uncommitted Dirty Workspace
+
+Working in a Git workspace with uncommitted changes introduces several
+limitations:
+
+| Limitation | Impact |
+|-----------|--------|
+| **Baseline ambiguity** | `workspace-baseline.json` captures current dirty state, but the Git diff cannot distinguish pre-existing from task-introduced changes without scope-event attribution. |
+| **Rollback complexity** | A Git checkout or reset would lose both pre-existing and task changes. Rollback via `.deploy-backups/` is preferred. |
+| **Verification noise** | `git diff --stat` from a dirty workspace includes pre-existing changes, making it harder to verify only the task's intended changes. |
+| **Change attribution** | Uncommitted changes from prior work may be incorrectly attributed to the current task. Scope-event identity binding mitigates this. |
+| **Deploy confidence** | Deploying from a dirty workspace may include unintended changes. The `READINESS_PASS_WITH_UNCOMMITTED_CHANGES` status is a warning. |
+
+Best practice: commit or stash unrelated changes before starting a task that
+modifies managed files. If the dirty state is unavoidable, scope-event
+isolation and baseline comparison ensure only the current task's actions are
+attributed to it.
+
+---
+
+## 工具功能中文使用說明（59 個工具）
+
+AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工具（narrow tools），分屬於 28 個工具集（toolsets），支援 6 個 Hermes 設定檔（task-main、project-steward、architect、coder、reviewer、debugger）。以下依工具集分組說明每個工具的功能、參數與使用時機。
 
 ---
 
@@ -571,14 +739,31 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 35 個狹義工�
 - **備註**：必須提供 task_id、handoff_id 或 decision_id 其中之一，不可同時提供多個。
 - **回傳**：JSON，包含 `status`（ok/warning/broken）、`checks` 陣列（每項含 `code`、`status`、`evidence`）。
 
+#### 31. aota_project_registry_refresh
+- **功能**：在 registered workspace 內掃描並重建 derived Registry。使用 bounded lock、同目錄 tempfile、fsync 與 atomic replace；不修改 project.yaml/observed.json。
+- **參數**：`workspace_id`（必填）、`dry_run`、`include_invalid`。
+
+#### 32. aota_project_registry_open
+- **功能**：唯讀開啟 Registry metadata，回傳 schema/revision/fingerprint、fresh/stale/missing/invalid 狀態與 bounded records；不自動 refresh。
+- **參數**：`workspace_id`（必填）。
+
+#### 33. aota_project_relationship_brief
+- **功能**：將 Registry search candidates 投影成 task-main decision support，提供 declared capabilities、relevant paths、relationship options 與 uncertainty；不替 task-main 作最終決策。
+- **參數**：`workspace_id`、`request_summary`（必填）、`limit`、`candidate_project_ids`。
+
+#### 34. aota_project_prepare
+- **功能**：從 selected project 的 Registry candidate 與重新驗證的 canonical manifest 產生 bounded Unified Project Brief；不執行 command、不 refresh Registry、不寫入任何檔案。
+- **參數**：`workspace_id`、`project_id`（必填），以及 `include_commands`、`include_constraints`、`include_plan_reference`、`max_warnings`。
+
 ---
 
 ### 工具集與設定檔對應矩陣
 
 | 設定檔 | 啟用的工具集 | 角色 |
 |---------|-------------|------|
-| **task-main** | aota_work_intake, aota_plan_read, aota_plan_write, aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_task_spec, aota_profile_task, aota_handoff, aota_orchestration, aota_operator | 架構師/編排者—分類、Plan/SPEC lifecycle、核准、分派、審查世系 |
-| **coder** | aota_core, aota_fs_readonly, aota_worker_outcome, aota_coder_artifact | 實作工作者—僅有界限寫入權限 |
+| **task-main** | 編排/control-plane 唯讀工具，加上 CodeGraph read/rebuild | 編排者—分類、Plan/SPEC lifecycle、核准、分派、決策；無 source write |
+| **project-steward** | project read/steward mutation、CodeGraph read、steward artifact | 專案事實與有界 docs/artifact continuity；無 source/terminal/rebuild |
+| **coder** | readonly/project/CodeGraph read、Coder file mutation、fixed command runner、artifact | 實作工作者—frozen SPEC 有界寫入；無 unrestricted file/terminal |
 | **debugger** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_debugger_artifact | 唯讀診斷，不進行修改 |
 | **reviewer** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_worker_outcome, aota_reviewer_artifact | 唯讀審查，不進行修改 |
 | **architect** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_architect_artifact | 唯讀設計審查與規格預檢 |

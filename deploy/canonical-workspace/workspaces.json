@@ -1,0 +1,22 @@
+{
+  "aota-hermes-tools": {
+    "candidates": [
+      "/home/latios/workspace/aota-hermes-tools"
+    ]
+  },
+  "hermes-agent": {
+    "candidates": [
+      "/home/latios/workspace/hermes-agent"
+    ]
+  },
+  "hermes-webui": {
+    "candidates": [
+      "/home/latios/workspace/hermes-webui"
+    ]
+  },
+  "hermes-overrides": {
+    "candidates": [
+      "/home/latios/workspace/hermes-overrides"
+    ]
+  }
+}

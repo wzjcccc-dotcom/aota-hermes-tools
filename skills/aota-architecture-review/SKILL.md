@@ -9,6 +9,11 @@ tags: [aota, architecture, design-review, spec-preflight, architect, pre-constru
 
 Pre-construction architecture review skill for **architect** profile. This skill defines the review contract for design review and specification preflight checks. It is read-only, evidence-based, and verdict-driven.
 
+Canonical input is `spec_kind=architecture` with `review_mode`, subject
+Plan/SPEC refs, `challenge_questions`, `tradeoffs_required`, and
+`risk_dimensions`. Use CodeGraph status/query/explore only as read evidence;
+for busy/missing/stale, fall back to bounded read/search and never rebuild.
+
 ---
 
 ## Core Principles
@@ -183,6 +188,12 @@ Each finding MUST be classified into exactly one category:
 
 Architect and Reviewer are separate gates. Architect review does not replace Reviewer review (post-implementation). Reviewer review does not replace Architect review (pre-construction).
 
+Architect may supply ADR/architecture proposal content, but does not rewrite a
+whole Plan unless the SPEC explicitly requests a replacement proposal. Project
+Steward writes approved content; task-main makes the durable decision. Prepare
+the complete `ARCHITECT_REVIEW.md` content first, then use the report tool to
+generate/validate its Card before worker outcome.
+
 ## Checkpoint Enforcement
 
 The following operations require REQUIRES_HUMAN_CHECKPOINT:
@@ -201,3 +212,11 @@ When REQUIRES_HUMAN_CHECKPOINT is encountered:
 
 The Architect worker itself does not perform deploy, reload, or live task operations.
 The Architect worker only reads, reviews, and submits artifacts.
+
+## Active task preflight
+
+At entry, read the own frozen context through
+`aota_active_task_artifact_open` using `SPEC`, `SCOPE`, and `BINDING`; verify
+workspace/task/start/profile/spec identity before reading the bound subject.
+Any reader failure is fail-closed: do not guess, modify, or use terminal/file
+fallback; submit `needs_input` or `blocked` with the machine-readable error.

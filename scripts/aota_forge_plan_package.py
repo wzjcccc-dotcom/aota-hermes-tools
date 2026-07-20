@@ -25,6 +25,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = REPO_ROOT / "deploy" / "aota-forge-plan-files.yaml"
+LIFECYCLE_INVENTORY_PATH = REPO_ROOT / "deploy" / "aota-lifecycle-inventory.yaml"
 DEFAULT_HERMES_HOME = "/home/latios/.hermes"
 DEFAULT_HERMES_STACK = "/home/latios/hermes-stack"
 TRUSTED_KEYS = (
@@ -32,7 +33,7 @@ TRUSTED_KEYS = (
     "AOTA_TRUSTED_AUTHORITIES",
     "AOTA_TRUSTED_WORKSPACE_ID",
 )
-WORKER_PROFILES = ("architect", "reviewer", "coder", "debugger")
+WORKER_PROFILES = ("architect", "reviewer", "coder", "debugger", "project-steward")
 PLAN_TOOLSETS = ("aota_work_intake", "aota_plan_read", "aota_plan_write")
 
 
@@ -43,6 +44,7 @@ def expand(value: str) -> str:
             "AOTA_SOURCE_ROOT": str(REPO_ROOT),
             "AOTA_HERMES_HOME_HOST": os.environ.get("AOTA_HERMES_HOME_HOST", DEFAULT_HERMES_HOME),
             "AOTA_HERMES_STACK_ROOT": os.environ.get("AOTA_HERMES_STACK_ROOT", DEFAULT_HERMES_STACK),
+            "AOTA_CANONICAL_WORKSPACE_ROOT": os.environ.get("AOTA_CANONICAL_WORKSPACE_ROOT", "/home/latios/workspace"),
         }
         return defaults.get(name, os.environ.get(name, match.group(0)))
 
@@ -53,7 +55,57 @@ def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, Any]:
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or data.get("schema_version") != 1:
         raise ValueError("managed manifest schema_version must be 1")
+    assembly_ref = data.get("profile_runtime_assembly")
+    if assembly_ref:
+        assembly_path = path.parent.parent / str(assembly_ref)
+        assembly = yaml.safe_load(assembly_path.read_text(encoding="utf-8"))
+        if not isinstance(assembly, dict) or assembly.get("schema_version") != 1:
+            raise ValueError("profile runtime assembly schema_version must be 1")
+        data["groups"] = dict(data.get("groups", {}))
+        data["groups"]["profile_runtime_assembly"] = {
+            "kind": "copy",
+            "source_root": "${AOTA_SOURCE_ROOT}",
+            "runtime_root": "${AOTA_HERMES_HOME_HOST}",
+            "files": [],
+        }
+        group = data["groups"]["profile_runtime_assembly"]
+        for profile, spec in assembly.get("profiles", {}).items():
+            source_root = "${AOTA_SOURCE_ROOT}/plugin/aota-tools"
+            runtime_root = f"${{AOTA_HERMES_HOME_HOST}}/profiles/{profile}/plugins/aota-tools"
+            group["files"].extend([
+                {"pattern": "*.py", "destination": "{relative_path}", "file_type": "python", "required": True, "managed": True, "_source_root": source_root, "_runtime_root": runtime_root},
+                {"source": "plugin.yaml", "destination": "plugin.yaml", "file_type": "yaml", "required": True, "managed": True, "_source_root": source_root, "_runtime_root": runtime_root},
+                {"pattern": "dashboard/**/*", "destination": "{relative_path}", "file_type": "asset", "required": True, "managed": True, "_source_root": source_root, "_runtime_root": runtime_root},
+            ])
+            for item in group["files"][-3:]:
+                item["_id_prefix"] = f"profile_runtime_assembly/{profile}/plugin"
+            for skill in spec.get("active_skills", []):
+                group["files"].append({"source": f"skills/{skill}/SKILL.md", "destination": f"profiles/{profile}/skills/{skill}/SKILL.md", "file_type": "markdown", "required": True, "managed": True, "_source_root": "${AOTA_SOURCE_ROOT}", "_runtime_root": "${AOTA_HERMES_HOME_HOST}", "_id_prefix": f"profile_runtime_assembly/{profile}/skill"})
     return data
+
+
+def lifecycle_activation_targets() -> tuple[str, ...]:
+    """Return the source-declared services, never a hard-coded activation plan."""
+    data = yaml.safe_load(LIFECYCLE_INVENTORY_PATH.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or data.get("schema_version") != 1:
+        raise ValueError("lifecycle inventory schema_version must be 1")
+    targets: set[str] = set()
+    for item in list(data.get("tools", {}).values()) + list(data.get("skills", {}).values()):
+        if isinstance(item, dict):
+            targets.update(str(target) for target in item.get("activation_targets", []))
+    allowed = {"hermes-agent", "hermes-webui", "new-session"}
+    if not targets or not targets.issubset(allowed):
+        raise ValueError("lifecycle inventory has invalid activation targets")
+    return tuple(sorted(targets))
+
+
+def lifecycle_verifier_errors() -> list[str]:
+    errors: list[str] = []
+    for name in ("verify-aota-tool-lifecycle.py", "verify-aota-skill-lifecycle.py"):
+        result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / name)], capture_output=True, text=True)
+        if result.returncode:
+            errors.append(f"lifecycle:{name}")
+    return errors
 
 
 def absolute_root(value: str) -> Path:
@@ -104,38 +156,47 @@ def build_entries(manifest: dict[str, Any]) -> list[dict[str, Any]]:
         for spec in group.get("files", []):
             if not isinstance(spec, dict):
                 raise ValueError(f"manifest file entry is not a mapping: {group_name}")
+            spec_source_root = absolute_root(str(spec.get("_source_root", source_root)))
+            spec_runtime_root = absolute_root(str(spec.get("_runtime_root", runtime_root)))
             destination_spec = str(spec.get("destination", "{relative_path}"))
             if "pattern" in spec:
                 pattern = safe_relative(str(spec["pattern"]))
-                matches = sorted(path for path in source_root.glob(pattern) if path.is_file() or path.is_symlink())
+                matches = sorted(path for path in spec_source_root.glob(pattern) if path.is_file() or path.is_symlink())
                 if not matches and spec.get("required", False):
                     raise FileNotFoundError(f"required manifest pattern has no files: {group_name}/{pattern}")
                 for source in matches:
-                    relative = source.relative_to(source_root).as_posix()
-                    destination = runtime_root / format_destination(destination_spec, relative)
-                    entries.append(_entry(group_name, kind, source, destination, runtime_root, relative, spec))
+                    relative = source.relative_to(spec_source_root).as_posix()
+                    destination = spec_runtime_root / format_destination(destination_spec, relative)
+                    entries.append(_entry(group_name, kind, source, destination, spec_runtime_root, spec_source_root, relative, spec))
             elif "source" in spec:
                 relative = safe_relative(str(spec["source"]))
-                source = source_root / relative
-                destination = runtime_root / format_destination(destination_spec, relative)
-                entries.append(_entry(group_name, kind, source, destination, runtime_root, relative, spec))
+                source = spec_source_root / relative
+                destination = spec_runtime_root / format_destination(destination_spec, relative)
+                entries.append(_entry(group_name, kind, source, destination, spec_runtime_root, spec_source_root, relative, spec))
             else:
                 raise ValueError(f"manifest file entry needs source or pattern: {group_name}")
+        for removed in group.get("removed_files", []):
+            relative = safe_relative(str(removed))
+            destination = runtime_root / relative
+            entry = _entry(group_name, "remove", source_root / relative, destination, runtime_root, source_root, relative,
+                           {"file_type": "file", "required": False, "expected_mode": "preserve", "managed": True})
+            entries.append(entry)
     if not entries:
         raise ValueError("managed manifest has no files")
     return entries
 
 
-def _entry(group: str, kind: str, source: Path, destination: Path, root: Path, relative: str, spec: dict[str, Any]) -> dict[str, Any]:
+def _entry(group: str, kind: str, source: Path, destination: Path, root: Path, source_root: Path, relative: str, spec: dict[str, Any]) -> dict[str, Any]:
     safe_relative(relative)
     safe_target(destination, root)
     return {
-        "id": f"{group}/{relative}",
+        "id": f"{spec.get('_id_prefix', group)}/{relative}",
         "group": group,
         "kind": kind,
         "source": source,
         "destination": destination,
         "root": root,
+        "source_root": source_root,
         "relative_path": relative,
         "file_type": str(spec.get("file_type", "file")),
         "required": bool(spec.get("required", False)),
@@ -186,7 +247,16 @@ def copy_preserving(path: Path, destination: Path) -> None:
             destination.unlink()
         destination.symlink_to(os.readlink(path))
     else:
-        shutil.copy2(path, destination)
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(prefix=f".{destination.name}.", dir=destination.parent, delete=False) as handle:
+                temporary = Path(handle.name)
+            shutil.copyfile(path, temporary)
+            shutil.copystat(path, temporary, follow_symlinks=False)
+            os.replace(temporary, destination)
+        finally:
+            if temporary is not None and temporary.exists():
+                temporary.unlink()
 
 
 def backup_package(entries: list[dict[str, Any]], root: Path, quiet: bool = False) -> Path:
@@ -201,8 +271,8 @@ def backup_package(entries: list[dict[str, Any]], root: Path, quiet: bool = Fals
     records: list[dict[str, Any]] = []
     for entry in entries:
         original = entry["source"] if entry["kind"] == "source_only" else entry["destination"]
-        safe_target(original, entry["root"])
-        relative_backup = Path("files") / entry["group"] / entry["relative_path"]
+        safe_target(original, entry["source_root"] if entry["kind"] == "source_only" else entry["root"])
+        relative_backup = Path("files") / entry["id"]
         backup_path = backup_dir / relative_backup
         state = record_path(original)
         existed = state["file_type"] != "missing"
@@ -215,6 +285,7 @@ def backup_package(entries: list[dict[str, Any]], root: Path, quiet: bool = Fals
             "original_path": str(original),
             "destination_path": str(entry["destination"]),
             "root_path": str(entry["root"]),
+            "source_root_path": str(entry["source_root"]),
             "backup_path": str(relative_backup),
             "existed_before": existed,
             "managed": entry["managed"],
@@ -249,7 +320,8 @@ def restore_file(record: dict[str, Any], backup_dir: Path) -> None:
     destination = Path(record["original_path"] if record["kind"] == "source_only" else record["destination_path"])
     if not record.get("root_path"):
         raise ValueError(f"rollback record has no managed root: {record['id']}")
-    safe_target(destination, Path(record["root_path"]))
+    safe_root = record.get("source_root_path") if record["kind"] == "source_only" else record["root_path"]
+    safe_target(destination, Path(safe_root))
     backup_path = backup_dir / record["backup_path"]
     if record["existed_before"]:
         if not backup_path.exists() and not backup_path.is_symlink():
@@ -280,11 +352,11 @@ def verify_backup_parity(manifest: dict[str, Any], backup_dir: Path) -> None:
 
 
 def receipt_payload(backup_dir: Path, copied: list[str], source_hashes: dict[str, str], runtime_hashes: dict[str, str]) -> dict[str, Any]:
-    return {
+    receipt = {
         "schema_version": 1,
         "source_version": "0.17.6",
-        "tools": 35,
-        "toolsets": 18,
+        "tools": 59,
+        "toolsets": 28,
         "source_root": str(REPO_ROOT),
         "runtime_root": expand("${AOTA_HERMES_HOME_HOST}"),
         "files": copied,
@@ -295,6 +367,10 @@ def receipt_payload(backup_dir: Path, copied: list[str], source_hashes: dict[str
         "live_smoke_executed": False,
         "backup_path": str(backup_dir),
     }
+    external_compose_backup = os.environ.get("AOTA_EXTERNAL_COMPOSE_BACKUP", "").strip()
+    if external_compose_backup:
+        receipt["external_compose_backup"] = external_compose_backup
+    return receipt
 
 
 def rollback_package(backup_dir: Path, quiet: bool = False) -> None:
@@ -318,6 +394,7 @@ def readiness(manifest_path: Path = MANIFEST_PATH, quiet: bool = False) -> int:
     try:
         manifest = load_manifest(manifest_path)
         entries = build_entries(manifest)
+        lifecycle_activation_targets()
     except Exception as exc:  # noqa: BLE001 - readiness must report one stable verdict
         print("READINESS_BLOCKED")
         print(f"manifest: {type(exc).__name__}")
@@ -334,14 +411,24 @@ def readiness(manifest_path: Path = MANIFEST_PATH, quiet: bool = False) -> int:
         errors.append("plugin.yaml.parse")
     if not isinstance(plugin_data, dict) or str(plugin_data.get("version")) != "0.17.6":
         errors.append("plugin.yaml.version")
-    if not isinstance(plugin_data, dict) or len(plugin_data.get("provides_tools", [])) != 35:
-        errors.append("tools=35")
+    required_tools = {"aota_project_steward_report", "aota_project_docs_update", "aota_project_artifact_link", "aota_project_file_read", "aota_project_file_write", "aota_project_file_patch", "aota_project_command_run"}
+    if not isinstance(plugin_data, dict) or not required_tools.issubset(set(plugin_data.get("provides_tools", []))):
+        errors.append("steward-tools")
     init_text = source_text(REPO_ROOT / "plugin" / "aota-tools" / "__init__.py")
-    if len(re.findall(r"^TOOLSET_[A-Z0-9_]+\s*=", init_text, re.MULTILINE)) != 18:
-        errors.append("toolsets=18")
+    if "TOOLSET_PROJECT_STEWARD_ARTIFACT" not in init_text or "TOOLSET_PROJECT_STEWARD" not in init_text:
+        errors.append("steward-toolsets")
+    if "TOOLSET_CODER_FILE_MUTATION" not in init_text or "TOOLSET_CODER_COMMAND" not in init_text:
+        errors.append("coder-bounded-toolsets")
+    errors.extend(lifecycle_verifier_errors())
+    assembly_check = subprocess.run(
+        [sys.executable, "-B", str(REPO_ROOT / "scripts" / "profile_runtime_assembly.py"), "source"],
+        cwd=REPO_ROOT, capture_output=True, text=True,
+    )
+    if assembly_check.returncode:
+        errors.append("profile-runtime-assembly")
 
     for entry in entries:
-        if entry["required"] and not entry["source"].is_file():
+        if entry["required"] and not entry["source"].is_file() and entry["group"] != "compose":
             errors.append(f"missing:{entry['id']}")
         if entry["kind"] == "copy":
             try:
@@ -354,6 +441,8 @@ def readiness(manifest_path: Path = MANIFEST_PATH, quiet: bool = False) -> int:
         try:
             if entry["file_type"] == "python":
                 compile(source_text(entry["source"]), str(entry["source"]), "exec")
+            elif entry["file_type"] == "json":
+                json.loads(source_text(entry["source"]))
             elif entry["file_type"] in {"yaml", "compose"}:
                 yaml.safe_load(source_text(entry["source"]))
             elif entry["file_type"] == "shell":
@@ -380,6 +469,14 @@ def readiness(manifest_path: Path = MANIFEST_PATH, quiet: bool = False) -> int:
         except Exception:
             errors.append(f"worker-profile:{profile}")
     try:
+        coder = yaml.safe_load(source_text(REPO_ROOT / "profiles" / "coder" / "config.yaml"))
+        coder_tools = set(coder.get("toolsets", []))
+        coder_disabled = set(coder.get("agent", {}).get("disabled_toolsets", []))
+        if not {"aota_coder_file_mutation", "aota_coder_command"}.issubset(coder_tools) or not {"file", "terminal"}.issubset(coder_disabled):
+            errors.append("coder-terminal-boundary")
+    except Exception:
+        errors.append("coder-terminal-boundary")
+    try:
         task_main = yaml.safe_load(source_text(REPO_ROOT / "profiles" / "task-main" / "config.yaml"))
         available = set(task_main.get("toolsets", []))
         if not set(PLAN_TOOLSETS).issubset(available):
@@ -399,20 +496,23 @@ def readiness(manifest_path: Path = MANIFEST_PATH, quiet: bool = False) -> int:
             errors.append(f"script:{required_script}")
 
     compose_path = Path(expand("${AOTA_HERMES_STACK_ROOT}")) / "docker-compose.yml"
-    try:
-        compose = yaml.safe_load(source_text(compose_path))
-        services = compose.get("services", {})
-        agent_env = services.get("hermes-agent", {}).get("environment", {})
-        webui_env = services.get("hermes-webui", {}).get("environment", {})
-        for key in TRUSTED_KEYS:
-            if key not in agent_env:
-                errors.append(f"compose-agent:{key}")
-            if key in webui_env:
-                errors.append(f"compose-webui:{key}")
-        if not isinstance(agent_env, dict) or not isinstance(webui_env, dict):
-            errors.append("compose-environment-shape")
-    except Exception:
-        errors.append("compose.parse")
+    if compose_path.is_file():
+        try:
+            compose = yaml.safe_load(source_text(compose_path))
+            services = compose.get("services", {})
+            agent_env = services.get("hermes-agent", {}).get("environment", {})
+            webui_env = services.get("hermes-webui", {}).get("environment", {})
+            for key in TRUSTED_KEYS:
+                if key not in agent_env:
+                    errors.append(f"compose-agent:{key}")
+                if key in webui_env:
+                    errors.append(f"compose-webui:{key}")
+            if not isinstance(agent_env, dict) or not isinstance(webui_env, dict):
+                errors.append("compose-environment-shape")
+        except Exception:
+            errors.append("compose.parse")
+    else:
+        print("EXTERNAL_PACKAGE_READINESS=NOT_REASSESSED")
 
     errors.extend(secret_scan_errors())
     status = "READINESS_BLOCKED" if errors else "READINESS_PASS"
@@ -424,6 +524,8 @@ def readiness(manifest_path: Path = MANIFEST_PATH, quiet: bool = False) -> int:
         if dirty:
             status = "READINESS_PASS_WITH_UNCOMMITTED_CHANGES"
     print(status)
+    if not errors:
+        print("AOTA_READINESS_LIFECYCLE_GATE_PASS")
     if errors and not quiet:
         for error in sorted(set(errors)):
             print(error)
@@ -468,6 +570,14 @@ def deploy_package(manifest_path: Path = MANIFEST_PATH) -> int:
     runtime_hashes: dict[str, str] = {}
     copied: list[str] = []
     for entry in entries:
+        if entry["kind"] == "remove":
+            safe_target(entry["destination"], entry["root"])
+            if entry["destination"].exists() or entry["destination"].is_symlink():
+                if entry["destination"].is_dir() and not entry["destination"].is_symlink():
+                    raise ValueError(f"refusing to remove managed directory: {entry['id']}")
+                entry["destination"].unlink()
+            copied.append(entry["id"])
+            continue
         if entry["kind"] != "copy":
             continue
         if not entry["source"].is_file():
@@ -485,8 +595,9 @@ def deploy_package(manifest_path: Path = MANIFEST_PATH) -> int:
     receipt_dir.mkdir(parents=True, exist_ok=False)
     receipt = receipt_payload(backup_dir, copied, source_hashes, runtime_hashes)
     (receipt_dir / "deployment.json").write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    targets = lifecycle_activation_targets()
     print("ACTION_REQUIRED")
-    print("Human: recreate hermes-agent only after PF-WI-07-4 approval")
+    print("Human activation targets from lifecycle inventory: " + ", ".join(targets))
     print(f"backup: {backup_dir}")
     print(f"receipt: {receipt_dir / 'deployment.json'}")
     return 0
@@ -496,6 +607,10 @@ def verify_deployment(manifest_path: Path = MANIFEST_PATH) -> int:
     entries = build_entries(load_manifest(manifest_path))
     mismatches = []
     for entry in entries:
+        if entry["kind"] == "remove":
+            if entry["destination"].exists() or entry["destination"].is_symlink():
+                mismatches.append(entry["id"])
+            continue
         if entry["kind"] != "copy":
             continue
         if not entry["source"].is_file() or not entry["destination"].is_file() or sha256(entry["source"]) != sha256(entry["destination"]):
@@ -510,6 +625,8 @@ def verify_deployment(manifest_path: Path = MANIFEST_PATH) -> int:
 
 
 def fixture() -> int:
+    if lifecycle_activation_targets() != ("hermes-agent", "hermes-webui", "new-session"):
+        raise AssertionError("lifecycle activation matrix does not require both importing processes and a new session")
     with tempfile.TemporaryDirectory(prefix="aota-forge-plan-fixture-") as temp:
         root = Path(temp)
         source = root / "source"
@@ -521,10 +638,11 @@ def fixture() -> int:
         (source / "plugin" / "new2.py").write_text("new2\n", encoding="utf-8")
         (source / "scripts" / "deploy.sh").write_text("#!/bin/sh\n", encoding="utf-8")
         (runtime / "plugin" / "new.py").write_text("old\n", encoding="utf-8")
+        (runtime / "plugin" / "old.py").write_text("stale\n", encoding="utf-8")
         manifest = {
             "schema_version": 1,
             "groups": {
-                "plugin": {"kind": "copy", "source_root": str(source / "plugin"), "runtime_root": str(runtime / "plugin"), "files": [{"pattern": "*.py", "destination": "{relative_path}", "file_type": "python", "managed": True}]},
+                "plugin": {"kind": "copy", "source_root": str(source / "plugin"), "runtime_root": str(runtime / "plugin"), "files": [{"pattern": "*.py", "destination": "{relative_path}", "file_type": "python", "managed": True}], "removed_files": ["old.py"]},
                 "scripts": {"kind": "source_only", "source_root": str(source / "scripts"), "runtime_root": str(source / "scripts"), "files": [{"source": "deploy.sh", "destination": "deploy.sh", "file_type": "shell", "managed": True}]},
             },
         }
@@ -534,7 +652,11 @@ def fixture() -> int:
         for entry in entries:
             if entry["kind"] == "copy":
                 copy_preserving(entry["source"], entry["destination"])
+            elif entry["kind"] == "remove" and entry["destination"].exists():
+                entry["destination"].unlink()
+        assert not (runtime / "plugin" / "old.py").exists()
         rollback_package(backup_dir, quiet=True)
+        assert (runtime / "plugin" / "old.py").read_text(encoding="utf-8") == "stale\n"
         assert (runtime / "plugin" / "new.py").read_text(encoding="utf-8") == "old\n"
         assert not (runtime / "plugin" / "new2.py").exists()
         assert (backup_dir / "checksums.sha256").is_file()
@@ -574,6 +696,7 @@ def fixture() -> int:
             pass
         else:
             raise AssertionError("rollback manifest-root escape was accepted")
+    print("AOTA_PACKAGE_ACTIVATION_MATRIX_PASS")
     print("FIXTURE_PASS")
     return 0
 
@@ -600,7 +723,7 @@ def main() -> int:
         backup_dir = Path(args.path) if args.path else max(backup_root.iterdir(), key=lambda p: p.name)
         rollback_package(backup_dir)
         print("ACTION_REQUIRED")
-        print("Human: recreate hermes-agent only after PF-WI-07-4 approval")
+        print("Human activation targets from lifecycle inventory: " + ", ".join(lifecycle_activation_targets()))
         return 0
     except Exception as exc:  # noqa: BLE001 - shell package gets stable non-secret failure
         print(f"PACKAGE_BLOCKED: {type(exc).__name__}", file=sys.stderr)

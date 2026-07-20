@@ -14,6 +14,32 @@ from typing import Tuple
 
 _PLUGIN_DIR = Path(__file__).resolve().parent
 _REGISTRY_PATH = _PLUGIN_DIR / "workspaces.json"
+_DEFAULT_REGISTRY_PATH = _REGISTRY_PATH
+_AGENT_HERMES_HOME = "/home/hermes/.hermes"
+_CANONICAL_WORKSPACE_ROOT = Path("/home/latios/workspace")
+_CANONICAL_REGISTRY_PATH = _CANONICAL_WORKSPACE_ROOT / ".aota" / "workspaces.json"
+
+
+def _registry_path() -> Path:
+    """Select the managed registry for the current trusted runtime context."""
+    configured = os.environ.get("AOTA_WORKSPACE_REGISTRY_PATH", "").strip()
+    if configured:
+        return Path(configured)
+    # Isolated source smokes replace _REGISTRY_PATH with a temporary fixture;
+    # keep that explicit test authority separate from the live canonical file.
+    if _REGISTRY_PATH != _DEFAULT_REGISTRY_PATH:
+        return _REGISTRY_PATH
+    if _CANONICAL_REGISTRY_PATH.is_file():
+        return _CANONICAL_REGISTRY_PATH
+    if os.environ.get("HERMES_HOME") == _AGENT_HERMES_HOME:
+        # Fail closed until the managed canonical binding is deployed. The
+        # legacy runtime projection remains on disk for rollback only.
+        return _CANONICAL_REGISTRY_PATH
+    return _REGISTRY_PATH
+
+
+def _agent_context() -> bool:
+    return os.environ.get("HERMES_HOME") == _AGENT_HERMES_HOME
 
 
 class WorkspaceError(Exception):
@@ -26,7 +52,10 @@ def _load_registry() -> dict:
     Returns empty dict on missing/malformed file (fail-closed: nothing resolves).
     """
     try:
-        with open(_REGISTRY_PATH, "r", encoding="utf-8") as f:
+        path = _registry_path()
+        if path.is_symlink() or not path.is_file():
+            return {}
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         if not isinstance(data, dict):
             return {}
@@ -68,7 +97,18 @@ def resolve_workspace(workspace_id: str) -> Path:
             continue
         p = Path(c)
         if p.exists():
-            resolved.append(p.resolve())
+            if p.is_symlink():
+                raise WorkspaceError(f"workspace_id '{workspace_id}': candidate root must not be a symlink")
+            resolved_path = p.resolve()
+            if _agent_context():
+                try:
+                    allowed_root = Path(os.environ.get("AOTA_CANONICAL_WORKSPACE_ROOT", str(_CANONICAL_WORKSPACE_ROOT))).resolve()
+                    resolved_path.relative_to(allowed_root)
+                except ValueError as exc:
+                    raise WorkspaceError(
+                        f"workspace_id '{workspace_id}': candidate is outside canonical workspace root"
+                    ) from exc
+            resolved.append(resolved_path)
 
     if len(resolved) == 0:
         raise WorkspaceError(f"workspace_id '{workspace_id}': no candidate path exists in this runtime")

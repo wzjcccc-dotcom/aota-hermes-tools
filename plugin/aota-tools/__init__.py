@@ -12,6 +12,9 @@ Provides:
   aota_orchestration: aota_orchestration_decision_record, aota_followup_task_create
   aota_operator:      aota_operator_inbox_list, aota_operator_inbox_open, aota_operator_consistency_check
   aota_plan_read:     aota_plan_open
+  aota_project_readonly: aota_project_scan, aota_project_search, aota_project_open, aota_project_prepare
+  aota_codegraph_readonly: aota_codegraph_status, aota_codegraph_query, aota_codegraph_explore
+  aota_codegraph_rebuild: aota_codegraph_rebuild
 """
 
 from __future__ import annotations
@@ -25,6 +28,18 @@ from ._read_file import handle as _handle_read_file, SCHEMA as _read_file_schema
 from ._search_files import handle as _handle_search, SCHEMA as _search_schema, TOOL_NAME as _search_name
 from ._repo_status import handle as _handle_repo_status, SCHEMA as _repo_status_schema, TOOL_NAME as _repo_status_name
 from ._repo_diff import handle as _handle_repo_diff, SCHEMA as _repo_diff_schema, TOOL_NAME as _repo_diff_name
+from ._webui_attachment_read import (
+    handle as _handle_webui_attachment_read,
+    SCHEMA as _webui_attachment_read_schema,
+    TOOL_NAME as _webui_attachment_read_name,
+    TOOLSET_NAME as _webui_attachment_read_toolset,
+)
+from ._active_task_artifact_open import (
+    handle as _handle_active_task_artifact_open,
+    SCHEMA as _active_task_artifact_open_schema,
+    TOOL_NAME as _active_task_artifact_open_name,
+    TOOLSET_NAME as _active_task_artifact_open_toolset,
+)
 
 # P3 tools
 from ._web_fetch import handle as _handle_web_fetch, SCHEMA as _web_fetch_schema, TOOL_NAME as _web_fetch_name
@@ -40,6 +55,11 @@ from ._task_spec_update import (
     handle as _handle_task_spec_update,
     SCHEMA as _task_spec_update_schema,
     TOOL_NAME as _task_spec_update_name,
+)
+from ._task_spec_freeze import (
+    handle as _handle_task_spec_freeze,
+    SCHEMA as _task_spec_freeze_schema,
+    TOOL_NAME as _task_spec_freeze_name,
 )
 
 # P5 tools
@@ -100,6 +120,11 @@ from ._architect_report_submit import (
     SCHEMA as _architect_report_submit_schema,
     TOOL_NAME as _architect_report_submit_name,
     TOOLSET_NAME as _architect_report_submit_ts,
+)
+from ._project_steward_report import (
+    handle as _handle_project_steward_report,
+    SCHEMA as _project_steward_report_schema,
+    TOOL_NAME as _project_steward_report_name,
 )
 
 # P8-D tools
@@ -188,6 +213,18 @@ from ._operator_consistency_check import (
     SCHEMA as _operator_consistency_check_schema,
     TOOL_NAME as _operator_consistency_check_name,
 )
+from ._project_discovery import handle as _handle_project_scan, SCHEMA as _project_scan_schema, TOOL_NAME as _project_scan_name
+from ._workspace_context import handle_list as _handle_workspace_list, handle_open as _handle_workspace_open, LIST_SCHEMA as _workspace_list_schema, OPEN_SCHEMA as _workspace_open_schema, LIST_TOOL_NAME as _workspace_list_name, OPEN_TOOL_NAME as _workspace_open_name, TOOLSET_NAME as TOOLSET_WORKSPACE_READONLY
+from ._workspace_selection_record import handle as _handle_workspace_selection_record, SCHEMA as _workspace_selection_record_schema, TOOL_NAME as _workspace_selection_record_name
+from ._project_open import handle_search as _handle_project_search, handle_open as _handle_project_open, SEARCH_SCHEMA as _project_search_schema, OPEN_SCHEMA as _project_open_schema, TOOL_NAME_SEARCH as _project_search_name, TOOL_NAME_OPEN as _project_open_name
+from ._project_registry import handle_open as _handle_project_registry_open, handle_refresh as _handle_project_registry_refresh, OPEN_SCHEMA as _project_registry_open_schema, REFRESH_SCHEMA as _project_registry_refresh_schema, TOOL_NAME_OPEN as _project_registry_open_name, TOOL_NAME_REFRESH as _project_registry_refresh_name
+from ._project_relationship import handle as _handle_project_relationship, SCHEMA as _project_relationship_schema, TOOL_NAME as _project_relationship_name
+from ._project_prepare import handle as _handle_project_prepare, SCHEMA as _project_prepare_schema, TOOL_NAME as _project_prepare_name
+from ._project_steward_mutation import handle_docs_update as _handle_project_docs_update, handle_artifact_link as _handle_project_artifact_link, DOCS_SCHEMA as _project_docs_update_schema, ARTIFACT_SCHEMA as _project_artifact_link_schema, DOCS_TOOL_NAME as _project_docs_update_name, ARTIFACT_TOOL_NAME as _project_artifact_link_name, TOOLSET_NAME as TOOLSET_PROJECT_STEWARD
+from ._codegraph_readonly import status_handle as _handle_codegraph_status, query_handle as _handle_codegraph_query, explore_handle as _handle_codegraph_explore, STATUS_SCHEMA as _codegraph_status_schema, QUERY_SCHEMA as _codegraph_query_schema, EXPLORE_SCHEMA as _codegraph_explore_schema, STATUS_TOOL_NAME as _codegraph_status_name, QUERY_TOOL_NAME as _codegraph_query_name, EXPLORE_TOOL_NAME as _codegraph_explore_name
+from ._codegraph_rebuild import handle as _handle_codegraph_rebuild, SCHEMA as _codegraph_rebuild_schema, TOOL_NAME as _codegraph_rebuild_name, TOOLSET_NAME as TOOLSET_CODEGRAPH_REBUILD
+from ._project_file_mutation import handle_read as _handle_project_file_read, handle_write as _handle_project_file_write, handle_patch as _handle_project_file_patch, READ_SCHEMA as _project_file_read_schema, WRITE_SCHEMA as _project_file_write_schema, PATCH_SCHEMA as _project_file_patch_schema, READ_TOOL_NAME as _project_file_read_name, WRITE_TOOL_NAME as _project_file_write_name, PATCH_TOOL_NAME as _project_file_patch_name, TOOLSET_NAME as TOOLSET_CODER_FILE_MUTATION
+from ._project_command_run import handle as _handle_project_command_run, SCHEMA as _project_command_run_schema, TOOL_NAME as _project_command_run_name, TOOLSET_NAME as TOOLSET_CODER_COMMAND
 
 PLUGIN_NAME = "aota-tools"
 
@@ -195,6 +232,8 @@ PLUGIN_NAME = "aota-tools"
 TOOLSET_CORE = "aota_core"
 TOOLSET_FS_READONLY = "aota_fs_readonly"
 TOOLSET_REPO_READONLY = "aota_repo_readonly"
+TOOLSET_WEBUI_ATTACHMENT_READ = _webui_attachment_read_toolset
+TOOLSET_ACTIVE_TASK_CONTEXT = _active_task_artifact_open_toolset
 
 # P3 toolsets
 TOOLSET_WEB_READONLY = "aota_web_readonly"
@@ -212,6 +251,7 @@ TOOLSET_DEBUGGER_ARTIFACT = "aota_debugger_artifact"
 TOOLSET_REVIEWER_ARTIFACT = "aota_reviewer_artifact"
 TOOLSET_CODER_ARTIFACT = "aota_coder_artifact"
 TOOLSET_ARCHITECT_ARTIFACT = "aota_architect_artifact"
+TOOLSET_PROJECT_STEWARD_ARTIFACT = "aota_project_steward_artifact"
 
 # P8-D toolset
 TOOLSET_HANDOFF = "aota_handoff"
@@ -226,6 +266,12 @@ TOOLSET_WORK_INTAKE = "aota_work_intake"
 
 # P10 toolset
 TOOLSET_OPERATOR = "aota_operator"
+TOOLSET_PROJECT_READONLY = "aota_project_readonly"
+TOOLSET_CODEGRAPH_READONLY = "aota_codegraph_readonly"
+# Rebuild is the only CodeGraph mutation surface and accepts registered IDs only.
+TOOLSET_CODEGRAPH_REBUILD = "aota_codegraph_rebuild"
+# Coder construction is limited to frozen-SPEC-bound text mutation and fixed
+# argv validation commands; neither toolset is a general file/shell surface.
 
 # P1 tool (preserved)
 TOOL_NAME_RUNTIME_INFO = "aota_runtime_info"
@@ -302,6 +348,22 @@ def register(ctx) -> None:
         handler=_handle_search,
         description=_search_schema["description"],
     )
+    # WebUI attachments are conversation context, not registered workspace files.
+    ctx.register_tool(
+        name=_webui_attachment_read_name,
+        toolset=TOOLSET_WEBUI_ATTACHMENT_READ,
+        schema=_webui_attachment_read_schema,
+        handler=_handle_webui_attachment_read,
+        description=_webui_attachment_read_schema["description"],
+    )
+    # Active worker context is a read-only, allowlisted artifact surface.
+    ctx.register_tool(
+        name=_active_task_artifact_open_name,
+        toolset=TOOLSET_ACTIVE_TASK_CONTEXT,
+        schema=_active_task_artifact_open_schema,
+        handler=_handle_active_task_artifact_open,
+        description=_active_task_artifact_open_schema["description"],
+    )
 
     # P2: aota_repo_readonly
     ctx.register_tool(
@@ -351,6 +413,13 @@ def register(ctx) -> None:
         schema=_task_spec_update_schema,
         handler=_handle_task_spec_update,
         description=_task_spec_update_schema["description"],
+    )
+    ctx.register_tool(
+        name=_task_spec_freeze_name,
+        toolset=TOOLSET_TASK_SPEC,
+        schema=_task_spec_freeze_schema,
+        handler=_handle_task_spec_freeze,
+        description=_task_spec_freeze_schema["description"],
     )
 
     # P5: aota_profile_task
@@ -433,6 +502,13 @@ def register(ctx) -> None:
         handler=_handle_architect_report_submit,
         description=_architect_report_submit_schema["description"],
     )
+    ctx.register_tool(
+        name=_project_steward_report_name,
+        toolset=TOOLSET_PROJECT_STEWARD_ARTIFACT,
+        schema=_project_steward_report_schema,
+        handler=_handle_project_steward_report,
+        description=_project_steward_report_schema["description"],
+    )
 
     # P8-D: aota_handoff
     ctx.register_tool(
@@ -465,6 +541,9 @@ def register(ctx) -> None:
         handler=_handle_orchestration_decision_record,
         description=_orchestration_decision_record_schema["description"],
     )
+    ctx.register_tool(name=_workspace_selection_record_name, toolset=TOOLSET_ORCHESTRATION,
+                      schema=_workspace_selection_record_schema, handler=_handle_workspace_selection_record,
+                      description=_workspace_selection_record_schema["description"])
     ctx.register_tool(
         name=_followup_task_create_name,
         toolset=TOOLSET_ORCHESTRATION,
@@ -559,3 +638,44 @@ def register(ctx) -> None:
         handler=_handle_operator_consistency_check,
         description=_operator_consistency_check_schema["description"],
     )
+
+    for name, schema, handler in ((_workspace_list_name, _workspace_list_schema, _handle_workspace_list),
+                                  (_workspace_open_name, _workspace_open_schema, _handle_workspace_open)):
+        ctx.register_tool(name=name, toolset=TOOLSET_WORKSPACE_READONLY, schema=schema, handler=handler, description=schema["description"])
+
+    # PCF-WI-01: project continuity read-only discovery/card projection.
+    # Registry refresh is excluded because it writes projects.json.
+    for name, schema, handler in (
+        (_project_scan_name, _project_scan_schema, _handle_project_scan),
+        (_project_search_name, _project_search_schema, _handle_project_search),
+        (_project_open_name, _project_open_schema, _handle_project_open),
+        (_project_registry_open_name, _project_registry_open_schema, _handle_project_registry_open),
+        (_project_relationship_name, _project_relationship_schema, _handle_project_relationship),
+        (_project_prepare_name, _project_prepare_schema, _handle_project_prepare),
+    ):
+        ctx.register_tool(name=name, toolset=TOOLSET_PROJECT_READONLY, schema=schema, handler=handler, description=schema["description"])
+    for name, schema, handler in (
+        (_project_registry_refresh_name, _project_registry_refresh_schema, _handle_project_registry_refresh),
+        (_project_docs_update_name, _project_docs_update_schema, _handle_project_docs_update),
+        (_project_artifact_link_name, _project_artifact_link_schema, _handle_project_artifact_link),
+    ):
+        ctx.register_tool(name=name, toolset=TOOLSET_PROJECT_STEWARD, schema=schema, handler=handler, description=schema["description"])
+    # PCF-WI-08: the public CodeGraph surface is exactly status/query/explore/rebuild.
+    for name, schema, handler in (
+        (_codegraph_status_name, _codegraph_status_schema, _handle_codegraph_status),
+        (_codegraph_query_name, _codegraph_query_schema, _handle_codegraph_query),
+        (_codegraph_explore_name, _codegraph_explore_schema, _handle_codegraph_explore),
+    ):
+        ctx.register_tool(name=name, toolset=TOOLSET_CODEGRAPH_READONLY, schema=schema, handler=handler, description=schema["description"])
+    ctx.register_tool(name=_codegraph_rebuild_name, toolset=TOOLSET_CODEGRAPH_REBUILD,
+                      schema=_codegraph_rebuild_schema, handler=_handle_codegraph_rebuild,
+                      description=_codegraph_rebuild_schema["description"])
+    for name, schema, handler in (
+        (_project_file_read_name, _project_file_read_schema, _handle_project_file_read),
+        (_project_file_write_name, _project_file_write_schema, _handle_project_file_write),
+        (_project_file_patch_name, _project_file_patch_schema, _handle_project_file_patch),
+    ):
+        ctx.register_tool(name=name, toolset=TOOLSET_CODER_FILE_MUTATION, schema=schema, handler=handler, description=schema["description"])
+    ctx.register_tool(name=_project_command_run_name, toolset=TOOLSET_CODER_COMMAND,
+                      schema=_project_command_run_schema, handler=_handle_project_command_run,
+                      description=_project_command_run_schema["description"])

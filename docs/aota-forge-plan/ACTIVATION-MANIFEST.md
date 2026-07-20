@@ -8,8 +8,8 @@ Level 1/Level 2 smoke was executed.
 
 - activation target version: `0.17.6`
 - expected current runtime version before activation: `0.17.0`
-- tools: `35`
-- toolsets: `18`
+- tools: `59`
+- toolsets: `28`
 - Agent service: `hermes-agent`
 - WebUI service: `hermes-webui`
 - tool execution service: `hermes-agent`
@@ -21,6 +21,11 @@ Level 1/Level 2 smoke was executed.
 - container plugin path: `/home/hermes/.hermes/plugins/aota-tools`
 - container profiles path: `/home/hermes/.hermes/profiles`
 - container skills path: `/home/hermes/.hermes/skills`
+- agent runtime mount authority: direct bind
+  `/home/latios/.hermes:/home/hermes/.hermes`
+- managed deployment target, agent live target, and rollback target share the
+  Host authority `/home/latios/.hermes`; `hermes-home` remains retained for
+  the separate WebUI runtime mount.
 
 ## PF-WI-07A security requirements
 
@@ -67,7 +72,7 @@ activation inputs therefore remain outside the canonical AOTA commit and must
 be retained by Human as external stack state:
 
 - `docker-compose.yml`
-  - SHA-256: `ea1a657ea67998a032d0e8bffc94b3ac3beecae406af66b45f553766d20e8a80`
+  - SHA-256: `69b3b6a95ba2ade5b9605fb3a51af45aa90191c51cb50a4e637388f7e9aeadec`
   - diff summary: no Git baseline is available in this directory; current
     file is recorded by exact hash only.
 - `.env.example`

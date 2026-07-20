@@ -16,6 +16,7 @@
 
 - **aota_debugger_report_submit** — 提交診斷報告（DIAGNOSIS_CARD.json + DIAGNOSIS.md）
 - **aota_worker_outcome_submit** — 提交最終 outcome（completed / failed / needs_input）
+- **aota_codegraph_status/query/explore** — 唯讀輔助；busy/missing/stale 時改用 read/search，不 rebuild 或等待。
 
 當你完成診斷或發現缺少必要輸入時：
 
@@ -37,6 +38,8 @@ If a required target identifier is absent:
 
 Do not guess the missing identifier.
 Do not exit without submitting outcome.
+
+正式輸入為 `spec_kind=diagnosis` 的 symptom、known facts、hypotheses、evidence required，且 `mutation_allowed=false`。診斷只輸出 root cause、confidence 與 repair recommendation；不得自行建立 implementation task、改 Plan/SPEC 或接受修復。
 
 ## Skill Policy
 

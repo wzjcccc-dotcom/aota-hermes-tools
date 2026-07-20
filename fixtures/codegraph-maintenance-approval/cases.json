@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "authority": "temporary-fixture-only",
+  "cases": [
+    "valid-pending", "missing", "expired", "already-claimed", "already-completed",
+    "workspace-mismatch", "project-mismatch", "action-mismatch", "manifest-mismatch",
+    "invalid-id", "path-traversal-id", "symlink", "oversized", "duplicate-key",
+    "unknown-field", "unsupported-schema", "unsafe-mode", "worker-marker",
+    "concurrent-claim", "cli-failure", "timeout", "successful-receipt", "replay-completed"
+  ]
+}

@@ -27,6 +27,7 @@ from ._handoff_common import (
     validate_workspace_id,
     write_ack_artifact,
 )
+from ._orchestration_common import get_decision_dir, read_decision
 
 TOOL_NAME = "aota_handoff_ack"
 TOOLSET_NAME = "aota_handoff"
@@ -52,6 +53,24 @@ def utc_now_iso() -> str:
     import datetime
 
     return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _has_matching_decision(workspace_id: str, handoff_id: str, decision: str) -> bool:
+    """An ack records consumption of an already durable task-main decision."""
+    directory = get_decision_dir(workspace_id)
+    if not directory.is_dir():
+        return False
+    try:
+        for path in directory.glob("DECISION.*.json"):
+            try:
+                recorded = read_decision(path)
+            except (OSError, json.JSONDecodeError):
+                continue
+            if recorded.get("handoff_id") == handoff_id and recorded.get("decision") == decision:
+                return True
+    except OSError:
+        return False
+    return False
 
 
 SCHEMA = {
@@ -157,6 +176,12 @@ def _do_ack(args: dict) -> dict[str, Any]:
         return {
             "status": "error",
             "error": f"handoff not found: {handoff_id}",
+        }
+
+    if not _has_matching_decision(workspace_id, handoff_id, decision):
+        return {
+            "status": "error",
+            "error": "decision_required_before_ack",
         }
 
     # Check if already acknowledged

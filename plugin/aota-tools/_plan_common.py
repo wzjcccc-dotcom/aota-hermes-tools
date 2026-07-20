@@ -52,7 +52,7 @@ _PLAN_FIELDS = frozenset({
     "architect_gate", "delivery_path", "revision", "created_at", "updated_at",
     "plan_sha256", "goal", "non_goals", "current_state", "milestones",
     "work_items", "decisions", "active_milestone_id", "active_work_item_id",
-    "next_action",
+    "next_action", "workspace_context",
 })
 _MILESTONE_FIELDS = frozenset({
     "milestone_id", "title", "status", "objective", "dependencies",
@@ -379,6 +379,11 @@ def validate_plan(plan: Any) -> dict[str, Any]:
     _string_list(entry["non_goals"], "non_goals", _MAX["array"], _MAX["goal"])
     _text(entry["current_state"], "current_state", _MAX["current_state"], required=False)
     _nullable_text(entry["next_action"], "next_action", _MAX["next_action"])
+    context = entry["workspace_context"]
+    if context is not None:
+        required_context = {"workspace_id", "project_id", "decision_id", "relationship"}
+        if not isinstance(context, Mapping) or set(context) != required_context or not all(isinstance(context[key], str) and context[key] for key in required_context):
+            raise PlanError("workspace_context invalid")
 
     milestones = [_validate_milestone(item) for item in _list(entry["milestones"], "milestones", _MAX["milestones"])]
     work_items = [_validate_work_item(item) for item in _list(entry["work_items"], "work_items", _MAX["work_items"])]
@@ -438,7 +443,7 @@ def validate_plan(plan: Any) -> dict[str, Any]:
     return copy.deepcopy(dict(entry))
 
 
-def create_plan(*, title: str, goal: str, planning_depth: str = "P1", architect_gate: str = "A1", delivery_path: str = "standard", non_goals: list[str] | None = None, current_state: str = "", plan_id: str | None = None, timestamp: str | None = None) -> dict[str, Any]:
+def create_plan(*, title: str, goal: str, planning_depth: str = "P1", architect_gate: str = "A1", delivery_path: str = "standard", non_goals: list[str] | None = None, current_state: str = "", workspace_context: dict[str, Any] | None = None, plan_id: str | None = None, timestamp: str | None = None) -> dict[str, Any]:
     """Create a minimal, validated canonical P1/P2 Plan at revision 1."""
     now = timestamp or utc_now()
     plan = {
@@ -457,7 +462,7 @@ def create_plan(*, title: str, goal: str, planning_depth: str = "P1", architect_
         "non_goals": [] if non_goals is None else non_goals,
         "current_state": current_state,
         "milestones": [], "work_items": [], "decisions": [],
-        "active_milestone_id": None, "active_work_item_id": None, "next_action": None,
+        "active_milestone_id": None, "active_work_item_id": None, "next_action": None, "workspace_context": workspace_context,
     }
     plan["plan_sha256"] = compute_plan_sha256(plan)
     return validate_plan(plan)

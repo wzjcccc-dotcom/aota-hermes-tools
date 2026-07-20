@@ -6,7 +6,17 @@ agent:
   max_turns: 40
   max_iterations: 100
   disabled_toolsets:
+    - aota_workspace_readonly
     - aota_fs_copy
+    - aota_architect_artifact
+    - aota_coder_artifact
+    - aota_coder_command
+    - aota_coder_file_mutation
+    - aota_project_readonly
+    - aota_project_steward
+    - aota_project_steward_artifact
+    - aota_reviewer_artifact
+    - aota_webui_attachment_read
     - aota_handoff
     - aota_orchestration
     - aota_operator
@@ -15,6 +25,7 @@ agent:
     - aota_profile_task
     - aota_task_spec
     - aota_work_intake
+    - aota_codegraph_rebuild
     - delegation
     - file
     - terminal
@@ -27,6 +38,8 @@ toolsets:
   - aota_web_readonly
   - aota_worker_outcome
   - aota_debugger_artifact
+  - aota_codegraph_readonly
+  - aota_active_task_context
 platform_toolsets:
   api_server:
     - aota_core
@@ -35,6 +48,8 @@ platform_toolsets:
     - aota_web_readonly
     - aota_worker_outcome
     - aota_debugger_artifact
+    - aota_codegraph_readonly
+    - aota_active_task_context
   cli:
     - aota_core
     - aota_fs_readonly
@@ -42,6 +57,8 @@ platform_toolsets:
     - aota_web_readonly
     - aota_worker_outcome
     - aota_debugger_artifact
+    - aota_codegraph_readonly
+    - aota_active_task_context
 plugins:
   enabled:
     - aota-tools

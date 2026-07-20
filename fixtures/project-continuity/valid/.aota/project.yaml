@@ -1,0 +1,40 @@
+schema_version: 1
+project:
+  id: fixture-project
+  name: Fixture Project
+  kind: hermes-tooling
+  status: active
+summary: Bounded project continuity fixture.
+capabilities:
+  - hermes-plugin
+paths:
+  source_root: .
+  source:
+    - src/
+  docs:
+    - docs/
+  scripts:
+    - scripts/
+  profiles:
+    - profiles/
+  skills:
+    - skills/
+  tests:
+    - tests/
+commands:
+  validate:
+    - scripts/validate.sh
+  deploy:
+    - scripts/deploy.sh
+  verify_deploy:
+    - scripts/verify-deploy.sh
+runtime:
+  deployment_type: hermes-managed-files
+  requires_human_checkpoint: true
+codegraph:
+  enabled: true
+  index_location: .codegraph/
+plan:
+  active_plan_id: null
+constraints:
+  - canonical source remains separate from runtime

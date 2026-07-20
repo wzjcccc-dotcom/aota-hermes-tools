@@ -1,0 +1,37 @@
+schema_version: 1
+project:
+  id: aota-hermes-tools
+  name: AOTA Hermes Tools
+  kind: hermes-tooling
+  status: active
+summary: Manifest-backed Hermes Agent runtime projection for AOTA Hermes Tools.
+capabilities:
+  - hermes-plugin
+  - profile-task-orchestration
+  - restricted-tooling
+paths:
+  source_root: .
+  source: []
+  docs: []
+  scripts: []
+  profiles: []
+  skills: []
+  tests: []
+commands:
+  validate: []
+  deploy: []
+  verify_deploy: []
+runtime:
+  deployment_type: hermes-managed-files
+  requires_human_checkpoint: true
+codegraph:
+  enabled: true
+  index_location: .codegraph/
+plan:
+  active_plan_id: null
+constraints:
+  - this runtime project is a deployed projection
+  - canonical source remains outside this container
+  - do not treat runtime files as canonical source
+  - canonical source code, Git, tests and deploy scripts are not runtime-visible
+  - runtime and CodeGraph readiness require host-side verification

@@ -9,6 +9,12 @@ tags: [aota, forge, reviewer, review, implementation-review]
 
 Reviewer role contract for AOTA Forge — post-implementation review governed by the approved SPEC and validation evidence.
 
+Canonical input is `spec_kind=review` with `subject_spec_ref`,
+`subject_result_ref`, `review_dimensions`, and `required_evidence`. Review
+scope compliance, correctness, validation evidence, regression risk, and
+documentation consistency. CodeGraph is status/query/explore only; busy,
+missing, or stale states fall back to bounded read/search.
+
 ---
 
 ## 1. Reviewer is a read-only role
@@ -117,4 +123,17 @@ When reviewing security rejections:
 
 ## Scope
 
-This skill is for reviewer only. Read-only role. It does not grant permissions.
+Report `required_fixes`, `optional_improvements`, and `recommended_decision`,
+but the latter is advice only: task-main accepts, reopens, or closes. Reviewer
+does not rewrite documents; it identifies inconsistency. Prepare complete
+`REVIEW.md` content first, then use the report tool to generate/validate its
+Card before worker outcome. This skill is for reviewer only. Read-only role.
+It does not grant permissions.
+
+## Active task preflight
+
+Before opening subject artifacts or project evidence, call
+`aota_active_task_artifact_open` with `SPEC`, `SCOPE`, and `BINDING`. Verify the
+three identities and frozen subject binding before continuing. If the reader
+fails, stop without guessing or using terminal/file fallback and submit
+`needs_input` or `blocked` with the machine-readable error.

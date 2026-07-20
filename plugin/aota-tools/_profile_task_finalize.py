@@ -213,6 +213,15 @@ def run_finalize(
     workspace_root: str = "",
     timeout_seconds: int = 0,
     worker_log_path: str = "",
+    failure_stage: str = "",
+    finalizer_mode: str = "primary",
+    command_summary: str = "",
+    global_hermes_home: str = "",
+    target_profile_home: str = "",
+    parent_profile: str = "",
+    spec_hash: str = "",
+    error_classification: str = "",
+    primary_finalizer_status: str = "not_executed",
 ) -> None:
     """Run the finalizer for an AOTA profile task.
 
@@ -283,10 +292,24 @@ def run_finalize(
         print(f"ERROR: task directory not found: {task_dir}", file=sys.stderr)
         sys.exit(1)
 
+    # Canonical WI-09C binding is read from task metadata.  The legacy
+    # SPEC.md digest remains a separate integrity field.
+    try:
+        binding_meta = _read_json(task_dir / "meta.json")
+    except (OSError, json.JSONDecodeError):
+        binding_meta = {}
+    canonical_spec_hash = spec_hash or binding_meta.get("spec_hash") or spec_sha256
+    if not isinstance(canonical_spec_hash, str) or len(canonical_spec_hash) != 64:
+        print(f"ERROR: invalid canonical spec_hash: {canonical_spec_hash!r}", file=sys.stderr)
+        sys.exit(1)
+
     # ------------------------------------------------------------------
     # 4b. P8-C.5: Consume trusted worker-outcome JSON first, then legacy marker
     # ------------------------------------------------------------------
-    worker_outcome = "completed" if exit_code == 0 else "failed"
+    # Exit code alone is not an authoritative worker outcome.  A clean worker
+    # exit without a trusted outcome artifact is a failed execution.
+    worker_outcome = "failed"
+    outcome_evidence = False
     needs_input_reason: str | None = None
 
     # Precedence 1: worker-outcome.<start_id>.json (trusted control-plane tool)
@@ -295,8 +318,9 @@ def run_finalize(
         try:
             _trusted_data = json.loads(_trusted_outcome_path.read_text("utf-8"))
             _parsed_outcome = _trusted_data.get("outcome", "")
-            if _parsed_outcome in ("needs_input", "completed", "failed"):
+            if _parsed_outcome in ("needs_input", "completed", "partial", "failed"):
                 worker_outcome = _parsed_outcome
+                outcome_evidence = True
                 needs_input_reason = _trusted_data.get("reason") or None
         except (OSError, json.JSONDecodeError, UnicodeDecodeError):
             pass
@@ -311,8 +335,9 @@ def run_finalize(
                     _line = _line.strip()
                     if _line.startswith("AOTA_PROFILE_TASK_OUTCOME="):
                         _parsed_outcome = _line.split("=", 1)[1].strip()
-                        if _parsed_outcome in ("needs_input", "completed", "failed"):
+                        if _parsed_outcome in ("needs_input", "completed", "partial", "failed"):
                             worker_outcome = _parsed_outcome
+                            outcome_evidence = True
                     elif _line.startswith("AOTA_PROFILE_TASK_NEEDS_INPUT_REASON="):
                         needs_input_reason = _line.split("=", 1)[1].strip() or None
             except (OSError, UnicodeDecodeError):
@@ -326,7 +351,13 @@ def run_finalize(
     # ------------------------------------------------------------------
     # 5. Render receipt JSON
     # ------------------------------------------------------------------
-    outcome = worker_outcome  # trusted outcome from worker marker or exit code
+    if exit_code == 0 and not outcome_evidence:
+        failure_stage = failure_stage or "worker_execution"
+        error_classification = "worker_outcome_missing"
+    elif exit_code == 0 and worker_outcome == "completed":
+        failure_stage = ""
+        error_classification = ""
+    outcome = worker_outcome
     completed_at = _utc_now_iso()
 
     receipt: dict[str, Any] = {
@@ -336,12 +367,34 @@ def run_finalize(
         "start_id": start_id,
         "profile": profile,
         "spec_revision": spec_revision,
+        "spec_hash": canonical_spec_hash,
         "spec_sha256": spec_sha256,
+        "spec_id": binding_meta.get("spec_id", task_id),
+        "project_id": binding_meta.get("project_id"),
+        "work_item_id": binding_meta.get("work_item_id"),
+        "resolved_profile": binding_meta.get("resolved_profile", profile),
         "exit_code": exit_code,
         "outcome": outcome,
+        "status": "needs_input" if outcome in {"needs_input", "partial"} else ("done" if exit_code == 0 and outcome == "completed" else "failed"),
         "completed_at": completed_at,
         "transport": "terminal_background",
+        "failure_stage": failure_stage or None,
+        "error_classification": error_classification or (
+            "worker_failed" if exit_code != 0 and not failure_stage else failure_stage or None
+        ),
+        "command_summary": command_summary or None,
+        "global_hermes_home": global_hermes_home or None,
+        "target_profile_home": target_profile_home or None,
+        "parent_profile": parent_profile or None,
+        "primary_finalizer_status": "completed" if finalizer_mode == "primary" else "not_executed",
+        "fallback_finalizer_status": "completed" if finalizer_mode == "fallback" else "not_executed",
+        "primary_finalizer_executed": finalizer_mode == "primary",
+        "fallback_finalizer_executed": finalizer_mode == "fallback",
+        "worker_started": finalizer_mode == "primary" and failure_stage not in {"manifest_load", "binding_validation", "credential_bootstrap", "runner_resolution"},
+        "redaction_applied": True,
     }
+    if exit_code != 0 or failure_stage:
+        receipt["diagnostics"] = _read_log_diagnostics(worker_log_path)
     # P11-A: Add timeout info to receipt when configured
     if timeout_seconds > 0:
         receipt["timeout_seconds"] = timeout_seconds
@@ -364,6 +417,7 @@ def run_finalize(
                 r.get("start_id"),
                 r.get("profile"),
                 r.get("spec_revision"),
+                r.get("spec_hash", r.get("spec_sha256")),
                 r.get("spec_sha256"),
                 r.get("exit_code"),
                 r.get("outcome"),
@@ -568,10 +622,12 @@ def run_finalize(
             if timeout_seconds > 0 and exit_code in signal_exit_codes:
                 timeout_triggered = True
                 new_status = "timeout"
-            elif worker_outcome == "needs_input":
+            elif worker_outcome in {"needs_input", "partial"}:
                 new_status = "needs_input"
+            elif exit_code == 0 and worker_outcome == "completed":
+                new_status = "done"
             else:
-                new_status = "done" if exit_code == 0 else "failed"
+                new_status = "failed"
 
         new_meta = dict(meta)
         new_meta["status"] = new_status
@@ -580,7 +636,22 @@ def run_finalize(
         new_execution["completed_at"] = completed_at
         new_execution["exit_code"] = exit_code
         new_execution["outcome"] = outcome
+        new_execution["spec_hash"] = canonical_spec_hash
         new_execution["completion_receipt_path"] = receipt_filename
+        new_execution["failure_stage"] = failure_stage or None
+        new_execution["error_classification"] = receipt.get("error_classification")
+        new_execution["command_summary"] = command_summary or None
+        new_execution["global_hermes_home"] = global_hermes_home or None
+        new_execution["target_profile_home"] = target_profile_home or None
+        new_execution["parent_profile"] = parent_profile or None
+        new_execution["spec_id"] = binding_meta.get("spec_id", task_id)
+        new_execution["project_id"] = binding_meta.get("project_id")
+        new_execution["work_item_id"] = binding_meta.get("work_item_id")
+        new_execution["resolved_profile"] = binding_meta.get("resolved_profile", profile)
+        new_execution["finalizer_expected_version"] = 1
+        new_execution["primary_finalizer_executed"] = finalizer_mode == "primary"
+        new_execution["fallback_finalizer_executed"] = finalizer_mode == "fallback"
+        new_execution["worker_started"] = receipt.get("worker_started", False)
         # P8-C: durable needs_input metadata
         new_execution["worker_outcome"] = worker_outcome
         if needs_input_reason:
@@ -612,16 +683,19 @@ def run_finalize(
         # ------------------------------------------------------------------
         # 12b. P8-A: Postflight scope verification
         # ------------------------------------------------------------------
-        scope_result: dict[str, Any] = {"scope_compliance": "unknown", "violated_paths": []}
+        scope_result: dict[str, Any] = {"scope_compliance": {"status": "unknown", "scope_source": "", "scope_digest": "", "worker_action_checked_count": 0, "worker_action_violation_count": 0, "project_read_count": 0, "project_write_count": 0, "project_metadata_count": 0, "post_write_verification_read_count": 0, "project_checked_path_count": 0, "project_violated_path_count": 0, "active_task_read_count": 0, "active_task_write_count": 0, "postflight_new_or_changed_path_count": 0, "postflight_unattributed_path_count": 0, "postflight_violation_count": 0, "preexisting_dirty_path_count": 0, "ignored_runtime_path_count": 0, "unknown_external_path_count": 0, "invalid_or_foreign_event_count": 0, "legacy_unattributed_event_count": 0, "violations": []}, "violated_paths": []}
         if workspace_root:
             ws_root = Path(workspace_root)
             if ws_root.is_dir():
                 try:
                     scope_result = verify_scope(task_dir, ws_root)
                 except Exception:
-                    scope_result = {"scope_compliance": "unknown", "violated_paths": []}
-        new_execution["scope_compliance"] = scope_result.get("scope_compliance", "unknown")
+                    scope_result = {"scope_compliance": {"status": "unknown", "violations": []}, "violated_paths": []}
+        new_execution["scope_compliance"] = scope_result.get("scope_compliance", {"status": "unknown", "violations": []})
         new_execution["scope_violated_paths"] = scope_result.get("violated_paths", [])
+        for key in ("worker_action_checked_count", "worker_action_violation_count", "project_read_count", "project_write_count", "project_metadata_count", "post_write_verification_read_count", "project_checked_path_count", "project_violated_path_count", "active_task_read_count", "active_task_write_count", "postflight_new_or_changed_path_count", "postflight_unattributed_path_count", "postflight_violation_count", "preexisting_dirty_path_count", "ignored_runtime_path_count", "unknown_external_path_count", "invalid_or_foreign_event_count", "legacy_unattributed_event_count"):
+            new_execution[key] = scope_result.get(key, 0)
+        receipt["scope_compliance"] = new_execution["scope_compliance"]
 
         # ------------------------------------------------------------------
         # 12c. P11-B: Worker log handling — truncate if needed, add metadata
@@ -669,6 +743,14 @@ def run_finalize(
                     os.fsync(f.fileno())
             except (OSError, IOError):
                 pass
+            try:
+                if log_file.stat().st_size > MAX_WORKER_LOG_BYTES:
+                    retained_bytes = log_file.read_bytes()[-MAX_WORKER_LOG_BYTES:]
+                    log_file.write_bytes(retained_bytes)
+                    log_truncated = True
+                    log_size = len(retained_bytes)
+            except (OSError, IOError):
+                pass
 
         # Write worker_log metadata to execution block
         new_execution["worker_log"] = {
@@ -682,6 +764,31 @@ def run_finalize(
             new_execution["worker_log"]["log_truncated"] = True
 
         new_meta["execution"] = new_execution
+
+        # Complete the canonical receipt only after terminal status precedence
+        # (cancel/timeout/outcome) has been evaluated.
+        receipt["status"] = new_status
+        receipt["worker_started"] = new_execution.get("worker_started", False)
+        receipt["primary_finalizer_executed"] = finalizer_mode == "primary"
+        receipt["fallback_finalizer_executed"] = finalizer_mode == "fallback"
+        receipt["diagnostic_excerpt"] = receipt.get("diagnostics", "")
+        _atomic_write_json(receipt_path, receipt)
+
+        if profile == "project-steward" and new_status == "done":
+            card_path = task_dir / "STEWARD_CARD.json"
+            report_path = task_dir / "STEWARD_RESULT.md"
+            valid = card_path.is_file() and not card_path.is_symlink() and report_path.is_file() and not report_path.is_symlink()
+            if valid:
+                try:
+                    steward_card = _read_json(card_path)
+                    expected_card_hash = meta.get("spec_hash") if meta.get("contract_version") == 1 else meta.get("spec_sha256")
+                    valid = steward_card.get("role") == "project-steward" and steward_card.get("task_id") == task_id and steward_card.get("spec_id") == task_id and steward_card.get("spec_revision") == meta.get("revision") and steward_card.get("spec_hash") == expected_card_hash
+                except Exception:
+                    valid = False
+            if not valid:
+                new_status = "failed"
+                new_meta["status"] = new_status
+                new_execution["steward_artifact_validation"] = "missing_or_binding_mismatch"
 
         # ------------------------------------------------------------------
         # 13. Atomic meta write: temp sibling → flush → fsync → os.replace
@@ -786,6 +893,205 @@ def run_finalize(
     sys.exit(0)
 
 
+def write_failure_artifacts(
+    *,
+    workspace_id: str,
+    task_id: str,
+    start_id: str,
+    profile: str,
+    spec_revision: int,
+    spec_sha256: str,
+    exit_code: int,
+    failure_stage: str,
+    diagnostics: str = "",
+    command_summary: str = "",
+    global_hermes_home: str = "",
+    target_profile_home: str = "",
+    parent_profile: str = "",
+    spec_hash: str = "",
+    error_classification: str = "",
+    finalizer_mode: str = "fallback",
+    lock_already_held: bool = False,
+    primary_finalizer_status: str = "not_executed",
+    replace_success_on_primary_failure: bool = False,
+) -> bool:
+    """Atomically reconcile a launcher/process failure without a worker card.
+
+    Returns False when an existing completion receipt wins and is preserved.
+    This helper is intentionally non-exiting so status reconciliation and the
+    start tool can use the same canonical receipt/handoff path.
+    """
+    task_root = Path(os.environ.get("AOTA_PROFILE_TASK_ROOT", "/aota-runtime/profile-tasks"))
+    runtime_root = Path(os.environ.get("AOTA_RUNTIME_ROOT", "/aota-runtime"))
+    task_dir = task_root / workspace_id / task_id
+    if not task_dir.is_dir():
+        return False
+    try:
+        binding_meta = _read_json(task_dir / "meta.json")
+    except (OSError, json.JSONDecodeError):
+        binding_meta = {}
+    canonical_spec_hash = spec_hash or binding_meta.get("spec_hash") or spec_sha256
+    receipt_path = task_dir / f"completion.{start_id}.json"
+    existing_receipt: dict[str, Any] | None = None
+    if receipt_path.exists():
+        try:
+            existing_receipt = _read_json(receipt_path)
+        except (OSError, json.JSONDecodeError):
+            existing_receipt = None
+        # A valid success receipt is authoritative and must never be replaced
+        # by a late fallback path. Non-success/partial receipts may be
+        # reconciled into the canonical failure receipt below.
+        if (
+            existing_receipt
+            and existing_receipt.get("status") == "done"
+            and existing_receipt.get("exit_code") == 0
+            and existing_receipt.get("outcome") == "completed"
+            and not replace_success_on_primary_failure
+        ):
+            return False
+    completed_at = _utc_now_iso()
+    bounded_diag = _redact_bounded(diagnostics)
+    try:
+        failure_log_path = task_dir / f"worker.{start_id}.log"
+        with failure_log_path.open("a", encoding="utf-8") as log:
+            log.write(
+                f"AOTA_FALLBACK_FINALIZER failure_stage={failure_stage} "
+                f"exit_code={exit_code} diagnostics={bounded_diag}\n"
+            )
+        if failure_log_path.stat().st_size > 5 * 1024 * 1024:
+            failure_log_path.write_bytes(failure_log_path.read_bytes()[-5 * 1024 * 1024:])
+    except OSError:
+        pass
+    receipt = {
+        "schema_version": 1,
+        "task_id": task_id,
+        "workspace_id": workspace_id,
+        "start_id": start_id,
+        "profile": profile,
+        "spec_revision": spec_revision,
+        "spec_hash": canonical_spec_hash,
+        "spec_sha256": spec_sha256,
+        "spec_id": binding_meta.get("spec_id", task_id),
+        "project_id": binding_meta.get("project_id"),
+        "work_item_id": binding_meta.get("work_item_id"),
+        "resolved_profile": binding_meta.get("resolved_profile", profile),
+        "exit_code": exit_code,
+        "outcome": "failed",
+        "status": "failed",
+        "completed_at": completed_at,
+        "transport": "terminal_background",
+        "failure_stage": failure_stage,
+        "error_classification": error_classification or failure_stage,
+        "diagnostics": bounded_diag,
+        "command_summary": command_summary or None,
+        "global_hermes_home": global_hermes_home or None,
+        "target_profile_home": target_profile_home or None,
+        "parent_profile": parent_profile or None,
+        "primary_finalizer_status": primary_finalizer_status,
+        "fallback_finalizer_status": "completed" if finalizer_mode == "fallback" else "not_executed",
+        "primary_finalizer_executed": False,
+        "fallback_finalizer_executed": finalizer_mode == "fallback",
+        "primary_finalizer_error": primary_finalizer_status if primary_finalizer_status != "not_executed" else None,
+        "worker_started": primary_finalizer_status != "not_executed",
+        "diagnostic_excerpt": bounded_diag,
+        "redaction_applied": True,
+        "reconciliation_source": "fallback_finalizer",
+    }
+    _atomic_write_json(receipt_path, receipt)
+    lock_path = Path(runtime_root) / "locks" / "task-spec" / workspace_id / f"{task_id}.lock"
+    lock_fd: int | None = None
+    if not lock_already_held:
+        try:
+            lock_fd = _acquire_lock(lock_path, timeout=5.0)
+        except (TimeoutError, RuntimeError):
+            return True
+    try:
+        meta_path = task_dir / "meta.json"
+        if not meta_path.is_file():
+            return True
+        meta = _read_json(meta_path)
+        execution = dict(meta.get("execution", {}))
+        if meta.get("status") not in _TERMINAL_STATUSES:
+            meta["status"] = "failed"
+            execution.update({
+                "completed_at": completed_at,
+                "exit_code": exit_code,
+                "outcome": "failed",
+                "worker_outcome": "failed",
+                "spec_hash": canonical_spec_hash,
+                "spec_id": binding_meta.get("spec_id", task_id),
+                "project_id": binding_meta.get("project_id"),
+                "work_item_id": binding_meta.get("work_item_id"),
+                "resolved_profile": binding_meta.get("resolved_profile", profile),
+                "completion_receipt_path": receipt_path.name,
+                "failure_stage": failure_stage,
+                "error_classification": error_classification or failure_stage,
+                "failure_diagnostics": bounded_diag,
+                "reconciliation_state": "reconciled",
+                "reconciliation_source": "fallback_finalizer",
+                "finalizer_expected_version": 1,
+                "primary_finalizer_executed": False,
+                "fallback_finalizer_executed": finalizer_mode == "fallback",
+                "worker_started": primary_finalizer_status != "not_executed",
+            })
+            meta["execution"] = execution
+            _atomic_write_json(meta_path, meta)
+    finally:
+        if lock_fd is not None:
+            _release_lock(lock_fd)
+
+    try:
+        _write_failure_handoff(workspace_id, task_id, start_id, profile, meta, completed_at, failure_stage)
+    except Exception:
+        pass
+    return True
+
+
+def _redact_bounded(value: str, limit: int = 8192) -> str:
+    text = str(value or "")[:limit]
+    text = re.sub(r"(?i)(authorization\s*:\s*bearer\s+)[^\s]+", r"\1[REDACTED]", text)
+    text = re.sub(r"(?i)(api[_-]?key|token|secret|password)\s*([:=])\s*([^\s,;]+)", r"\1\2[REDACTED]", text)
+    text = re.sub(r"\bsk-[A-Za-z0-9_-]{12,}\b", "[REDACTED]", text)
+    return text
+
+
+def _read_log_diagnostics(path: str, limit: int = 8192) -> str:
+    if not path:
+        return ""
+    try:
+        data = Path(path).read_bytes()[-limit:]
+    except OSError:
+        return ""
+    return _redact_bounded(data.decode("utf-8", errors="replace"), limit)
+
+
+def _write_failure_handoff(
+    workspace_id: str, task_id: str, start_id: str, profile: str,
+    meta: dict[str, Any], completed_at: str, failure_stage: str,
+) -> None:
+    module_path = Path(__file__).resolve().parent / "_handoff_common.py"
+    spec = importlib.util.spec_from_file_location("_handoff_common_failure", module_path)
+    if not spec or not spec.loader:
+        raise ImportError("cannot load _handoff_common")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if module.find_existing_handoff(workspace_id, task_id, start_id) is not None:
+        return
+    data = module.build_handoff_data(
+        workspace_id=workspace_id,
+        task_id=task_id,
+        start_id=start_id,
+        profile=profile,
+        task_kind=meta.get("task_kind", ""),
+        terminal_status="failed",
+        created_at=completed_at,
+        subject_task_id=meta.get("subject_task_id"),
+        needs_input_reason=failure_stage,
+        task_dir=Path(os.environ.get("AOTA_PROFILE_TASK_ROOT", "/aota-runtime/profile-tasks")) / workspace_id / task_id,
+    )
+    module.write_handoff_atomic(workspace_id, data)
+
+
 # ---------------------------------------------------------------------------
 # Standalone CLI entry point
 # ---------------------------------------------------------------------------
@@ -816,6 +1122,14 @@ if __name__ == "__main__":
         "--worker-log-path", default="",
         help="Path to worker.log for finalizer summary",
     )
+    parser.add_argument("--failure-stage", default="")
+    parser.add_argument("--finalizer-mode", choices=("primary", "fallback"), default="primary")
+    parser.add_argument("--command-summary", default="")
+    parser.add_argument("--global-hermes-home", default="")
+    parser.add_argument("--target-profile-home", default="")
+    parser.add_argument("--parent-profile", default="")
+    parser.add_argument("--spec-hash", default="")
+    parser.add_argument("--error-classification", default="")
 
     args = parser.parse_args()
 
@@ -830,4 +1144,12 @@ if __name__ == "__main__":
         workspace_root=args.workspace_root,
         timeout_seconds=args.timeout_seconds,
         worker_log_path=args.worker_log_path,
+        failure_stage=args.failure_stage,
+        finalizer_mode=args.finalizer_mode,
+        command_summary=args.command_summary,
+        global_hermes_home=args.global_hermes_home,
+        target_profile_home=args.target_profile_home,
+        parent_profile=args.parent_profile,
+        spec_hash=args.spec_hash,
+        error_classification=args.error_classification,
     )

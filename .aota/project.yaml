@@ -1,0 +1,46 @@
+schema_version: 1
+project:
+  id: aota-hermes-tools
+  name: AOTA Hermes Tools
+  kind: hermes-tooling
+  status: active
+summary: Canonical source repository for AOTA Forge tools, profiles, skills, contracts and deployment packages.
+capabilities:
+  - hermes-plugin
+  - profile-task-orchestration
+  - forge-plan
+  - restricted-tooling
+paths:
+  source_root: .
+  source:
+    - plugin/
+  docs:
+    - docs/
+  scripts:
+    - scripts/
+  profiles:
+    - profiles/
+  skills:
+    - skills/
+  tests:
+    - fixtures/
+commands:
+  validate:
+    - scripts/aota_forge_plan_package.py
+  deploy:
+    - scripts/deploy.sh
+  verify_deploy:
+    - scripts/verify-deploy.sh
+runtime:
+  deployment_type: hermes-managed-files
+  requires_human_checkpoint: true
+codegraph:
+  enabled: true
+  index_location: .codegraph/
+plan:
+  active_plan_id: null
+constraints:
+  - canonical source and deployed runtime must remain separate
+  - deploy and runtime verification require human checkpoint
+  - canonical root is /home/latios/workspace/aota-hermes-tools
+  - legacy /home/latios/.hermes/hermes-agent-project is non-authoritative and retained for rollback only

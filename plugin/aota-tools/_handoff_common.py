@@ -18,6 +18,18 @@ import tempfile
 import time
 from pathlib import Path
 from typing import Any, Optional
+try:  # Finalizer also loads this file as a standalone module.
+    from ._spec_contract import ContractError, common_card_fields, normalize_legacy
+except ImportError:  # pragma: no cover - exercised by standalone finalizer fixture
+    import importlib.util as _importlib_util
+    _contract_path = Path(__file__).resolve().parent / "_spec_contract.py"
+    _contract_spec = _importlib_util.spec_from_file_location("_spec_contract_standalone", str(_contract_path))
+    assert _contract_spec and _contract_spec.loader
+    _contract = _importlib_util.module_from_spec(_contract_spec)
+    _contract_spec.loader.exec_module(_contract)
+    ContractError = _contract.ContractError
+    common_card_fields = _contract.common_card_fields
+    normalize_legacy = _contract.normalize_legacy
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -59,6 +71,11 @@ _ROLE_ARTIFACT_MAP: dict[str, dict[str, Optional[str]]] = {
         "kind": "architecture",
         "card_name": "ARCHITECT_CARD.json",
         "full_name": "ARCHITECT_REVIEW.md",
+    },
+    "project-steward": {
+        "kind": "stewardship",
+        "card_name": "STEWARD_CARD.json",
+        "full_name": "STEWARD_RESULT.md",
     },
 }
 
@@ -270,8 +287,8 @@ def build_handoff_data(
         workspace_id: Workspace identifier.
         task_id: Task ID (pt_...).
         start_id: Start ID (pt_...).
-        profile: Profile name (coder|debugger|reviewer).
-        task_kind: Task kind (implementation|diagnosis|review).
+        profile: Fixed Profile name, including architect and project-steward.
+        task_kind: Fixed task kind, including architecture and stewardship.
         terminal_status: Terminal status (done|failed|needs_input|cancelled).
         created_at: ISO8601 timestamp of creation.
         subject_task_id: Subject task ID for reviewer tasks.
@@ -282,6 +299,112 @@ def build_handoff_data(
         Handoff dict per schema V1.
     """
     handoff_id = generate_handoff_id()
+
+    def receipt_scope() -> tuple[str | None, dict[str, Any]]:
+        receipt_name = f"completion.{start_id}.json"
+        if task_dir is None:
+            return None, {"status": "unknown", "authority": "completion_receipt_missing"}
+        receipt_path = task_dir / receipt_name
+        try:
+            receipt = read_handoff(receipt_path)
+            if (
+                receipt.get("workspace_id") != workspace_id
+                or receipt.get("task_id") != task_id
+                or receipt.get("start_id") != start_id
+                or not isinstance(receipt.get("scope_compliance"), dict)
+            ):
+                return receipt_name, {"status": "unknown", "authority": "completion_receipt_invalid"}
+            return receipt_name, receipt["scope_compliance"]
+        except (OSError, ValueError, json.JSONDecodeError):
+            return receipt_name, {"status": "unknown", "authority": "completion_receipt_missing"}
+
+    # Canonical WI-09C producer: control-plane metadata is authoritative;
+    # only card summary/evidence are copied after binding verification.
+    if task_dir is not None:
+        try:
+            meta = read_handoff(task_dir / "meta.json")
+            if meta.get("contract_version") == 1:
+                meta = normalize_legacy(meta)
+                role_info = _ROLE_ARTIFACT_MAP.get(profile, {})
+                card_name = role_info.get("card_name")
+                full_name = role_info.get("full_name")
+                if profile != meta["resolved_profile"] or task_kind != meta["spec_kind"] or not card_name or not full_name:
+                    raise ContractError("handoff routing mismatch")
+                card = read_handoff(task_dir / card_name)
+                common_card_fields(meta, profile, card)
+                receipt_ref, receipt_scope_result = receipt_scope()
+                return {
+                    "schema_version": 1, "handoff_id": handoff_id, "workspace_id": workspace_id, "start_id": start_id,
+                    "created_at": created_at, "state": "pending", "source": "profile_task_finalizer",
+                    "role": profile, "profile": profile, "spec_kind": meta["spec_kind"], "task_kind": meta["spec_kind"],
+                    "task_id": meta["task_id"], "spec_id": meta["spec_id"], "spec_revision": meta["revision"],
+                    "spec_hash": meta["spec_hash"], "project_id": meta["project_id"], "work_item_id": meta["work_item_id"], "binding": card.get("binding"),
+                    "artifact_card_ref": card_name, "full_report_ref": full_name,
+                    "outcome": card["outcome"], "verdict": card["verdict"], "summary": card["summary"],
+                    "evidence_refs": card["evidence_refs"], "needs_input": [needs_input_reason] if needs_input_reason else [],
+                    "needs_full_report_review": card["needs_full_report_review"], "recommended_next_action": card["recommended_next_action"],
+                    "receipt_ref": receipt_ref,
+                    "scope_compliance": receipt_scope_result,
+                    "scope_compliance_source": "completion_receipt",
+                    # Compatibility projection for the existing card-first open
+                    # surface.  The canonical metadata above remains authority;
+                    # these fields only make that metadata consumable by the
+                    # pre-existing handoff reader without guessing a role.
+                    "terminal_status": terminal_status,
+                    "role_artifact": {"kind": meta["spec_kind"], "card_name": card_name, "full_name": full_name, "card_exists": True, "full_exists": True},
+                    "lifecycle": {"outcome_artifact_exists": (task_dir / f"worker-outcome.{start_id}.json").is_file(), "receipt_exists": (task_dir / f"completion.{start_id}.json").is_file()},
+                }
+        except (OSError, ValueError, ContractError, json.JSONDecodeError) as exc:
+            # Launcher/bootstrap failures happen before a worker can submit a
+            # CARD/RESULT.  They still require a canonical handoff carrying
+            # the frozen binding and receipt reference.
+            execution = meta.get("execution", {})
+            failure_stage = execution.get("failure_stage")
+            receipt_name = f"completion.{start_id}.json"
+            if failure_stage and (task_dir / receipt_name).is_file():
+                receipt_ref, receipt_scope_result = receipt_scope()
+                return {
+                    "schema_version": 1,
+                    "handoff_id": handoff_id,
+                    "workspace_id": workspace_id,
+                    "task_id": meta["task_id"],
+                    "start_id": start_id,
+                    "spec_id": meta.get("spec_id", task_id),
+                    "spec_kind": meta.get("spec_kind", task_kind),
+                    "task_kind": meta.get("spec_kind", task_kind),
+                    "resolved_profile": meta.get("resolved_profile", profile),
+                    "profile": profile,
+                    "spec_revision": meta.get("revision"),
+                    "spec_hash": meta.get("spec_hash", meta.get("spec_sha256")),
+                    "project_id": meta.get("project_id"),
+                    "work_item_id": meta.get("work_item_id"),
+                    "binding": {
+                        "workspace_id": workspace_id,
+                        "project_id": meta.get("project_id"),
+                        "work_item_id": meta.get("work_item_id"),
+                    },
+                    "terminal_status": "failed",
+                    "outcome": "failed",
+                    "verdict": "blocked",
+                    "summary": f"Profile Task launcher failed at {failure_stage}",
+                    "failure_stage": failure_stage,
+                    "error_classification": execution.get("error_classification", failure_stage),
+                    "needs_diagnosis": True,
+                    "needs_full_report_review": True,
+                    "needs_input": [failure_stage],
+                    "recommended_next_action": "task-main diagnose launcher failure",
+                    "receipt_ref": receipt_name,
+                    "scope_compliance": receipt_scope_result,
+                    "scope_compliance_source": "completion_receipt",
+                    "artifact_card_ref": None,
+                    "full_report_ref": None,
+                    "role_artifact": {"kind": task_kind, "card_name": None, "full_name": None, "card_exists": False, "full_exists": False},
+                    "lifecycle": {"outcome_artifact_exists": False, "receipt_exists": True},
+                    "created_at": created_at,
+                    "source": "profile_task_fallback_finalizer",
+                    "state": "pending",
+                }
+            raise ValueError(f"canonical handoff binding rejected: {exc}") from exc
 
     # Resolve role artifact info
     role_info = _ROLE_ARTIFACT_MAP.get(profile, {})

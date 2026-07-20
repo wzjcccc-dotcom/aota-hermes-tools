@@ -1,0 +1,195 @@
+# Governance metadata only. Registration, profile configs, and the managed
+# manifest remain authoritative; verifiers reject declarations that disagree.
+schema_version: 1
+credential_authority:
+  host_global_root: /home/latios/.hermes
+  api_key_source: /home/latios/.hermes/.env
+  oauth_source: /home/latios/.hermes/auth.json
+  profile_selector: "hermes -p <profile>"
+  worker_hermes_home: global_root_only
+  forbidden_sources:
+    - profiles/<target>/.env
+    - profiles/default/.env
+    - parent_profile_environment
+    - caller_supplied_env_path
+  provider_metadata:
+    opencode-go: {auth_type: api_key, key_env: OPENCODE_GO_API_KEY, base_url_env: OPENCODE_GO_BASE_URL}
+    openai-codex: {auth_type: oauth, auth_file: auth.json}
+  container_views:
+    agent: /home/hermes/.hermes
+    webui: /home/hermeswebui/.hermes
+  secret_policy: no_repository_copy_no_receipt_value_no_log_value
+runtime_topology:
+  active_webui_transport: legacy_in_process
+  plugin_import_processes: [hermes-agent, hermes-webui]
+  known_transports: [cli, api_server]
+  required_activation_targets: [hermes-agent, hermes-webui, new-session]
+profiles: &profiles [task-main, architect, reviewer, coder, debugger, project-steward]
+policies:
+  task_main: &task_main
+    allowed_profiles: [task-main]
+    denied_profiles: [architect, reviewer, coder, debugger, project-steward]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  all_profiles: &all_profiles
+    allowed_profiles: *profiles
+    denied_profiles: []
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  workers: &workers
+    allowed_profiles: [architect, reviewer, coder, debugger, project-steward]
+    denied_profiles: [task-main]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  no_profile: &no_profile
+    allowed_profiles: []
+    denied_profiles: *profiles
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  project_readers: &project_readers
+    allowed_profiles: [architect, reviewer, coder, project-steward]
+    denied_profiles: [task-main, debugger]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  repo_readers: &repo_readers
+    allowed_profiles: [task-main, architect, reviewer, coder, debugger]
+    denied_profiles: [project-steward]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  web_readers: &web_readers
+    allowed_profiles: [task-main, architect, debugger]
+    denied_profiles: [reviewer, coder, project-steward]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  architect: &architect
+    allowed_profiles: [architect]
+    denied_profiles: [task-main, reviewer, coder, debugger, project-steward]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  reviewer: &reviewer
+    allowed_profiles: [reviewer]
+    denied_profiles: [task-main, architect, coder, debugger, project-steward]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  coder: &coder
+    allowed_profiles: [coder]
+    denied_profiles: [task-main, architect, reviewer, debugger, project-steward]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  debugger: &debugger
+    allowed_profiles: [debugger]
+    denied_profiles: [task-main, architect, reviewer, coder, project-steward]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+  steward: &steward
+    allowed_profiles: [project-steward]
+    denied_profiles: [task-main, architect, reviewer, coder, debugger]
+    transports: [cli, api_server]
+    activation_targets: [hermes-agent, hermes-webui, new-session]
+    exact_dispatch_required: true
+
+tools:
+  aota_runtime_info: {<<: *all_profiles, module: __init__, toolset: aota_core, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_path_info: {<<: *all_profiles, module: _path_info, toolset: aota_fs_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_read_file: {<<: *all_profiles, module: _read_file, toolset: aota_fs_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_search_files: {<<: *all_profiles, module: _search_files, toolset: aota_fs_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_webui_attachment_read: {allowed_profiles: [task-main, project-steward], denied_profiles: [architect, reviewer, coder, debugger], transports: [cli, api_server], activation_targets: [hermes-agent, hermes-webui, new-session], exact_dispatch_required: true, module: _webui_attachment_read, toolset: aota_webui_attachment_read, mutation_class: readonly, path_dependencies: [webui_attachments]}
+  aota_active_task_artifact_open: {allowed_profiles: [coder, debugger, reviewer, architect, project-steward], denied_profiles: [task-main], transports: [cli, api_server], activation_targets: [hermes-agent, hermes-webui, new-session], exact_dispatch_required: true, module: _active_task_artifact_open, toolset: aota_active_task_context, mutation_class: readonly, authority: active_task_only, path_dependencies: [aota_runtime]}
+  aota_repo_status_readonly: {<<: *repo_readers, module: _repo_status, toolset: aota_repo_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_repo_diff_readonly: {<<: *repo_readers, module: _repo_diff, toolset: aota_repo_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_web_fetch: {<<: *web_readers, module: _web_fetch, toolset: aota_web_readonly, mutation_class: readonly, path_dependencies: [network_read]}
+  aota_file_copy: {<<: *no_profile, module: _file_copy, toolset: aota_fs_copy, mutation_class: dangerous/not_allowed, path_dependencies: [canonical_workspace]}
+  aota_task_spec_create: {<<: *task_main, module: _task_spec_create, toolset: aota_task_spec, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_task_spec_update: {<<: *task_main, module: _task_spec_update, toolset: aota_task_spec, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_task_spec_freeze: {<<: *task_main, module: _task_spec_freeze, toolset: aota_task_spec, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_profile_task_start: {<<: *task_main, module: _profile_task_start, toolset: aota_profile_task, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_profile_task_status: {<<: *task_main, module: _profile_task_status, toolset: aota_profile_task, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_profile_task_cancel: {<<: *task_main, module: _profile_task_cancel, toolset: aota_profile_task, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_profile_task_approve: {<<: *task_main, module: _profile_task_approve, toolset: aota_profile_task, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_worker_outcome_submit: {<<: *workers, module: _worker_outcome_submit, toolset: aota_worker_outcome, mutation_class: bounded_runtime_mutation, path_dependencies: [aota_runtime]}
+  aota_debugger_report_submit: {<<: *debugger, module: _debugger_report_submit, toolset: aota_debugger_artifact, mutation_class: bounded_runtime_mutation, path_dependencies: [aota_runtime]}
+  aota_reviewer_report_submit: {<<: *reviewer, module: _reviewer_report_submit, toolset: aota_reviewer_artifact, mutation_class: bounded_runtime_mutation, path_dependencies: [aota_runtime]}
+  aota_coder_report_submit: {<<: *coder, module: _coder_report_submit, toolset: aota_coder_artifact, mutation_class: bounded_runtime_mutation, path_dependencies: [aota_runtime]}
+  aota_architect_report_submit: {<<: *architect, module: _architect_report_submit, toolset: aota_architect_artifact, mutation_class: bounded_runtime_mutation, path_dependencies: [aota_runtime]}
+  aota_handoff_list: {<<: *task_main, module: _handoff_list, toolset: aota_handoff, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_handoff_open: {<<: *task_main, module: _handoff_open, toolset: aota_handoff, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_handoff_ack: {<<: *task_main, module: _handoff_ack, toolset: aota_handoff, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_orchestration_decision_record: {<<: *task_main, module: _orchestration_decision_record, toolset: aota_orchestration, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_followup_task_create: {<<: *task_main, module: _followup_task_create, toolset: aota_orchestration, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_orchestration_decision_resume: {<<: *task_main, module: _orchestration_decision_resume, toolset: aota_orchestration, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_orchestration_decision_list: {<<: *task_main, module: _orchestration_decision_list, toolset: aota_orchestration, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_orchestration_decision_open: {<<: *task_main, module: _orchestration_decision_open, toolset: aota_orchestration, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_orchestration_lineage: {<<: *task_main, module: _orchestration_lineage, toolset: aota_orchestration, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_operator_inbox_list: {<<: *task_main, module: _operator_inbox_list, toolset: aota_operator, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_operator_inbox_open: {<<: *task_main, module: _operator_inbox_open, toolset: aota_operator, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_operator_consistency_check: {<<: *task_main, module: _operator_consistency_check, toolset: aota_operator, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_plan_open: {<<: *task_main, module: _plan_open, toolset: aota_plan_read, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_plan_create: {<<: *task_main, module: _plan_mutation, toolset: aota_plan_write, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_plan_update: {<<: *task_main, module: _plan_mutation, toolset: aota_plan_write, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime]}
+  aota_work_classify: {<<: *task_main, module: _work_classifier, toolset: aota_work_intake, mutation_class: readonly, path_dependencies: [none]}
+  aota_workspace_list: {allowed_profiles: [task-main, project-steward], denied_profiles: [architect, reviewer, coder, debugger], transports: [cli, api_server], activation_targets: [hermes-agent, hermes-webui, new-session], exact_dispatch_required: true, module: _workspace_context, toolset: aota_workspace_readonly, mutation_class: readonly, path_dependencies: [AOTA_WORKSPACE_REGISTRY_PATH]}
+  aota_workspace_open: {allowed_profiles: [task-main, project-steward], denied_profiles: [architect, reviewer, coder, debugger], transports: [cli, api_server], activation_targets: [hermes-agent, hermes-webui, new-session], exact_dispatch_required: true, module: _workspace_context, toolset: aota_workspace_readonly, mutation_class: readonly, path_dependencies: [AOTA_WORKSPACE_REGISTRY_PATH]}
+  aota_workspace_selection_record: {<<: *task_main, module: _workspace_selection_record, toolset: aota_orchestration, mutation_class: control_plane_mutation, path_dependencies: [aota_runtime, AOTA_WORKSPACE_REGISTRY_PATH]}
+  aota_project_scan: {<<: *project_readers, module: _project_discovery, toolset: aota_project_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_project_search: {<<: *project_readers, module: _project_open, toolset: aota_project_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_project_open: {<<: *project_readers, module: _project_open, toolset: aota_project_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_project_registry_refresh: {<<: *steward, module: _project_registry, toolset: aota_project_steward, mutation_class: bounded_runtime_mutation, path_dependencies: [aota_runtime]}
+  aota_project_registry_open: {<<: *project_readers, module: _project_registry, toolset: aota_project_readonly, mutation_class: readonly, path_dependencies: [aota_runtime]}
+  aota_project_relationship_brief: {<<: *project_readers, module: _project_relationship, toolset: aota_project_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_project_prepare: {<<: *project_readers, module: _project_prepare, toolset: aota_project_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_project_docs_update: {<<: *steward, module: _project_steward_mutation, toolset: aota_project_steward, mutation_class: bounded_project_mutation, path_dependencies: [canonical_workspace]}
+  aota_project_artifact_link: {<<: *steward, module: _project_steward_mutation, toolset: aota_project_steward, mutation_class: bounded_project_mutation, path_dependencies: [canonical_workspace]}
+  aota_codegraph_status: {<<: *all_profiles, module: _codegraph_readonly, toolset: aota_codegraph_readonly, mutation_class: readonly, path_dependencies: [codegraph_index]}
+  aota_codegraph_query: {<<: *all_profiles, module: _codegraph_readonly, toolset: aota_codegraph_readonly, mutation_class: readonly, path_dependencies: [codegraph_index]}
+  aota_codegraph_explore: {<<: *all_profiles, module: _codegraph_readonly, toolset: aota_codegraph_readonly, mutation_class: readonly, path_dependencies: [codegraph_index]}
+  aota_codegraph_rebuild: {<<: *task_main, module: _codegraph_rebuild, toolset: aota_codegraph_rebuild, mutation_class: bounded_runtime_mutation, path_dependencies: [codegraph_index]}
+  aota_project_steward_report: {<<: *steward, module: _project_steward_report, toolset: aota_project_steward_artifact, mutation_class: bounded_runtime_mutation, path_dependencies: [aota_runtime]}
+  aota_project_file_read: {<<: *coder, module: _project_file_mutation, toolset: aota_coder_file_mutation, mutation_class: readonly, path_dependencies: [canonical_workspace]}
+  aota_project_file_write: {<<: *coder, module: _project_file_mutation, toolset: aota_coder_file_mutation, mutation_class: bounded_project_mutation, path_dependencies: [canonical_workspace]}
+  aota_project_file_patch: {<<: *coder, module: _project_file_mutation, toolset: aota_coder_file_mutation, mutation_class: bounded_project_mutation, path_dependencies: [canonical_workspace]}
+  aota_project_command_run: {<<: *coder, module: _project_command_run, toolset: aota_coder_command, mutation_class: bounded_project_mutation, path_dependencies: [canonical_workspace]}
+
+skills:
+  aota-profile-task-orchestration: {scope: global, owning_profiles: [task-main], source_path: skills/aota-profile-task-orchestration/SKILL.md, deployed_path: ~/.hermes/skills/aota-profile-task-orchestration/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-pcf-project-steward: {scope: global, owning_profiles: [project-steward], source_path: skills/aota-pcf-project-steward/SKILL.md, deployed_path: ~/.hermes/skills/aota-pcf-project-steward/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-spec-driven-implementation: {scope: global, owning_profiles: [coder], source_path: skills/aota-spec-driven-implementation/SKILL.md, deployed_path: ~/.hermes/skills/aota-spec-driven-implementation/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-plugin-tool-development: {scope: global, owning_profiles: [task-main, coder], source_path: skills/aota-plugin-tool-development/SKILL.md, deployed_path: ~/.hermes/skills/aota-plugin-tool-development/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-skill-development: {scope: global, owning_profiles: [task-main, project-steward], source_path: skills/aota-skill-development/SKILL.md, deployed_path: ~/.hermes/skills/aota-skill-development/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-task-lifecycle: {scope: global, owning_profiles: [task-main, project-steward], source_path: skills/aota-task-lifecycle/SKILL.md, deployed_path: ~/.hermes/skills/aota-task-lifecycle/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-workspace-model: {scope: global, owning_profiles: [task-main, project-steward], source_path: skills/aota-workspace-model/SKILL.md, deployed_path: ~/.hermes/skills/aota-workspace-model/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-workspace-diagnostics: {scope: global, owning_profiles: [task-main, project-steward], source_path: skills/aota-workspace-diagnostics/SKILL.md, deployed_path: ~/.hermes/skills/aota-workspace-diagnostics/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-tool-failure-fallback: {scope: global, owning_profiles: [task-main, project-steward], source_path: skills/aota-tool-failure-fallback/SKILL.md, deployed_path: ~/.hermes/skills/aota-tool-failure-fallback/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-runtime-smoke-verification: {scope: global, owning_profiles: [task-main], source_path: skills/aota-runtime-smoke-verification/SKILL.md, deployed_path: ~/.hermes/skills/aota-runtime-smoke-verification/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+
+profile_task_launcher_hardening:
+  source_handlers:
+    - plugin/aota-tools/_profile_task_start.py
+    - plugin/aota-tools/_task_spec_scope.py
+    - plugin/aota-tools/_profile_task_scope.py
+    - plugin/aota-tools/_project_file_mutation.py
+    - plugin/aota-tools/_profile_task_env.py
+    - plugin/aota-tools/_profile_task_paths.py
+    - plugin/aota-tools/_profile_task_capture.py
+    - plugin/aota-tools/_profile_task_launcher.py
+    - plugin/aota-tools/_profile_task_finalize.py
+    - plugin/aota-tools/_profile_task_status.py
+    - plugin/aota-tools/_handoff_common.py
+  activation_targets: [hermes-agent, hermes-webui, new-session]
+  recreate_requirements: [hermes-agent, hermes-webui]
+  durable_artifacts: [scope.json, workspace-baseline.json, scope-events.jsonl, worker.<task_id>.log, completion.<task_id>.json, failure_handoff]
+  scope_contract:
+    canonical_source: spec.payload
+    write_does_not_require_read: true
+    event_identity: [workspace_id, project_id, task_id, start_id, process_session_id, timestamp]
+    workspace_diff_role: postflight_integrity_observation_only

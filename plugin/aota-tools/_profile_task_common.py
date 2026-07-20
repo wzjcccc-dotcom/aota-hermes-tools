@@ -239,6 +239,16 @@ _ROLE_SPECIFIC: dict[str, str] = {
         "Do not modify files. Do not fix issues. Do not dispatch.\n"
         "Do not exit without submitting outcome."
     ),
+    "stewardship": (
+        "You are the Project Steward. Provide project facts and continuity recommendations only.\n"
+        "- Do not make a final project decision, Plan/SPEC decision, or durable workflow decision\n"
+        "- Do not modify source, Profile config, runtime files, or CodeGraph\n"
+        "- Use only bounded project metadata/docs tools when your frozen stewardship SPEC authorizes them\n"
+        "- Never rebuild CodeGraph, deploy, restart, recreate, dispatch, or use terminal\n"
+        "\nBefore exit:\n"
+        "1. Call aota_project_steward_report.\n"
+        "2. Call aota_worker_outcome_submit with the matching terminal outcome."
+    ),
 }
 
 _TIMEOUT_AWARE_INSTRUCTION = """\nThis task has a hard timeout configured. If you exceed the time limit, the\nprocess will be terminated with SIGTERM (and SIGKILL after a grace period).\nUse your time efficiently and submit your outcome before the deadline.\n"""
@@ -375,15 +385,6 @@ def build_worker_command(
     runner: str,
     profile: str,
     worker_prompt: str,
-) -> str:
-    """Build a safe shell command that launches the profile worker via the runner.
-
-    Uses shlex.quote for all dynamic values. Never uses shell=True.
-    """
-    import shlex
-
-    return (
-        f"{shlex.quote(runner)} "
-        f"-p {shlex.quote(profile)} "
-        f"-z {shlex.quote(worker_prompt)}"
-    )
+) -> list[str]:
+    """Build the worker argv vector; prompt text remains one literal argument."""
+    return [runner, "-p", profile, "-z", worker_prompt]

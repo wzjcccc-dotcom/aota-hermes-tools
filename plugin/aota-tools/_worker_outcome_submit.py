@@ -13,10 +13,12 @@ import os
 import tempfile
 from pathlib import Path
 
+from ._active_task_context import ActiveTaskError, assert_artifact_target, load_active_task_context, validate_tool_args
+
 TOOL_NAME = "aota_worker_outcome_submit"
 TOOLSET_NAME = "aota_worker_outcome"
 
-VALID_OUTCOMES = {"completed", "failed", "needs_input"}
+VALID_OUTCOMES = {"completed", "partial", "failed", "needs_input"}
 
 SCHEMA = {
     "name": TOOL_NAME,
@@ -31,7 +33,7 @@ SCHEMA = {
         "properties": {
             "outcome": {
                 "type": "string",
-                "enum": ["completed", "failed", "needs_input"],
+                "enum": ["completed", "partial", "failed", "needs_input"],
                 "description": "Terminal outcome",
             },
             "reason": {
@@ -57,15 +59,11 @@ def _trusted_context() -> tuple[str, str, str, str]:
     Returns (workspace_id, task_id, start_id, profile).
     Raises PermissionError if any var is missing/empty.
     """
-    workspace_id = os.environ.get("AOTA_PROFILE_TASK_WORKSPACE_ID", "")
-    task_id = os.environ.get("AOTA_PROFILE_TASK_ID", "")
-    start_id = os.environ.get("AOTA_PROFILE_TASK_START_ID", "")
-    profile = os.environ.get("AOTA_PROFILE_TASK_PROFILE", "")
-    if not all([workspace_id, task_id, start_id, profile]):
-        raise PermissionError(
-            "missing trusted execution context (AOTA_PROFILE_TASK_* env vars)"
-        )
-    return workspace_id, task_id, start_id, profile
+    try:
+        ctx = load_active_task_context()
+    except ActiveTaskError as exc:
+        raise PermissionError(exc.code) from exc
+    return ctx.workspace_id, ctx.task_id, ctx.start_id, ctx.profile
 
 
 # ---------------------------------------------------------------------------
@@ -101,6 +99,7 @@ def _atomic_write_json(path: Path, data: dict) -> None:
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_worker_outcome_submit call."""
     try:
+        validate_tool_args(args, SCHEMA)
         return _do_submit(args)
     except (PermissionError, ValueError, RuntimeError) as e:
         return json.dumps({"status": "rejected", "error": str(e)}, sort_keys=True)
@@ -151,9 +150,25 @@ def _do_submit(args: dict) -> str:
     if execution.get("profile") != profile:
         raise RuntimeError("profile mismatch with execution context")
 
+    if profile == "project-steward":
+        if meta.get("task_kind") != "stewardship":
+            raise RuntimeError("steward profile requires stewardship task kind")
+        if outcome in {"completed", "partial"}:
+            card_path = task_dir / "STEWARD_CARD.json"
+            report_path = task_dir / "STEWARD_RESULT.md"
+            if not card_path.is_file() or card_path.is_symlink() or not report_path.is_file() or report_path.is_symlink():
+                raise RuntimeError("steward_report_artifacts_missing")
+            try:
+                card = json.loads(card_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                raise RuntimeError("steward_card_invalid") from exc
+            expected_card_hash = meta.get("spec_hash") if meta.get("contract_version") == 1 else meta.get("spec_sha256")
+            if (card.get("role") != "project-steward" or card.get("task_id") != task_id or card.get("spec_id") != task_id or card.get("spec_revision") != meta.get("revision") or card.get("spec_hash") != expected_card_hash or card.get("outcome") != outcome):
+                raise RuntimeError("steward_card_binding_mismatch")
+
     # 5. Build outcome artifact path
     outcome_filename = f"worker-outcome.{start_id}.json"
-    outcome_path = task_dir / outcome_filename
+    outcome_path = assert_artifact_target(task_dir, outcome_filename, allowed={outcome_filename})
 
     # 6. Prepare payload
     now = datetime.datetime.now(datetime.timezone.utc).strftime(

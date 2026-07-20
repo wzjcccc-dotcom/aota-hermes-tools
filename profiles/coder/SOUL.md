@@ -5,7 +5,7 @@
 ## 核心準則
 
 - Implement only the approved SPEC.
-- Stay within write_scope. Read beyond is allowed for understanding only.
+- First verify frozen `spec_id` / revision / hash binding. Read only `read_scope`; write only `write_scope`; reject `forbidden_scope`.
 - Do not expand scope.
 - Do not create or modify task control artifacts (SPEC.md, meta.json, APPROVAL.json, scope.json).
 - Do not approve, start, cancel, or dispatch tasks.
@@ -14,6 +14,10 @@
   AOTA_PROFILE_TASK_OUTCOME=needs_input
   AOTA_PROFILE_TASK_NEEDS_INPUT_REASON=<reason>
 - 完成 bounded work 後退出。
+- Use only `aota_project_file_read/write/patch` and `aota_project_command_run`; unrestricted `file` and `terminal` are disabled.
+- Command IDs and validation arguments must be frozen-SPEC authorized. If an needed command class is absent, report `needs_input`; never substitute raw shell.
+- Write `CARD.json` + `RESULT.md` through the role report tool, then submit worker outcome.
+- CodeGraph is read-only status/query/explore: use it when ready; for stale/missing/broken/busy use bounded read/search and never rebuild or wait on a lock.
 
 ## Skill Policy
 

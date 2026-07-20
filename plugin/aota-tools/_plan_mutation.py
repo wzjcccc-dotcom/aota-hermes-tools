@@ -50,6 +50,7 @@ CREATE_SCHEMA = {
         "delivery_path": {"type": "string", "enum": ["fast", "standard", "deep"]},
         "goal": {"type": "string"}, "non_goals": {"type": "array", "items": {"type": "string"}},
         "current_state": {"type": "string"}, "next_action": {"type": ["string", "null"]},
+        "project_id": {"type": "string"}, "workspace_decision_id": {"type": "string"},
     }, "required": ["workspace_id", "title", "planning_depth", "architect_gate", "delivery_path", "goal"], "additionalProperties": False},
 }
 UPDATE_SCHEMA = {
@@ -337,7 +338,14 @@ def _do_create(args: dict[str, Any]) -> dict[str, Any]:
             plan_id = generate_plan_id()
         else: raise _MutationError("PLAN_ALREADY_EXISTS")
         assert_no_unresolved_plan_audit(workspace_id=workspace_id, plan_id=plan_id)
-        plan = create_plan(plan_id=plan_id, **{key: values[key] for key in ("title", "goal", "planning_depth", "architect_gate", "delivery_path", "non_goals", "current_state")})
+        decision_id, project_id = args.get("workspace_decision_id"), args.get("project_id")
+        if (decision_id is None) != (project_id is None): raise _MutationError("WORKSPACE_CONTEXT_REQUIRED")
+        workspace_context = None
+        if decision_id is not None:
+            from ._workspace_context import context_from_selection
+            frozen = context_from_selection(workspace_id, project_id, decision_id)
+            workspace_context = {"workspace_id": frozen["workspace_id"], "project_id": frozen["project_id"], "decision_id": frozen["decision_id"], "relationship": frozen["relationship"]}
+        plan = create_plan(plan_id=plan_id, workspace_context=workspace_context, **{key: values[key] for key in ("title", "goal", "planning_depth", "architect_gate", "delivery_path", "non_goals", "current_state")})
         plan["next_action"] = values["next_action"]; plan["plan_sha256"] = compute_plan_sha256(plan); plan = validate_plan(plan)
         projection = render_plan_markdown(plan)
         try:

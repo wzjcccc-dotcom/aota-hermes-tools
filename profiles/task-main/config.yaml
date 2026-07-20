@@ -1,11 +1,22 @@
 _config_version: 33
 model:
-  default: deepseek-v4-flash
-  provider: opencode-go
+  default: glm-5.2
+  provider: ollama-cloud
 agent:
   max_turns: 60
   disabled_toolsets:
     - aota_fs_copy
+    - aota_architect_artifact
+    - aota_coder_artifact
+    - aota_coder_command
+    - aota_coder_file_mutation
+    - aota_debugger_artifact
+    - aota_project_readonly
+    - aota_project_steward
+    - aota_project_steward_artifact
+    - aota_reviewer_artifact
+    - aota_worker_outcome
+    - aota_active_task_context
     - file
     - terminal
   reasoning_effort: max
@@ -16,6 +27,7 @@ toolsets:
   - aota_plan_write
   - aota_core
   - aota_fs_readonly
+  - aota_webui_attachment_read
   - aota_repo_readonly
   - aota_web_readonly
   - aota_task_spec
@@ -23,6 +35,9 @@ toolsets:
   - aota_handoff
   - aota_orchestration
   - aota_operator
+  - aota_codegraph_readonly
+  - aota_codegraph_rebuild
+  - aota_workspace_readonly
 platform_toolsets:
   api_server:
     - aota_work_intake
@@ -30,6 +45,7 @@ platform_toolsets:
     - aota_plan_write
     - aota_core
     - aota_fs_readonly
+    - aota_webui_attachment_read
     - aota_repo_readonly
     - aota_web_readonly
     - aota_task_spec
@@ -37,12 +53,16 @@ platform_toolsets:
     - aota_handoff
     - aota_orchestration
     - aota_operator
+    - aota_codegraph_readonly
+    - aota_codegraph_rebuild
+    - aota_workspace_readonly
   cli:
     - aota_work_intake
     - aota_plan_read
     - aota_plan_write
     - aota_core
     - aota_fs_readonly
+    - aota_webui_attachment_read
     - aota_repo_readonly
     - aota_web_readonly
     - aota_task_spec
@@ -50,6 +70,9 @@ platform_toolsets:
     - aota_handoff
     - aota_orchestration
     - aota_operator
+    - aota_codegraph_readonly
+    - aota_codegraph_rebuild
+    - aota_workspace_readonly
 plugins:
   enabled:
     - aota-tools

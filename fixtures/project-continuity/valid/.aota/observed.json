@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "project_id": "fixture-project",
+  "observed_at": "2026-07-14T00:00:00Z",
+  "filesystem": {"root_exists": true, "manifest_exists": true},
+  "git": {"available": false, "branch": "", "head": "", "dirty": false},
+  "codegraph": {"configured": true, "index_present": false, "runtime_verified": false},
+  "plan": {"active_plan_id": null, "revision": null, "sha256": null}
+}

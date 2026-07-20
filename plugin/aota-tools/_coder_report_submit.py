@@ -13,6 +13,8 @@ import json
 import os
 import tempfile
 from pathlib import Path
+from ._active_task_context import ActiveTaskError, assert_artifact_target, load_active_task_context, validate_tool_args
+from ._spec_contract import apply_common_card
 
 TOOL_NAME = "aota_coder_report_submit"
 TOOLSET_NAME = "aota_coder_artifact"
@@ -76,15 +78,11 @@ SCHEMA = {
 
 def _trusted_context() -> tuple[str, str, str, str]:
     """Read task identity from trusted env vars."""
-    workspace_id = os.environ.get("AOTA_PROFILE_TASK_WORKSPACE_ID", "")
-    task_id = os.environ.get("AOTA_PROFILE_TASK_ID", "")
-    start_id = os.environ.get("AOTA_PROFILE_TASK_START_ID", "")
-    profile = os.environ.get("AOTA_PROFILE_TASK_PROFILE", "")
-    if not all([workspace_id, task_id, start_id, profile]):
-        raise PermissionError(
-            "missing trusted execution context (AOTA_PROFILE_TASK_* env vars)"
-        )
-    return workspace_id, task_id, start_id, profile
+    try:
+        ctx = load_active_task_context()
+    except ActiveTaskError as exc:
+        raise PermissionError(exc.code) from exc
+    return ctx.workspace_id, ctx.task_id, ctx.start_id, ctx.profile
 
 
 # ---------------------------------------------------------------------------
@@ -119,6 +117,7 @@ def _atomic_write(path: Path, content: str) -> None:
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_coder_report_submit call."""
     try:
+        validate_tool_args(args, SCHEMA)
         return _do_submit(args)
     except (PermissionError, ValueError, RuntimeError) as e:
         return json.dumps({"status": "rejected", "error": str(e)}, sort_keys=True)
@@ -221,12 +220,13 @@ def _do_submit(args: dict) -> str:
         md_lines.append(full_report)
         md_lines.append("")
 
+    card = apply_common_card(meta, "coder", card, "RESULT.md")
     # Write CARD.json
-    card_path = task_dir / "CARD.json"
+    card_path = assert_artifact_target(task_dir, "CARD.json", allowed={"CARD.json", "RESULT.md"})
+    md_path = assert_artifact_target(task_dir, "RESULT.md", allowed={"CARD.json", "RESULT.md"})
     _atomic_write_json(card_path, card)
 
     # Write RESULT.md (full artifact)
-    md_path = task_dir / "RESULT.md"
     _atomic_write(md_path, "\n".join(md_lines))
 
     return json.dumps(

@@ -59,6 +59,7 @@ SCHEMA = {
                 "type": "string",
                 "description": "Expected SHA-256 hex digest of the exact SPEC.md content",
             },
+            "expected_spec_hash": {"type": "string", "description": "Canonical frozen SPEC hash (WI-09C)."},
         },
         "required": [
             "workspace_id",
@@ -69,6 +70,7 @@ SCHEMA = {
         "additionalProperties": False,
     },
 }
+SCHEMA["parameters"]["required"] = ["workspace_id", "task_id", "expected_revision"]
 
 
 # ---------------------------------------------------------------------------
@@ -93,7 +95,7 @@ def _do_approve(args: dict) -> str:
     workspace_id: str = args.get("workspace_id", "")
     task_id: str = args.get("task_id", "")
     expected_revision: int = args.get("expected_revision", 0)
-    expected_spec_sha256: str = args.get("expected_spec_sha256", "")
+    expected_spec_sha256: str = args.get("expected_spec_hash") or args.get("expected_spec_sha256", "")
 
     # 1. Locate task directory
     task_dir = get_task_dir(workspace_id, task_id)
@@ -105,6 +107,7 @@ def _do_approve(args: dict) -> str:
     # 2. Load meta
     meta = load_meta(task_dir)
     spec_md = load_spec_md(task_dir)
+    contract = meta.get("contract_version") == 1
 
     # 3. Verify meta.task_id matches
     if meta.get("task_id") != task_id:
@@ -124,7 +127,7 @@ def _do_approve(args: dict) -> str:
 
     # 6. Status must be draft with a frozen current revision
     current_status = meta.get("status", "")
-    if current_status != STATUS_DRAFT or meta.get("frozen_revision") != meta.get("revision"):
+    if (contract and current_status != "frozen") or (not contract and (current_status != STATUS_DRAFT or meta.get("frozen_revision") != meta.get("revision"))):
         raise WorkspaceError(
             f"task_not_approvable: task '{task_id}' requires its current draft revision to be frozen"
         )
@@ -138,10 +141,10 @@ def _do_approve(args: dict) -> str:
         )
 
     # 8. Compute actual SPEC SHA-256
-    actual_spec_sha256 = compute_sha256(spec_md)
+    actual_spec_sha256 = meta.get("spec_hash", "") if contract else compute_sha256(spec_md)
 
     # 8a. Verify integrity
-    stored_hash = meta.get("spec_sha256", "")
+    stored_hash = meta.get("spec_hash", "") if contract else meta.get("spec_sha256", "")
     if actual_spec_sha256 != stored_hash:
         raise WorkspaceError(
             f"artifact_integrity_mismatch: stored={stored_hash}, "
@@ -162,7 +165,7 @@ def _do_approve(args: dict) -> str:
         meta_after_lock = load_meta(task_dir)
 
         # Re-check status and frozen binding under lock
-        if meta_after_lock.get("status") != STATUS_DRAFT or meta_after_lock.get("frozen_revision") != current_revision:
+        if (contract and meta_after_lock.get("status") != "frozen") or (not contract and (meta_after_lock.get("status") != STATUS_DRAFT or meta_after_lock.get("frozen_revision") != current_revision)):
             raise WorkspaceError(
                 f"task_not_approvable: task state changed during lock acquisition"
             )

@@ -1,0 +1,48 @@
+schema_version: 1
+assembly_version: 1
+
+# This is the canonical Named Profile runtime assembly.  Profile config and
+# SOUL remain the behavioral authorities; this file only declares the runtime
+# projection required to make those declarations loadable and verifiable.
+profiles:
+  task-main:
+    config: profiles/task-main/config.yaml
+    soul: profiles/task-main/SOUL.md
+    plugin: plugin/aota-tools
+    active_skills:
+      - aota-profile-task-orchestration
+      - aota-runtime-smoke-verification
+  project-steward:
+    config: profiles/project-steward/config.yaml
+    soul: profiles/project-steward/SOUL.md
+    plugin: plugin/aota-tools
+    active_skills:
+      - aota-pcf-project-steward
+      - aota-workspace-model
+      - aota-workspace-diagnostics
+      - aota-task-lifecycle
+      - aota-tool-failure-fallback
+  architect:
+    config: profiles/architect/config.yaml
+    soul: profiles/architect/SOUL.md
+    plugin: plugin/aota-tools
+    active_skills:
+      - aota-architecture-review
+  coder:
+    config: profiles/coder/config.yaml
+    soul: profiles/coder/SOUL.md
+    plugin: plugin/aota-tools
+    active_skills:
+      - aota-spec-driven-implementation
+  debugger:
+    config: profiles/debugger/config.yaml
+    soul: profiles/debugger/SOUL.md
+    plugin: plugin/aota-tools
+    active_skills:
+      - aota-evidence-first-debugging
+  reviewer:
+    config: profiles/reviewer/config.yaml
+    soul: profiles/reviewer/SOUL.md
+    plugin: plugin/aota-tools
+    active_skills:
+      - aota-implementation-review

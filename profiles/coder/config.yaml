@@ -5,7 +5,14 @@ model:
 agent:
   max_turns: 40
   disabled_toolsets:
+    - aota_workspace_readonly
     - aota_fs_copy
+    - aota_architect_artifact
+    - aota_debugger_artifact
+    - aota_project_steward
+    - aota_project_steward_artifact
+    - aota_reviewer_artifact
+    - aota_webui_attachment_read
     - aota_handoff
     - aota_orchestration
     - aota_operator
@@ -15,28 +22,45 @@ agent:
     - aota_task_spec
     - aota_web_readonly
     - aota_work_intake
+    - aota_codegraph_rebuild
+    - file
+    - terminal
   reasoning_effort: max
   task_completion_guidance: true
 toolsets:
   - aota_core
   - aota_fs_readonly
+  - aota_repo_readonly
+  - aota_project_readonly
+  - aota_codegraph_readonly
+  - aota_coder_file_mutation
+  - aota_coder_command
   - aota_worker_outcome
   - aota_coder_artifact
+  - aota_active_task_context
 platform_toolsets:
   api_server:
     - aota_core
     - aota_fs_readonly
+    - aota_repo_readonly
+    - aota_project_readonly
+    - aota_codegraph_readonly
+    - aota_coder_file_mutation
+    - aota_coder_command
     - aota_worker_outcome
     - aota_coder_artifact
-    - file
-    - terminal
+    - aota_active_task_context
   cli:
     - aota_core
     - aota_fs_readonly
+    - aota_repo_readonly
+    - aota_project_readonly
+    - aota_codegraph_readonly
+    - aota_coder_file_mutation
+    - aota_coder_command
     - aota_worker_outcome
     - aota_coder_artifact
-    - file
-    - terminal
+    - aota_active_task_context
 plugins:
   enabled:
     - aota-tools
@@ -55,12 +79,6 @@ providers:
       - deepseek-v4-flash
       - deepseek-v4-pro
       - kimi-k2.6
-terminal:
-  backend: local
-  timeout: 600
-  cwd: .
-  persistent_shell: false
-  lifetime_seconds: 300
 delegation:
   max_concurrent_children: 2
   max_spawn_depth: 1

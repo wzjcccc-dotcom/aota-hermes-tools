@@ -389,6 +389,18 @@ ARCHITECTURE_SPEC_PREFLIGHT_FIELDS: dict[str, dict[str, Any]] = {
     },
 }
 
+# PCF-WI-09B temporary compatibility contract.  WI-09C supersedes this with
+# the final closed spec_kind envelope; this only makes stewardship safe now.
+STEWARD_OPERATIONS = ("intake", "context_prepare", "docs_update", "artifact_link", "close")
+STEWARD_ARTIFACTS = ("readme", "changelog", "roadmap", "project_doc", "project_metadata")
+STEWARDSHIP_FIELDS: dict[str, dict[str, Any]] = {
+    "project_id": {"type": "str", "required": True, "default": "", "max_len": 96},
+    "allowed_project_artifacts": {"type": "list[str]", "required": True, "default": [], "enum": STEWARD_ARTIFACTS, "max_items": 16, "max_item_len": 128},
+    "operation": {"type": "str", "required": True, "default": "", "enum": STEWARD_OPERATIONS, "max_len": 64},
+    "forbidden_actions": {"type": "list[str]", "required": True, "default": [], "max_items": 32, "max_item_len": 500},
+    "work_item_id": {"type": "str", "required": False, "default": "", "max_len": 128},
+}
+
 # ---------------------------------------------------------------------------
 # Kind-specific metadata
 # ---------------------------------------------------------------------------
@@ -398,6 +410,7 @@ KIND_FIELDS_MAP: dict[str, dict[str, dict[str, Any]]] = {
     "diagnosis": DIAGNOSIS_FIELDS,
     "review": REVIEW_FIELDS,
     "architecture": ARCHITECTURE_COMMON_FIELDS,
+    "stewardship": STEWARDSHIP_FIELDS,
 }
 
 ARCHITECTURE_MODE_FIELDS: dict[str, dict[str, dict[str, Any]]] = {
@@ -434,6 +447,7 @@ RENDER_ORDER: dict[str, list[str]] = {
         "inconclusive_conditions",
         "independence_requirements",
     ],
+    "stewardship": ["project_id", "allowed_project_artifacts", "operation", "forbidden_actions", "work_item_id"],
 }
 
 ARCHITECTURE_RENDER_ORDER: dict[str, list[str]] = {
@@ -494,6 +508,7 @@ PROMPT_PROJECTION: dict[str, list[str]] = {
         "constraints",
         "risk_focus",
     ],
+    "stewardship": ["project_id", "allowed_project_artifacts", "operation", "forbidden_actions", "work_item_id"],
 }
 
 ARCHITECTURE_MODE_PROMPT_PROJECTION: dict[str, list[str]] = {
@@ -731,6 +746,15 @@ def _validate_field_str(
                 f"Invalid enum value: {value!r}",
                 expected=", ".join(str(e) for e in enum_values),
                 received=str(value),
+            )
+        )
+    max_len = field_spec.get("max_len")
+    if max_len is not None and len(value) > max_len:
+        errors.append(
+            _build_error(
+                ERR_FIELD_ITEM_TOO_LONG, task_kind, field_name,
+                f"String exceeds {max_len} characters", expected=str(max_len),
+                received=str(len(value)),
             )
         )
 

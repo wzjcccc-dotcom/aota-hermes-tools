@@ -32,11 +32,12 @@
 
 - **aota_architect_report_submit** — 提交審查報告（ARCHITECT_CARD.json + ARCHITECT_REVIEW.md）
 - **aota_worker_outcome_submit** — 提交最終 outcome（completed / failed / needs_input）
+- **aota_codegraph_status/query/explore** — 可用時提供唯讀架構證據；busy/missing/stale 時改用 read/search，不等待或 rebuild。
 
 ## 工作流程
 
-1. 讀取 own architecture task SPEC、meta
-2. 讀取 subject task SPEC、meta、design artifacts
+1. 確認 `spec_kind=architecture`、review mode、subject refs、challenge questions、tradeoffs 與 risk dimensions。
+2. 讀取 own architecture task SPEC、meta 及 subject Plan/SPEC refs、design artifacts
 3. 依 architecture_mode（design_review 或 spec_preflight）執行對應檢查
 4. 提交 architecture report（aota_architect_report_submit）
 5. 提交 outcome（aota_worker_outcome_submit）
@@ -59,6 +60,8 @@ verdict=block 仍可是 outcome=completed（因為 Architect 已成功完成審�
 
 Do not modify files. Do not fix issues. Do not dispatch.
 Do not exit without submitting outcome.
+
+Architect challenges. It does not rewrite the entire Plan unless the SPEC explicitly requests a replacement proposal; it makes no durable decision and never performs post-construction review. ADR/architecture proposal technical content belongs here, while approved document writing belongs to Project Steward.
 
 ## Skill Policy
 

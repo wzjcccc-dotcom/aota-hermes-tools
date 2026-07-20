@@ -1,6 +1,7 @@
 schema_version: 1
 package: aota-forge-plan
 source_root: ${AOTA_SOURCE_ROOT}
+profile_runtime_assembly: deploy/profile-runtime-assembly.yaml
 
 # Every entry is either copied to a Hermes runtime target or retained as a
 # source-only declaration.  The deploy/backup/rollback helpers expand the
@@ -23,6 +24,17 @@ groups:
         required: true
         expected_mode: preserve
         managed: true
+      - pattern: "dashboard/**/*"
+        destination: "{relative_path}"
+        file_type: asset
+        required: true
+        expected_mode: preserve
+        managed: true
+    removed_files:
+      - _codegraph_approval.py
+      - _codegraph_backup.py
+      - _codegraph_maintenance.py
+      - _codegraph_result.py
 
   profiles:
     kind: copy
@@ -89,14 +101,182 @@ groups:
         required: true
         expected_mode: preserve
         managed: true
+      - source: project-steward/config.yaml
+        destination: project-steward/config.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: project-steward/SOUL.md
+        destination: project-steward/SOUL.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
 
   skills:
     kind: copy
     source_root: ${AOTA_SOURCE_ROOT}/skills
     runtime_root: ${AOTA_HERMES_HOME_HOST}/skills
+    # Includes aota-plugin-tool-development/SKILL.md and
+    # aota-skill-development/SKILL.md through the canonical Skill pattern.
     files:
       - pattern: "*/SKILL.md"
         destination: "{relative_path}"
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  lifecycle_governance:
+    # These source authorities are packaged for readiness/rollback traceability;
+    # they are not a separate runtime registry.
+    kind: source_only
+    source_root: ${AOTA_SOURCE_ROOT}
+    runtime_root: ${AOTA_SOURCE_ROOT}
+    files:
+      - source: deploy/aota-lifecycle-inventory.yaml
+        destination: deploy/aota-lifecycle-inventory.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: docs/aota-development/README.md
+        destination: docs/aota-development/README.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: docs/aota-development/AOTA-PLUGIN-TOOL-LIFECYCLE.md
+        destination: docs/aota-development/AOTA-PLUGIN-TOOL-LIFECYCLE.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: docs/aota-development/AOTA-SKILL-LIFECYCLE.md
+        destination: docs/aota-development/AOTA-SKILL-LIFECYCLE.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: docs/aota-development/AOTA-RUNTIME-PATHS-AND-RELOADS.md
+        destination: docs/aota-development/AOTA-RUNTIME-PATHS-AND-RELOADS.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  runtime_projection:
+    # Retained as a rollback/compatibility artifact only. The runtime
+    # projection is deliberately no longer a canonical workspace authority.
+    kind: source_only
+    source_root: ${AOTA_SOURCE_ROOT}/deploy/runtime-projects/aota-hermes-tools
+    runtime_root: ${AOTA_HERMES_HOME_HOST}/hermes-agent-project
+    files:
+      - source: .aota/project.yaml
+        destination: .aota/project.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: .aota/workspaces.json
+        destination: .aota/workspaces.json
+        file_type: json
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  workspace_binding:
+    kind: copy
+    source_root: ${AOTA_SOURCE_ROOT}/deploy/canonical-workspace
+    runtime_root: ${AOTA_CANONICAL_WORKSPACE_ROOT}/.aota
+    files:
+      - source: workspaces.json
+        destination: workspaces.json
+        file_type: json
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  canonical_projects:
+    kind: source_only
+    source_root: ${AOTA_CANONICAL_WORKSPACE_ROOT}
+    runtime_root: ${AOTA_CANONICAL_WORKSPACE_ROOT}
+    files:
+      - source: aota-hermes-tools/.aota/project.yaml
+        destination: aota-hermes-tools/.aota/project.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: hermes-agent/.aota/project.yaml
+        destination: hermes-agent/.aota/project.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: hermes-webui/.aota/project.yaml
+        destination: hermes-webui/.aota/project.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: hermes-overrides/.aota/project.yaml
+        destination: hermes-overrides/.aota/project.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  pcf_documents:
+    kind: source_only
+    source_root: ${AOTA_SOURCE_ROOT}/docs/aota-project-continuity
+    runtime_root: ${AOTA_SOURCE_ROOT}/docs/aota-project-continuity
+    files:
+      - source: CANONICAL-WORKSPACE-LAYOUT.md
+        destination: CANONICAL-WORKSPACE-LAYOUT.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: CODEGRAPH-PROJECT-LAYOUT.md
+        destination: CODEGRAPH-PROJECT-LAYOUT.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: PCF-WI-05C.2.md
+        destination: PCF-WI-05C.2.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: CODEGRAPH-MINIMAL-TOOLS.md
+        destination: CODEGRAPH-MINIMAL-TOOLS.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: CODEGRAPH-MAINTENANCE-GATE.md
+        destination: CODEGRAPH-MAINTENANCE-GATE.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: FILE-BACKED-MAINTENANCE-APPROVAL.md
+        destination: FILE-BACKED-MAINTENANCE-APPROVAL.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: PCF-WI-08.md
+        destination: PCF-WI-08.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: PCF-WI-09D-IMPLEMENTATION.md
+        destination: PCF-WI-09D-IMPLEMENTATION.md
         file_type: markdown
         required: true
         expected_mode: preserve
@@ -113,18 +293,14 @@ groups:
         required: true
         expected_mode: preserve
         managed: true
-      - source: .env.example
-        destination: .env.example
-        file_type: env-example
-        required: true
-        expected_mode: preserve
-        managed: true
 
   scripts:
     kind: source_only
     source_root: ${AOTA_SOURCE_ROOT}
     runtime_root: ${AOTA_SOURCE_ROOT}
     files:
+      # Includes verify-aota-tool-lifecycle.py and
+      # verify-aota-skill-lifecycle.py through the canonical script pattern.
       - pattern: "scripts/*.sh"
         destination: "{relative_path}"
         file_type: shell

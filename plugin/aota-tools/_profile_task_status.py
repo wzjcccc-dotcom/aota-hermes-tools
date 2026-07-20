@@ -170,7 +170,12 @@ def _build_status_dict(
         "profile": execution.get("profile", meta.get("profile_hint", "")),
         "status": meta.get("status", ""),
         "revision": meta.get("revision", 0),
+        "spec_hash": meta.get("spec_hash", ""),
         "spec_sha256": meta.get("spec_sha256", ""),
+        "spec_id": meta.get("spec_id", task_id),
+        "project_id": meta.get("project_id"),
+        "work_item_id": meta.get("work_item_id"),
+        "resolved_profile": meta.get("resolved_profile", execution.get("profile", meta.get("profile_hint", ""))),
         "process_session_id": execution.get("process_session_id", ""),
         "start_id": execution.get("start_id", ""),
         "started_at": execution.get("started_at", ""),
@@ -198,13 +203,25 @@ def _build_status_dict(
     result["timeout_exit_code"] = execution.get("timeout_exit_code")
 
     # P8-A: scope postflight
-    result["scope_compliance"] = execution.get("scope_compliance", "unknown")
+    scope_compliance = execution.get("scope_compliance", {"status": "unknown", "violations": []})
+    result["scope_compliance"] = scope_compliance
     violated_paths: list[str] = execution.get("scope_violated_paths", [])
-    result["violated_path_count"] = len(violated_paths)
+    result["violated_path_count"] = execution.get("project_violated_path_count", len(violated_paths))
+    result["project_checked_path_count"] = execution.get("project_checked_path_count", 0)
+    result["project_violated_path_count"] = execution.get("project_violated_path_count", len(violated_paths))
+    result["active_task_read_count"] = execution.get("active_task_read_count", 0)
+    result["active_task_write_count"] = execution.get("active_task_write_count", 0)
+    result["ignored_runtime_path_count"] = execution.get("ignored_runtime_path_count", 0)
+    result["unknown_external_path_count"] = execution.get("unknown_external_path_count", 0)
 
     # P8-C: needs_input metadata
     result["worker_outcome"] = execution.get("worker_outcome")
     result["needs_input_reason"] = execution.get("needs_input_reason")
+    result["failure_stage"] = execution.get("failure_stage")
+    result["error_classification"] = execution.get("error_classification")
+    result["finalizer_expected_version"] = execution.get("finalizer_expected_version", execution.get("finalizer_version"))
+    result["primary_finalizer_executed"] = execution.get("primary_finalizer_executed", False)
+    result["fallback_finalizer_executed"] = execution.get("fallback_finalizer_executed", False)
 
     # P10: artifact manifest
     result["artifacts"] = _build_artifact_manifest(
@@ -384,6 +401,7 @@ def _reconcile_from_receipt(
     profile = execution.get("profile", "")
     spec_revision = execution.get("spec_revision", -1)
     spec_sha256 = execution.get("spec_sha256", "")
+    spec_hash = execution.get("spec_hash", meta.get("spec_hash", ""))
 
     if receipt_data.get("task_id") != task_id:
         return None
@@ -396,6 +414,8 @@ def _reconcile_from_receipt(
     if receipt_data.get("spec_revision") != spec_revision:
         return None
     if receipt_data.get("spec_sha256") != spec_sha256:
+        return None
+    if spec_hash and receipt_data.get("spec_hash", receipt_data.get("spec_sha256")) != spec_hash:
         return None
 
     # Receipt is valid — reconcile
@@ -422,23 +442,41 @@ def _reconcile_from_receipt(
             new_status = "running"
         elif ids_match and term_state in ("unresolved", "not_sent"):
             # No signal evidence → use exit code
-            new_status = "done" if receipt_exit_code == 0 else "failed"
+            new_status = _authoritative_receipt_status(receipt_data)
         else:
-            new_status = "done" if receipt_exit_code == 0 else "failed"
+            new_status = _authoritative_receipt_status(receipt_data)
     else:
-        new_status = "done" if receipt_exit_code == 0 else "failed"
+        new_status = _authoritative_receipt_status(receipt_data)
     new_meta = dict(meta)
     new_meta["status"] = new_status
     new_execution = dict(execution)
     new_execution["completed_at"] = receipt_completed_at
     new_execution["exit_code"] = receipt_exit_code
     new_execution["outcome"] = receipt_outcome
+    new_execution["spec_hash"] = receipt_data.get("spec_hash", spec_hash)
+    new_execution["failure_stage"] = receipt_data.get("failure_stage")
+    new_execution["error_classification"] = receipt_data.get("error_classification")
+    new_execution["primary_finalizer_executed"] = receipt_data.get("primary_finalizer_status") == "completed"
+    new_execution["fallback_finalizer_executed"] = receipt_data.get("fallback_finalizer_status") == "completed"
+    new_execution["finalizer_expected_version"] = 1
     new_execution["reconciliation_state"] = "reconciled"
     new_execution["reconciliation_source"] = "completion_receipt"
     new_execution["completion_receipt_path"] = receipt_path_str
     new_meta["execution"] = new_execution
 
     return new_meta
+
+
+def _authoritative_receipt_status(receipt: dict[str, Any]) -> str:
+    """Project terminal state only from a valid canonical receipt outcome."""
+    status = receipt.get("status")
+    outcome = receipt.get("outcome")
+    exit_code = receipt.get("exit_code")
+    if status == "done" and exit_code == 0 and outcome == "completed":
+        return "done"
+    if status == "needs_input" and outcome in {"needs_input", "partial"}:
+        return "needs_input"
+    return "failed"
 
 
 def _reconcile_from_registry(
@@ -474,6 +512,38 @@ def _reconcile_from_registry(
     if exit_code is None:
         return None
 
+    # ProcessRegistry is only a signal, not durable truth.  If the process is
+    # gone and the launcher never produced a completion receipt, reconcile via
+    # the canonical fallback finalizer before projecting registry state.
+    task_dir = get_task_dir(meta.get("workspace_id", ""), meta.get("task_id", ""))
+    receipt_name = execution.get("completion_receipt_path", "")
+    receipt_missing = not receipt_name or not _validate_receipt_basename(receipt_name) or not (task_dir / receipt_name).is_file()
+    if receipt_missing:
+        try:
+            from ._profile_task_finalize import write_failure_artifacts
+            write_failure_artifacts(
+                workspace_id=meta.get("workspace_id", ""),
+                task_id=meta.get("task_id", ""),
+                start_id=execution.get("start_id", meta.get("task_id", "")),
+                profile=execution.get("profile", meta.get("profile_hint", "")),
+                spec_revision=execution.get("spec_revision", meta.get("revision", 0)),
+                spec_sha256=execution.get("spec_sha256", meta.get("spec_sha256", "")),
+                spec_hash=execution.get("spec_hash", meta.get("spec_hash", "")),
+                exit_code=exit_code,
+                failure_stage="status_reconciliation_missing_receipt",
+                diagnostics="process registry reported exited without completion receipt",
+                command_summary=f"status reconciliation task_id={meta.get('task_id', '')}",
+                global_hermes_home=execution.get("global_hermes_home", ""),
+                target_profile_home=execution.get("target_profile_home", ""),
+                parent_profile=execution.get("parent_profile", ""),
+                lock_already_held=True,
+            )
+            refreshed = load_meta(task_dir)
+            if refreshed.get("status") in _TERMINAL_STATUSES:
+                return refreshed
+        except Exception:
+            pass
+
     reg_outcome = "completed" if exit_code == 0 else "failed"
     reg_completed_at = utc_now_iso()
 
@@ -496,11 +566,11 @@ def _reconcile_from_registry(
             new_status = "running"
         elif ids_match and term_state in ("unresolved", "not_sent"):
             # No signal evidence → use exit code
-            new_status = "done" if exit_code == 0 else "failed"
+            new_status = "failed" if receipt_missing else ("done" if exit_code == 0 else "failed")
         else:
-            new_status = "done" if exit_code == 0 else "failed"
+            new_status = "failed" if receipt_missing else ("done" if exit_code == 0 else "failed")
     else:
-        new_status = "done" if exit_code == 0 else "failed"
+        new_status = "failed" if receipt_missing else ("done" if exit_code == 0 else "failed")
     new_meta = dict(meta)
     new_meta["status"] = new_status
     new_execution = dict(execution)
@@ -690,7 +760,11 @@ def _handle_running_status(
                 task_id,
                 workspace_id,
                 registry_state="not_applicable",
-                receipt_present=False,
+                receipt_present=bool(
+                    execution.get("completion_receipt_path")
+                    and _validate_receipt_basename(execution.get("completion_receipt_path", ""))
+                    and (task_dir / execution.get("completion_receipt_path", "")).is_file()
+                ),
                 reconciliation_state=execution.get(
                     "reconciliation_state", "not_applicable"
                 ),
@@ -759,7 +833,7 @@ def _handle_running_status(
                     registry_state=registry_state,
                     receipt_present=receipt_present,
                     reconciliation_state="reconciled",
-                    reconciliation_source="process_registry",
+                    reconciliation_source=reconciled.get("execution", {}).get("reconciliation_source", "process_registry"),
                 )
 
             # Registry available but process not exited yet or not found

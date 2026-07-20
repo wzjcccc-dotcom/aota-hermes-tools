@@ -2,15 +2,15 @@
 
 Design only. No smoke was executed in PF-WI-07-2.
 
-1. Registration: verify plugin `0.17.6`, `35` tools, and `18` toolsets.
+1. Registration: verify plugin `0.17.6`, `59` tools, and `28` toolsets.
 2. Classifier: submit fixed low-risk facts `P0 / A0 / fast`; expect no side
    effect.
 3. Missing context: without trusted context, expect
    `ORCHESTRATOR_CONTEXT_UNAVAILABLE`.
 4. Wrong principal/authority: reject the request.
-5. Worker profile visibility: each of `architect`, `reviewer`, `coder`, and
-   `debugger` visibly denies `aota_work_intake`, `aota_plan_read`, and
-   `aota_plan_write`.
+5. Worker profile visibility: each of `architect`, `reviewer`, `coder`,
+   `debugger`, and `project-steward` visibly denies `aota_work_intake`,
+   `aota_plan_read`, and `aota_plan_write`.
 6. Worker environment: a minimal Profile Task worker may output only:
 
    ```text

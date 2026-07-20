@@ -1,0 +1,30 @@
+schema_version: 1
+project:
+  id: Invalid Project
+  name: Invalid
+  kind: hermes-tooling
+  status: active
+summary: invalid fixture
+capabilities: []
+paths:
+  source_root: ../escape
+  source: []
+  docs: []
+  scripts: []
+  profiles: []
+  skills: []
+  tests: []
+commands:
+  validate: []
+  deploy: []
+  verify_deploy: []
+runtime:
+  deployment_type: hermes-managed-files
+  requires_human_checkpoint: true
+codegraph:
+  enabled: false
+  index_location: .codegraph/
+plan:
+  active_plan_id: null
+constraints: []
+unknown_field: rejected

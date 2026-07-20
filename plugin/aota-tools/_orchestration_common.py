@@ -42,7 +42,7 @@ _DECISION_DECISIONS = frozenset(
     }
 )
 
-_FOLLOWUP_TASK_KINDS = ("implementation", "diagnosis", "review", "architecture")
+_FOLLOWUP_TASK_KINDS = ("implementation", "diagnosis", "review", "architecture", "stewardship")
 _REASON_MAX_LENGTH = 4000
 _USER_INPUT_SUMMARY_MAX_LENGTH = 4000
 

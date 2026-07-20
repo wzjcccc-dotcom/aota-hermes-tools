@@ -45,6 +45,7 @@ TASK_KIND_PROFILE_HINT: dict[str, str] = {
     "diagnosis": "debugger",
     "review": "reviewer",
     "architecture": "architect",
+    "stewardship": "project-steward",
 }
 
 HUMAN_CHECKPOINT_POLICY_MAP: dict[str, str] = {
@@ -52,6 +53,7 @@ HUMAN_CHECKPOINT_POLICY_MAP: dict[str, str] = {
     "diagnosis": "not_required_for_readonly_diagnosis",
     "review": "not_required_for_readonly_review",
     "architecture": "not_required_for_readonly_architecture",
+    "stewardship": "not_required_for_bounded_stewardship",
 }
 
 SOURCE_MUTATION_POLICY_MAP: dict[str, str] = {
@@ -59,6 +61,7 @@ SOURCE_MUTATION_POLICY_MAP: dict[str, str] = {
     "diagnosis": "forbidden",
     "review": "forbidden",
     "architecture": "forbidden",
+    "stewardship": "forbidden",
 }
 
 EXECUTION_POLICY_LINES: dict[str, list[str]] = {
@@ -86,10 +89,16 @@ EXECUTION_POLICY_LINES: dict[str, list[str]] = {
         "- Profile execution is a separate action.",
         "- Human approval is not required for read-only architecture review tasks.",
     ],
+    "stewardship": [
+        "- This SPEC is a draft artifact.",
+        "- Creating or updating this SPEC does not start execution.",
+        "- Profile execution is a separate action.",
+        "- Stewardship tasks use bounded project metadata/docs tools only.",
+    ],
 }
 
 RISK_LEVELS = ("low", "medium", "high")
-TASK_KINDS = ("implementation", "diagnosis", "review", "architecture")
+TASK_KINDS = ("implementation", "diagnosis", "review", "architecture", "stewardship")
 ARCHITECTURE_MODES = ("design_review", "spec_preflight")
 STATUS_DRAFT = "draft"
 STATUS_NEEDS_INPUT = "needs_input"
@@ -231,6 +240,8 @@ def validate_semantic_rules(
             return "architecture tasks require a subject_task_id"
         if architecture_mode not in ARCHITECTURE_MODES:
             return f"architecture tasks require a valid architecture_mode (design_review or spec_preflight), got {architecture_mode!r}"
+    elif task_kind == "stewardship" and write_scope:
+        return "stewardship tasks must have an empty write_scope; bounded docs tools own permitted mutations"
     return None
 
 
@@ -785,12 +796,18 @@ def load_spec_md(task_dir: Path) -> str:
 # ---------------------------------------------------------------------------
 
 def validate_task_reference(
-    workspace_id: str, ref_task_id: str, label: str, self_task_id: Optional[str] = None
+    workspace_id: str,
+    ref_task_id: str,
+    label: str,
+    self_task_id: Optional[str] = None,
+    expected_project_id: Optional[str] = None,
 ) -> None:
     """Check that a referenced task exists in the same workspace.
 
     *label* is used in error messages (e.g. ``"subject_task_id"``).
-    If *self_task_id* is given, rejects a self-reference.
+    If *self_task_id* is given, rejects a self-reference. If
+    *expected_project_id* is supplied, the reference must also belong to that
+    project.
     """
     if ref_task_id == self_task_id:
         raise WorkspaceError(f"{label} cannot reference the task itself")
@@ -808,6 +825,11 @@ def validate_task_reference(
         raise WorkspaceError(
             f"{label} '{ref_task_id}' belongs to workspace "
             f"'{ref_meta.get('workspace_id')}', not '{workspace_id}'"
+        )
+    if expected_project_id is not None and ref_meta.get("project_id") != expected_project_id:
+        raise WorkspaceError(
+            f"{label} '{ref_task_id}' belongs to project "
+            f"'{ref_meta.get('project_id')}', not '{expected_project_id}'"
         )
 
 

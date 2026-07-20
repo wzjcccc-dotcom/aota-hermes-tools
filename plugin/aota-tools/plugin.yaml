@@ -8,12 +8,15 @@ provides_tools:
   - aota_path_info
   - aota_read_file
   - aota_search_files
+  - aota_webui_attachment_read
+  - aota_active_task_artifact_open
   - aota_repo_status_readonly
   - aota_repo_diff_readonly
   - aota_web_fetch
   - aota_file_copy
   - aota_task_spec_create
   - aota_task_spec_update
+  - aota_task_spec_freeze
   - aota_profile_task_start
   - aota_profile_task_status
   - aota_profile_task_cancel
@@ -39,3 +42,24 @@ provides_tools:
   - aota_plan_create
   - aota_plan_update
   - aota_work_classify
+  - aota_project_scan
+  - aota_project_search
+  - aota_project_open
+  - aota_project_registry_refresh
+  - aota_project_registry_open
+  - aota_project_relationship_brief
+  - aota_project_prepare
+  - aota_project_docs_update
+  - aota_project_artifact_link
+  - aota_codegraph_status
+  - aota_codegraph_query
+  - aota_codegraph_explore
+  - aota_codegraph_rebuild
+  - aota_project_steward_report
+  - aota_project_file_read
+  - aota_project_file_write
+  - aota_project_file_patch
+  - aota_project_command_run
+  - aota_workspace_list
+  - aota_workspace_open
+  - aota_workspace_selection_record

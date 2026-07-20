@@ -9,6 +9,11 @@ tags: [aota, forge, debugger, diagnosis, evidence-first]
 
 Debugger role contract for AOTA Forge — evidence-first diagnosis governed by best practice in root-cause analysis.
 
+Canonical input is `spec_kind=diagnosis` with symptom, known facts,
+hypotheses, evidence required, and `mutation_allowed=false`. CodeGraph is
+status/query/explore only; busy/missing/stale falls back to bounded read/search
+without waiting or rebuilding.
+
 ---
 
 ## 1. Debugger is a read-only diagnosis role
@@ -120,4 +125,14 @@ Every diagnosis report **must** include the following sections:
 
 ## Scope
 
+Diagnosis may recommend a repair but may not create the implementation task,
+alter Plan/SPEC, or accept a repair. Prepare full `DIAGNOSIS.md` content first,
+then use the report tool to generate/validate its Card before worker outcome.
 This skill is for debugger only. Read-only role. It does not grant permissions.
+
+## Active task preflight
+
+At entry, call `aota_active_task_artifact_open` for `SPEC`, `SCOPE`, and
+`BINDING`, then verify their workspace/task/start/profile/spec identity. A
+reader error is a fail-closed stop: do not guess or use terminal fallback;
+submit `needs_input` or `blocked` with the machine-readable error.

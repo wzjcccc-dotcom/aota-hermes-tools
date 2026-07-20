@@ -7,10 +7,24 @@ tags: [aota, task-main, plan, spec, intake, handoff]
 
 # AOTA Profile Task Orchestration
 
+When work creates or changes an AOTA Skill, write an `implementation` SPEC with
+an explicit Skill-development contract and require the implementer to follow
+`aota-skill-development`. This does not introduce a new task role or spec kind.
+
 This is the operational contract for **task-main**. It coordinates work; it is
 the only role allowed to mutate a Plan. It does not make source changes itself.
 
 ## 1. Authority and durable truth
+
+### Workspace selection and frozen binding
+
+Resolve in this order: active Profile Task binding, frozen SPEC binding,
+validated user-supplied IDs, valid prior workspace-selection decision, Steward
+recommendation, discovery, then clarification.  task-main alone converts a
+recommendation or supplied candidate into `workspace_selection`; record the
+registry digest, project manifest digest, and validation evidence.  Project
+Plans/SPECs/tasks must retain the same frozen binding.  A worker never reruns
+workspace discovery or changes the selected workspace/project.
 
 | Artifact | Owner / purpose | Not a substitute for |
 |---|---|---|
@@ -23,6 +37,25 @@ the only role allowed to mutate a Plan. It does not make source changes itself.
 Workers, Architect, and Reviewer never mutate a Plan. `execution_completed`
 and Reviewer `pass` never close a Work Item automatically. Chat memory is not a
 roadmap or a handoff.
+
+## 1a. Canonical worker-result consumption
+
+This Skill is the sole task-main orchestration authority. The contract docs are
+the normative source; SOUL is a role summary only. Consume every worker result
+as `handoff → Card → conditional full report → durable decision → ack`.
+
+- Verify Card task/spec/revision/hash/project binding before the decision or ack.
+- A low-risk completed/pass Card is enough; do not eagerly open its report.
+- Open the report when outcome is not completed, verdict is `needs_fix` or
+  `blocked`, `needs_full_report_review` is true, needs-input exists, a material
+  risk/limitation or metadata conflict exists, or detailed follow-up SPEC,
+  user evidence, or close-audit evidence is required.
+- Worker recommends; task-main decides. Recommended next action, Architect
+  verdict, Reviewer verdict, and Steward recommendation are never automatic
+  project selection, acceptance, closure, or a durable decision.
+- Route only from canonical `spec_kind`: implementation→coder,
+  diagnosis→debugger, review→reviewer, architecture→architect,
+  stewardship→project-steward. Do not accept caller-controlled target profiles.
 
 ## 2. Intake Lite and classification
 
@@ -153,6 +186,10 @@ exact current frozen revision/SHA. Recommended order is:
 freeze SPEC → start succeeds → aota_plan_update(link_task) → Work Item in_progress
 ```
 
+For diagnosis, review, architecture, and stewardship the order is
+`freeze → start`; expose `approval_status=not_required` and do not call the
+approval API. Approval is an implementation-only checkpoint.
+
 `link_task` uses the actual task ID, current expected Plan revision, and the
 linked Work Item. It is idempotent. Never link inside SPEC creation/freeze or a
 worker. If linking fails after a successful start, do not restart the task;
@@ -163,6 +200,12 @@ After a terminal receipt, task-main maps status deliberately: `completed` to
 `execution_completed` plus evidence; `needs_input` to `needs_input`; failed to
 `needs_fix` or `blocked`; timeout/cancel to `needs_fix`, `blocked`, or
 `cancelled`. No terminal receipt directly closes a Work Item.
+
+Profile Task closure consumes the scope receipt as two bounded evidence streams:
+`worker_action_events` and `postflight_workspace_delta`. The latter is compared
+with the task-start baseline so pre-existing dirty paths are not attributed to
+the worker. Scope status and violation counts retain task/start identity, scope
+digest/source, foreign-event counts, and unattributed-delta counts.
 
 ## 8. Evidence, review, and closure
 
@@ -183,6 +226,17 @@ whether a follow-up Work Item is needed. If not satisfied, use `needs_fix →
 ready` and create a revised/new SPEC; do not alter a frozen one.
 
 ## 9. Failure and reconciliation
+
+Profile Task launchers distinguish `global_hermes_home`, the parent
+Profile-local home, and the target Profile-local home. A Named parent must
+never become the credential authority: credential bootstrap receives an
+explicit canonical global root and target home. Launcher initialization,
+profile/home resolution, credential bootstrap, runner resolution, worker
+execution, and finalization all use the bounded redacted
+`worker.<task_id>.log`. An early launcher failure creates the canonical
+completion receipt and failure handoff even when no worker Card/Result exists;
+the handoff preserves the frozen task/spec/workspace binding and sets
+`needs_diagnosis=true`.
 
 - Revision conflict: reopen the canonical Plan, reevaluate the intended single
   operation, and never blind-retry.
@@ -238,3 +292,57 @@ and `aota_plan_write` toolsets under the fail-closed authority boundary. No
 trusted principal or authority is injected by this skill or configuration.
 Runtime deployment, reload, profile activation, and live Plan mutation remain
 deferred and require a Human Checkpoint.
+
+## Global credential authority
+
+Every Named Profile Task uses one global Hermes credential authority. The
+launcher keeps `HERMES_HOME` at the normalized global root and selects the
+Named Profile only with `hermes -p <profile>`. API-key providers read only
+`<global>/.env`; OAuth providers let Hermes discover `<global>/auth.json`.
+Profile-local `.env`, `profiles/default/.env`, inherited parent credentials,
+and caller-selected env paths are not fallback sources. Missing or unsupported
+credentials fail closed at `credential_bootstrap` with a bounded log,
+completion receipt, and failure handoff.
+
+Profile Task launch is shell-free: `_profile_task_start.py` writes an atomic,
+task-local launch manifest and starts only `_profile_task_launcher.py
+--manifest <path>` through the background rail. The launcher resolves the
+global credential authority, builds a closed child environment, and starts the
+Hermes worker with `argv` and `shell=False`. A prompt is read from a task-local
+file and passed as one literal `-z` argument. Python supervision owns timeout,
+process-group termination, primary finalization, fallback finalization, and
+durable redacted diagnostics. `done` requires exit code zero, a valid terminal
+worker outcome, and a canonical receipt with `status=done`; wakeups must never
+invent `done` when a receipt is absent.
+
+## Deployment and Runtime Guidance
+
+- Profile runtime assembly is manifest-driven. The canonical assembly manifest
+  (`deploy/profile-runtime-assembly.yaml`) declares active Skills per Profile;
+  runtime projections are built from this manifest, not from file-system
+  enumeration.
+- Profile-local plugin and Skill projections are required when the Hermes
+  loader uses profile home (`~/.hermes/profiles/<name>/plugins/`,
+  `~/.hermes/profiles/<name>/skills/`). Verify the projection exists with hash
+  parity against the canonical source.
+- Config declaration (`profiles/<name>/config.yaml`) is not runtime availability
+  evidence. A toolset may be declared in config but fail to register.
+- SOUL declaration is not Skill-load evidence. A Skill may be referenced in
+  SOUL.md but not loaded if the Skill file is missing or the cache is stale.
+- Runtime verification requires loaded tool/Skill evidence (tool list, dispatch
+  result, Skill-loaded prompt inspection) or actual Profile Task execution.
+  Hash parity is deploy evidence, not runtime evidence.
+- Managed deploy and recreate requirements: after a managed deploy, all
+  importing processes must be recreated. Agent-only recreate is allowed only
+  when evidence proves WebUI is unaffected.
+- Host/Codex construction vs Hermes runtime verification boundary: source PASS
+  does not imply deploy PASS, and deploy PASS does not imply runtime PASS.
+- Project Steward owns documentation continuity, not Skill source
+  implementation. Skill content and lifecycle belong to the owning Profile.
+- task-main must not manually fabricate deployment success. If a deployment
+  receipt is missing or runtime evidence contradicts declared state, report
+  the discrepancy.
+- Runtime-generated files (logs, snapshots, receipts, backups) are not managed
+  source and must not be added to the managed manifest.
+- No generic `/aota-runtime` file access; use bounded tools
+  (`aota_runtime_info`, `aota_active_task_artifact_open`).

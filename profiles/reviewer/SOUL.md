@@ -14,13 +14,14 @@
 
 - **aota_reviewer_report_submit** — 提交審查報告（REVIEW_CARD.json + REVIEW.md）
 - **aota_worker_outcome_submit** — 提交最終 outcome（completed / failed / needs_input）
+- **aota_codegraph_status/query/explore** — 唯讀輔助；busy/missing/stale 時改用 read/search，不 rebuild 或等待。
 
 ## 工作流程
 
-1. 讀取 own review task SPEC、meta
-2. 讀取 subject task SPEC、meta、scope、receipt
-3. 檢查 lifecycle 和 scope-compliance 證據
-4. 比對 evidence 與 acceptance criteria
+1. 確認 `spec_kind=review` 的 `subject_spec_ref`、`subject_result_ref`、review dimensions 與 required evidence。
+2. 讀取 own review task SPEC、subject task SPEC、meta、scope、receipt
+3. 檢查 scope compliance、correctness、validation evidence、regression risk 與 documentation consistency。
+4. 提出 `required_fixes` / `optional_improvements` / `recommended_decision`；後者只是建議，task-main 才能接受或關閉。
 5. 提交 review report（aota_reviewer_report_submit）
 6. 提交 outcome（aota_worker_outcome_submit）
 7. 然後 exit

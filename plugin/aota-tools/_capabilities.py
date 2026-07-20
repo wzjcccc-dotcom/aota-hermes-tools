@@ -18,44 +18,68 @@ from typing import Any
 
 PROFILE_CAPABILITIES: dict[str, dict[str, Any]] = {
     "coder": {
+        "source_read": True,
+        "source_write": True,
+        "terminal": False,
+        "bounded_project_command": True,
+        "project_metadata_write": False,
+        "codegraph_read": True,
+        "codegraph_rebuild": False,
         "mutate_files": True,
         "submit_coder_report": True,
         "submit_worker_outcome": True,
         "allowed_tools": [
-            "aota_file_copy",
+            "aota_project_file_read",
+            "aota_project_file_write",
+            "aota_project_file_patch",
+            "aota_project_command_run",
+            "aota_codegraph_status",
+            "aota_codegraph_query",
+            "aota_codegraph_explore",
             "aota_coder_report_submit",
             "aota_worker_outcome_submit",
         ],
     },
     "debugger": {
+        "source_read": True, "source_write": False, "terminal": False,
+        "project_metadata_write": False, "codegraph_read": True, "codegraph_rebuild": False,
         "mutate_files": False,
         "submit_debugger_report": True,
         "submit_worker_outcome": True,
         "allowed_tools": [
             "aota_debugger_report_submit",
             "aota_worker_outcome_submit",
+            "aota_codegraph_status", "aota_codegraph_query", "aota_codegraph_explore",
         ],
     },
     "reviewer": {
+        "source_read": True, "source_write": False, "terminal": False,
+        "project_metadata_write": False, "codegraph_read": True, "codegraph_rebuild": False,
         "mutate_files": False,
         "submit_reviewer_report": True,
         "submit_worker_outcome": True,
         "allowed_tools": [
             "aota_reviewer_report_submit",
             "aota_worker_outcome_submit",
+            "aota_codegraph_status", "aota_codegraph_query", "aota_codegraph_explore",
         ],
     },
     "architect": {
+        "source_read": True, "source_write": False, "terminal": False,
+        "project_metadata_write": False, "codegraph_read": True, "codegraph_rebuild": False,
         "mutate_files": False,
         "submit_architect_report": True,
         "submit_worker_outcome": True,
         "allowed_tools": [
             "aota_architect_report_submit",
             "aota_worker_outcome_submit",
+            "aota_codegraph_status", "aota_codegraph_query", "aota_codegraph_explore",
         ],
     },
     "task-main": {
-        "mutate_files": True,
+        "source_read": True, "source_write": False, "terminal": False,
+        "project_metadata_write": True, "codegraph_read": True, "codegraph_rebuild": True,
+        "mutate_files": False,
         "orchestrate": True,
         "operator": True,
         "allowed_tools": [
@@ -77,7 +101,24 @@ PROFILE_CAPABILITIES: dict[str, dict[str, Any]] = {
             "aota_operator_inbox_list",
             "aota_operator_inbox_open",
             "aota_operator_consistency_check",
-            "aota_file_copy",
+            "aota_codegraph_status", "aota_codegraph_query", "aota_codegraph_explore", "aota_codegraph_rebuild",
+        ],
+    },
+    "project-steward": {
+        "source_read": True, "source_write": False, "terminal": False,
+        "web": False, "control_plane_write": False,
+        "project_metadata_write": True, "codegraph_read": True,
+        "codegraph_rebuild": False, "deploy": False, "restart": False,
+        "recreate": False, "mutate_files": False, "source_mutation": False,
+        "control_plane_mutation": False, "project_metadata_mutation": True,
+        "submit_project_steward_report": True, "submit_worker_outcome": True,
+        "allowed_tools": [
+            "aota_project_scan", "aota_project_search", "aota_project_open",
+            "aota_project_relationship_brief", "aota_project_prepare",
+            "aota_project_registry_refresh", "aota_project_docs_update",
+            "aota_project_artifact_link", "aota_codegraph_status",
+            "aota_codegraph_query", "aota_codegraph_explore",
+            "aota_project_steward_report", "aota_worker_outcome_submit",
         ],
     },
 }
@@ -89,6 +130,8 @@ PROFILE_CAPABILITIES: dict[str, dict[str, Any]] = {
 TASK_KIND_CAPABILITIES: dict[str, dict[str, Any]] = {
     "implementation": {
         "mutate_files": True,
+        "source_write": True,
+        "bounded_project_command": True,
         "submit_coder_report": True,
     },
     "diagnosis": {
@@ -102,6 +145,11 @@ TASK_KIND_CAPABILITIES: dict[str, dict[str, Any]] = {
     "architecture": {
         "mutate_files": False,
         "submit_architect_report": True,
+    },
+    "stewardship": {
+        "mutate_files": False, "source_mutation": False,
+        "project_metadata_mutation": True,
+        "submit_project_steward_report": True,
     },
 }
 
