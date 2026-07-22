@@ -113,7 +113,12 @@ Each finding MUST be classified into exactly one category:
 ### Entry
 
 1. Read own architecture task SPEC and meta to determine `architecture_mode` (design_review or spec_preflight)
-2. Read subject task SPEC, meta, and design artifacts
+2. Use `aota_subject_task_artifact_open` three times for the trusted subject binding:
+   `SPEC.md`, `scope.json`, and `meta.json`. The tool accepts no path or root
+   override; do not copy the subject task into the workspace or use generic
+   runtime filesystem access.
+3. Read only separately allowlisted design artifacts when the frozen subject
+   contract names them; never infer a subject path from free-form text.
 
 ### Review Execution
 

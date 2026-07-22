@@ -41,6 +41,40 @@ _PLANNING_DEPTHS = ("P0", "P1", "P2")
 _ARCHITECT_GATES = ("A0", "A1", "A2")
 _DELIVERY_PATHS = ("fast", "standard", "deep")
 
+# ---------------------------------------------------------------------------
+# WI-2: build dynamic SCHEMA description from canonical constants
+# ---------------------------------------------------------------------------
+
+def _build_fact_field_list() -> str:
+    """Build a compact field-name/type/bounds/enum listing from canonical constants."""
+    int_items = sorted(_INT_BOUNDS)
+    bool_items = sorted(_BOOL_FACTS)
+    enum_items = sorted(_ENUM_FACTS)
+    lines = ["Accepted fields (31 total):"]
+    lines.append("  int fields (with bounds):")
+    for field in int_items:
+        lo, hi = _INT_BOUNDS[field]
+        lines.append(f"    {field}: int [{lo}..{hi}]")
+    lines.append("  bool fields:")
+    for field in bool_items:
+        lines.append(f"    {field}: bool")
+    lines.append("  enum fields (with accepted values):")
+    for field in enum_items:
+        values = sorted(_ENUM_FACTS[field])
+        lines.append(f"    {field}: str, accepted={values}")
+    return "\n".join(lines)
+
+_FACT_FIELD_LIST_TEXT = _build_fact_field_list()
+
+_FACTS_NESTED_PROPERTIES: dict[str, Any] = {}
+for _field in sorted(_INT_BOUNDS):
+    _lo, _hi = _INT_BOUNDS[_field]
+    _FACTS_NESTED_PROPERTIES[_field] = {"type": "integer", "minimum": _lo, "maximum": _hi, "description": f"int [{_lo}..{_hi}]"}
+for _field in sorted(_BOOL_FACTS):
+    _FACTS_NESTED_PROPERTIES[_field] = {"type": "boolean", "description": "bool"}
+for _field in sorted(_ENUM_FACTS):
+    _FACTS_NESTED_PROPERTIES[_field] = {"type": "string", "enum": sorted(_ENUM_FACTS[_field]), "description": f"enum: {sorted(_ENUM_FACTS[_field])}"}
+
 QUESTION_CODES = {
     "estimated_work_items": "CONFIRM_WORK_ITEM_COUNT",
     "estimated_sessions": "CONFIRM_CROSS_SESSION",
@@ -61,7 +95,23 @@ SCHEMA = {
     "description": (
         "Classify bounded work-intake facts into independent planning depth, "
         "architect gate, and delivery path. Deterministic and read-only: it "
-        "does not create Plans, SPECs, tasks, artifacts, or follow-up actions."
+        "does not create Plans, SPECs, tasks, artifacts, or follow-up actions.\n\n"
+        "FACTS FIELD MATRIX (31 total, all required):\n"
+        + _FACT_FIELD_LIST_TEXT +
+        "\n\nValid minimal example:\n"
+        '  {"workspace_id": "my-workspace", "title": "Add feature X", "summary": "Implement feature X in module Y", '
+        '"facts": {"estimated_work_items": 1, "estimated_sessions": 1, "estimated_duration_days": 2, '
+        '"modules_touched": 2, "repositories_touched": 1, "services_touched": 1, '
+        '"human_checkpoints_expected": 0, '
+        '"has_dependencies": false, "has_milestones": false, "cross_session_required": false, '
+        '"multiple_profiles_required": false, "new_durable_contract": false, "schema_change": false, '
+        '"data_migration": false, "auth_or_security_change": false, "cross_service_protocol_change": false, '
+        '"deployment_topology_change": false, "runtime_control_plane_change": false, '
+        '"irreversible_change": false, "high_blast_radius": false, "production_runtime_impact": false, '
+        '"rollback_required": false, "external_dependency_change": false, "novel_architecture": false, '
+        '"competing_designs": false, "requirements_ambiguity": "low", "technical_uncertainty": "low", '
+        '"write_scope": "local", "validation_scope": "isolated", "requested_plan": false, '
+        '"requested_architect_review": false}}'
     ),
     "parameters": {
         "type": "object",
@@ -69,7 +119,7 @@ SCHEMA = {
             "workspace_id": {"type": "string", "description": "Registered workspace identifier; only verified, never read."},
             "title": {"type": "string", "description": "Bounded work title (max 200 characters)."},
             "summary": {"type": "string", "description": "Bounded work summary (max 4000 characters)."},
-            "facts": {"type": "object", "description": "Strict bounded intake-facts object; unknown keys are rejected and missing facts request input."},
+            "facts": {"type": "object", "description": "Strict bounded intake-facts object with exactly 31 required fields. See tool description for full field matrix. Unknown keys are rejected with accepted_fields list.", "properties": _FACTS_NESTED_PROPERTIES, "additionalProperties": False},
             "override": {"type": "object", "description": "Optional escalation-only caller instruction; rationale is required and is not authorization."},
         },
         "required": ["workspace_id", "title", "summary", "facts"],
@@ -79,15 +129,34 @@ SCHEMA = {
 
 
 class _ClassificationError(Exception):
-    def __init__(self, code: str) -> None:
+    def __init__(self, code: str, *, field: str | None = None, received: Any = None,
+                 expected: Any = None, accepted_fields: Any = None,
+                 corrective_action: str | None = None) -> None:
         self.code = code
+        self.field = field
+        self.received = received
+        self.expected = expected
+        self.accepted_fields = accepted_fields
+        self.corrective_action = corrective_action
         super().__init__(code)
 
 
-def _error(code: str, workspace_id: str | None = None) -> dict[str, Any]:
+def _error(code: str, workspace_id: str | None = None, *, field: str | None = None,
+           received: Any = None, expected: Any = None, accepted_fields: Any = None,
+           corrective_action: str | None = None) -> dict[str, Any]:
     result: dict[str, Any] = {"classification_status": "error", "error_code": code}
     if isinstance(workspace_id, str) and workspace_id:
         result["workspace_id"] = workspace_id
+    if field is not None:
+        result["field"] = str(field)
+    if received is not None:
+        result["received"] = str(received) if not isinstance(received, (list, dict)) else received
+    if expected is not None:
+        result["expected"] = str(expected) if not isinstance(expected, (list, dict)) else expected
+    if accepted_fields is not None:
+        result["accepted_fields"] = sorted(accepted_fields) if isinstance(accepted_fields, (set, frozenset, list)) else accepted_fields
+    if corrective_action is not None:
+        result["corrective_action"] = corrective_action
     return result
 
 
@@ -104,7 +173,12 @@ def _validate_facts(value: Any) -> tuple[dict[str, Any] | None, list[str]]:
         raise _ClassificationError("CLASSIFICATION_INPUT_INVALID")
     unknown = set(value) - FACT_FIELDS
     if unknown:
-        raise _ClassificationError("CLASSIFICATION_FACT_UNKNOWN")
+        raise _ClassificationError(
+            "CLASSIFICATION_FACT_UNKNOWN",
+            field=sorted(unknown)[0] if len(unknown) == 1 else list(sorted(unknown))[:5],
+            accepted_fields=FACT_FIELDS,
+            corrective_action="remove unknown fields; use only accepted fields listed in the tool description",
+        )
     missing = sorted(FACT_FIELDS - set(value))
     if missing:
         return None, missing
@@ -112,17 +186,37 @@ def _validate_facts(value: Any) -> tuple[dict[str, Any] | None, list[str]]:
     for name, (minimum, maximum) in _INT_BOUNDS.items():
         item = facts[name]
         if not isinstance(item, int) or isinstance(item, bool):
-            raise _ClassificationError("CLASSIFICATION_FACT_TYPE_INVALID")
+            raise _ClassificationError(
+                "CLASSIFICATION_FACT_TYPE_INVALID",
+                field=name, received=type(item).__name__, expected="int",
+                corrective_action=f"provide an integer value for '{name}' within [{minimum}..{maximum}]",
+            )
         if not minimum <= item <= maximum:
-            raise _ClassificationError("CLASSIFICATION_FACT_VALUE_INVALID")
+            raise _ClassificationError(
+                "CLASSIFICATION_FACT_VALUE_INVALID",
+                field=name, received=item, expected=f"int [{minimum}..{maximum}]",
+                corrective_action=f"value {item} is outside allowed range [{minimum}..{maximum}] for '{name}'",
+            )
     for name in _BOOL_FACTS:
         if not isinstance(facts[name], bool):
-            raise _ClassificationError("CLASSIFICATION_FACT_TYPE_INVALID")
+            raise _ClassificationError(
+                "CLASSIFICATION_FACT_TYPE_INVALID",
+                field=name, received=type(facts[name]).__name__, expected="bool",
+                corrective_action=f"provide a boolean (true/false) value for '{name}'",
+            )
     for name, allowed in _ENUM_FACTS.items():
         if not isinstance(facts[name], str):
-            raise _ClassificationError("CLASSIFICATION_FACT_TYPE_INVALID")
+            raise _ClassificationError(
+                "CLASSIFICATION_FACT_TYPE_INVALID",
+                field=name, received=type(facts[name]).__name__, expected="str",
+                corrective_action=f"provide a string value from {sorted(allowed)} for '{name}'",
+            )
         if facts[name] not in allowed:
-            raise _ClassificationError("CLASSIFICATION_FACT_VALUE_INVALID")
+            raise _ClassificationError(
+                "CLASSIFICATION_FACT_VALUE_INVALID",
+                field=name, received=facts[name], expected=sorted(allowed),
+                corrective_action=f"value '{facts[name]}' is not accepted; use one of {sorted(allowed)}",
+            )
     if facts["requirements_ambiguity"] == "unknown" or facts["technical_uncertainty"] == "unknown":
         missing = [name for name in ("requirements_ambiguity", "technical_uncertainty") if facts[name] == "unknown"]
         return None, missing
@@ -293,7 +387,15 @@ def handle(args: dict, **_kwargs: Any) -> str:
     try:
         return json.dumps(_classify(args), ensure_ascii=False, sort_keys=True)
     except _ClassificationError as exc:
-        return json.dumps(_error(exc.code, workspace_id if isinstance(workspace_id, str) else None), ensure_ascii=False, sort_keys=True)
+        return json.dumps(_error(
+            exc.code,
+            workspace_id if isinstance(workspace_id, str) else None,
+            field=exc.field,
+            received=exc.received,
+            expected=exc.expected,
+            accepted_fields=exc.accepted_fields,
+            corrective_action=exc.corrective_action,
+        ), ensure_ascii=False, sort_keys=True)
     except Exception:
         return json.dumps(_error("CLASSIFICATION_INTERNAL_ERROR", workspace_id if isinstance(workspace_id, str) else None), ensure_ascii=False, sort_keys=True)
 

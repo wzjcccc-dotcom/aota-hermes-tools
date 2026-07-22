@@ -147,11 +147,17 @@ def main() -> int:
         start = importlib.import_module("aota_tools._profile_task_start")
         contract = importlib.import_module("aota_tools._spec_contract")
         active = importlib.import_module("aota_tools._active_task_artifact_open")
+        subject_artifact = importlib.import_module("aota_tools._subject_task_artifact_open")
 
         subject_id, subject_meta = make_task(create, freeze, args_for("implementation"))
         subject_path = Path(os.environ["AOTA_PROFILE_TASK_ROOT"]) / WORKSPACE / subject_id / "meta.json"
         subject_meta["status"] = "done"
-        subject_path.write_text(json.dumps(subject_meta, sort_keys=True), encoding="utf-8")
+        subject_path.write_text(json.dumps(subject_meta, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        (subject_path.parent / "scope.json").write_text(json.dumps({
+            "read_scope": ["src/**"],
+            "write_scope": [],
+            "forbidden_scope": ["secrets/**"],
+        }, sort_keys=True), encoding="utf-8")
         subject_snapshot = subject_path.read_bytes()
 
         missing = args_for("review")
@@ -212,6 +218,42 @@ def main() -> int:
         })
         opened = data(active.handle({"artifact": "BINDING"}))
         assert opened["status"] == "ok" and opened["content"]["subject_task_id"] == subject_id
+        for artifact_name in ("SPEC.md", "scope.json", "meta.json"):
+            subject_opened = data(subject_artifact.handle({
+                "subject_task_id": subject_id,
+                "artifact_name": artifact_name,
+                "max_bytes": 65536,
+            }))
+            assert subject_opened["status"] == "ok", subject_opened
+            assert subject_opened["subject_task_id"] == subject_id
+            assert subject_opened["artifact_name"] == artifact_name
+        assert rejected(subject_artifact.handle({
+            "subject_task_id": subject_id,
+            "artifact_name": "../../SPEC.md",
+        }))
+        assert rejected(subject_artifact.handle({
+            "subject_task_id": subject_id,
+            "artifact_name": "SPEC.md",
+            "path": "SPEC.md",
+        }))
+        assert rejected(subject_artifact.handle({
+            "subject_task_id": subject_id,
+            "artifact_name": "SPEC.md",
+            "max_bytes": 1,
+        }))
+        subject_spec_path = subject_path.parent / "SPEC.md"
+        subject_spec_bytes = subject_spec_path.read_bytes()
+        outside_subject = root / "outside-subject-spec.md"
+        outside_subject.write_bytes(subject_spec_bytes)
+        subject_spec_path.unlink()
+        subject_spec_path.symlink_to(outside_subject)
+        assert rejected(subject_artifact.handle({
+            "subject_task_id": subject_id,
+            "artifact_name": "SPEC.md",
+        }))
+        subject_spec_path.unlink()
+        subject_spec_path.write_bytes(subject_spec_bytes)
+        print("AOTA_SUBJECT_TASK_BOUNDED_ARTIFACTS_PASS")
         meta_path.write_text(json.dumps(review_meta, sort_keys=True), encoding="utf-8")
         print("AOTA_CANONICAL_REVIEW_SUBJECT_OPEN_PASS")
 

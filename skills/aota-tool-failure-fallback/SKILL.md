@@ -34,6 +34,62 @@ Scope population failures use `failure_stage=scope_population` and
 same bounded failure receipt/handoff path. A launcher scope/spec/task digest
 mismatch is `scope_binding_mismatch` and stops before worker execution.
 
+## Tool Structured Error Fallback Rules
+
+When any AOTA tool returns a structured error (a JSON envelope with `status`
+and `error` fields, not a simple string or traceback), the worker MUST follow
+the `TOOL_STRUCTURED_ERROR_REQUIRES_CONTRACT_RELOAD_BEFORE_RETRY` invariant:
+
+1. **Stop retrying immediately**: Do not loop on the same arguments. A
+   structured error means the tool received and rejected the request — not a
+   transient network failure.
+2. **Load `aota-tool-failure-fallback`**: Ensure this Skill is loaded (it
+   should already be active or reference-loaded by the orchestration Skill
+   Loading Map).
+3. **Load the applicable contract or recipe**: Depending on the tool class:
+   - SPEC-related tools → load `aota-canonical-spec-contract` and
+     `aota-canonical-spec-pitfalls`.
+   - Task lifecycle tools → load `aota-task-lifecycle`.
+   - Profile task status/start tools → load `aota-task-lifecycle`.
+   - File tools → load the scope/path validation rules from the frozen SPEC.
+4. **Inspect the exact structured error**: Read the `error` field. Identify the
+   specific rejection code (e.g. `forbidden_scope_denied`,
+   `invalid_spec_kind`, `capability_ceiling_exceeded`). Do not guess the fix
+   from the error class alone.
+5. **Retry at most once with evidence**: After consulting the contract, issue
+   exactly one corrected call. The retry must correct a specific, identified
+   issue — not change unrelated parameters or guess a different tool.
+6. **Otherwise `needs_input`**: If the retry also fails with a structured
+   error, or if the error cannot be resolved from the contract alone, submit
+   `aota_worker_outcome_submit(outcome='needs_input', reason='<specific
+   error>')` and stop. Never fall through to a third blind retry.
+
+This rule applies regardless of tool class or error category. A structured
+error is a definitive rejection; it is never a signal to try adjacent
+parameters or to bypass the tool.
+
+## No Continuous Parameter Guessing
+
+When the same tool returns two consecutive structured errors, the worker has
+triggered the `repeated_schema_guess_detected` stop condition:
+
+- Two consecutive structured errors from the same tool ID → the worker is
+  guessing parameters without consulting the contract.
+- No third blind retry is allowed. The next action MUST be loading the
+  applicable contract/Skill and inspecting the exact error, NOT issuing
+  another raw tool call.
+- If the second error differs from the first, the worker has corrected one
+  mistake but introduced another — this is still `repeated_schema_guess_detected`
+  because the fix was not evidence-based.
+- Enforcement: this rule applies at the Skill/SOUL/telemetry level. If the
+  tool layer provides a shared wrapper that counts consecutive structured
+  errors per tool, that wrapper may serve as a runtime guard, but the Skill
+  rule is the canonical authority.
+
+After `repeated_schema_guess_detected`, the worker must pause, reload
+contracts, and retry at most once with explicit evidence of the correction.
+If the evidence-backed retry fails, submit `needs_input`.
+
 ## Deployment and Runtime Guidance
 
 - Profile runtime assembly is manifest-driven. The canonical assembly manifest

@@ -23,6 +23,42 @@ that `/reload-skills` clears prompt cache.
 
 `AOTA_SKILL_DEVELOPMENT_SKILL_PASS`
 
+## Skill Lifecycle Closure Rule
+
+A Skill development task MUST NOT be submitted as `completed` until the
+Skill lifecycle is demonstrably closed:
+
+1. **Source written and validated**: The SKILL.md file exists at the
+   canonical path, all required sections are present, and source
+   validation (syntax, structure, cross-references) passes.
+
+2. **Manifest updated**: The Skill is declared in the canonical assembly
+   manifest (`deploy/profile-runtime-assembly.yaml`) with the correct
+   profile assignment (active or reference).
+
+3. **Profile visibility configured**: The Skill is explicitly allowed or
+   disabled in the target Profile's configuration. A Skill that exists on
+   disk but is not configured is not lifecycle-complete.
+
+4. **SOUL reference is consistent**: If the Skill is declared in the
+   Profile's SOUL.md, the reference must match the canonical name and
+   activation class. A stale or incorrect SOUL reference is a lifecycle
+   defect.
+
+5. **Closure gate is PASS_SOURCE_SKILL_LIFECYCLE for source-only tasks**:
+   A task authorized only for source changes must close at
+   `PASS_SOURCE_SKILL_LIFECYCLE`. It must not claim deploy or runtime
+   gates. Proceeding beyond the authorized gate is a scope violation.
+
+6. **Deploy and runtime gates are separate**: `PASS_DEPLOYED_SKILL_LIFECYCLE`
+   and `PASS_RUNTIME_SKILL_LIFECYCLE` require explicit SPEC authorization
+   for managed deploy and process recreation. A source-only SPEC does not
+   authorize these gates.
+
+The lifecycle is not closed until all gates authorized by the SPEC are
+passed and evidenced. A partial lifecycle (e.g., source written but
+manifest not updated) is a `partial` outcome, not `completed`.
+
 ## Deployment and Runtime Guidance
 
 - Profile runtime assembly is manifest-driven. The canonical assembly manifest

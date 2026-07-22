@@ -1,0 +1,442 @@
+{
+  "schema_version": 1,
+  "fixture_name": "skill-authority-contract-minimum",
+  "description": "Fixture for PCF-WI skill authority contract and profile-local skill source integration verification Cases A-J, WI-1 Cases A-J, and managed Skill tree expansion / receipt count parity Cases A-L",
+  "source_classes": [
+    "bundled_or_global",
+    "canonical_managed",
+    "profile_specific_managed",
+    "runtime_generated",
+    "unmanaged"
+  ],
+  "activation_classes": [
+    "active",
+    "discoverable",
+    "disabled",
+    "reference"
+  ],
+  "source_authority": "repository_canonical",
+  "runtime_projection_not_canonical": true,
+  "owning_profiles_not_active_skills": true,
+  "runtime_discoverable_not_managed": true,
+  "runtime_discoverable_not_authoritative": true,
+  "global_destination_template": "~/.hermes/skills/{skill_id}/SKILL.md",
+  "profile_local_destination_template": "~/.hermes/profiles/{profile}/skills/{skill_id}/SKILL.md",
+  "source_path_template": "skills/{skill_id}/SKILL.md",
+  "collision_resolution_order": [
+    "profile_specific_managed",
+    "canonical_managed",
+    "bundled_or_global",
+    "unmanaged",
+    "runtime_generated"
+  ],
+  "override_requires_explicit_declaration": true,
+  "reference_routing_map": {
+    "intake": "aota-work-classify",
+    "spec_create": "aota-spec-driven-implementation",
+    "spec_retry": "aota-spec-driven-implementation",
+    "task_start_wait_handoff": "aota-task-lifecycle",
+    "tool_failure": "aota-tool-failure-fallback",
+    "coder": "aota-spec-driven-implementation",
+    "reviewer": "aota-implementation-review"
+  },
+  "orchestration_entry_point": "aota-profile-task-orchestration",
+  "wait_mode_classes": [
+    "isolated_probe",
+    "non_wakeup_transport",
+    "recovery",
+    "wakeup_capable_normal"
+  ],
+  "wait_mode_rules": {
+    "wakeup_capable_normal": {"polling_prohibited": true},
+    "non_wakeup_transport": {"explicit_retrieval_allowed": true},
+    "isolated_probe": {"requires_marker": "POLLING_ALLOWED_FOR_ISOLATED_PROBE_ONLY"},
+    "recovery": {"requires_reason": true}
+  },
+  "fail_closed_reject_reasons": [
+    "inventory_as_deployment_authority",
+    "isolated_probe_polling_without_marker",
+    "override_missing_explicit_declaration",
+    "path_length_authority_inference",
+    "recovery_without_reason",
+    "runtime_projection_treated_as_canonical",
+    "undeclared_collision",
+    "unknown_activation_class",
+    "unknown_source_class",
+    "unknown_wait_mode"
+  ],
+  "migration_findings": [
+    {
+      "id": "MF-01",
+      "title": "orchestration/ namespace contains Skills not formally managed",
+      "classification": "unmanaged_runtime_projection",
+      "status": "resolved_in_source",
+      "pending_deploy": true
+    },
+    {
+      "id": "MF-02",
+      "title": "aota-task-lifecycle source version diverges from profile-local detailed version",
+      "classification": "source_runtime_divergence",
+      "status": "resolved_in_source",
+      "pending_deploy": true
+    },
+    {
+      "id": "MF-03",
+      "title": "Missing source for 5 profile-local Skills",
+      "classification": "missing_canonical_source",
+      "status": "resolved_in_source",
+      "pending_deploy": true
+    }
+  ],
+  "case_fixtures": {
+    "case_a_canonical_managed_pass": {
+      "description": "Canonical managed Skill with valid source, deployed path, and activation",
+      "skill_id": "aota-profile-task-orchestration",
+      "source_class": "canonical_managed",
+      "activation_class": "active",
+      "in_managed_manifest": true,
+      "in_profile_specific_manifest": false,
+      "is_runtime_generated": false,
+      "is_bundled": false,
+      "is_loaded_in_prompt": true,
+      "is_disabled_in_config": false,
+      "file_exists": true,
+      "expected_source_class": "canonical_managed",
+      "expected_activation_class": "active",
+      "expected_result": "pass"
+    },
+    "case_b_profile_specific_managed_pass": {
+      "description": "Legitimate profile-specific managed category with explicit override declaration",
+      "skill_id": "aota-skill-development",
+      "source_class": "profile_specific_managed",
+      "activation_class": "active",
+      "in_managed_manifest": false,
+      "in_profile_specific_manifest": true,
+      "is_runtime_generated": false,
+      "is_bundled": false,
+      "is_loaded_in_prompt": true,
+      "is_disabled_in_config": false,
+      "file_exists": true,
+      "override_declared": true,
+      "expected_source_class": "profile_specific_managed",
+      "expected_activation_class": "active",
+      "expected_result": "pass"
+    },
+    "case_c_unmanaged_runtime": {
+      "description": "Unmanaged runtime file present without managed source",
+      "skill_id": "aota-unknown-skill",
+      "source_class": "unmanaged",
+      "activation_class": "discoverable",
+      "in_managed_manifest": false,
+      "in_profile_specific_manifest": false,
+      "is_runtime_generated": false,
+      "is_bundled": false,
+      "is_loaded_in_prompt": false,
+      "is_disabled_in_config": false,
+      "file_exists": true,
+      "expected_source_class": "unmanaged",
+      "expected_activation_class": "discoverable",
+      "expected_result": "unmanaged"
+    },
+    "case_d_undeclared_collision_fail": {
+      "description": "Same-name Skill in both canonical_managed and unmanaged without override",
+      "skill_id": "aota-task-lifecycle",
+      "source_classes_present": ["canonical_managed", "unmanaged"],
+      "override_declared": false,
+      "expected_errors": ["undeclared_collision"],
+      "expected_result": "fail"
+    },
+    "case_e_legitimate_override_pass": {
+      "description": "Profile-specific managed overrides canonical managed with explicit declaration",
+      "skill_id": "aota-task-lifecycle",
+      "source_classes_present": ["profile_specific_managed", "canonical_managed"],
+      "override_declared": true,
+      "expected_errors": [],
+      "expected_winning_class": "profile_specific_managed",
+      "expected_result": "pass"
+    },
+    "case_f_inventory_not_deployment_authority": {
+      "description": "Lifecycle inventory is governance metadata, not deployment authority",
+      "skill_id": "aota-spec-driven-implementation",
+      "inventory_section": "skill_authority_contract",
+      "inventory_canonical_source": "plugin/aota-tools/_skill_authority_contract.py",
+      "expected_result": "fail_or_metadata_mismatch"
+    },
+    "case_g_activation_classes_separated": {
+      "description": "Activation classes are clearly separated from source classes and owning_profiles",
+      "owning_profiles_example": ["task-main"],
+      "active_skills_example": ["aota-profile-task-orchestration", "aota-runtime-smoke-verification"],
+      "owning_profiles_not_active_skills": true,
+      "runtime_discoverable_not_managed": true,
+      "runtime_discoverable_not_authoritative": true,
+      "expected_result": "pass"
+    },
+    "case_h_wait_mode_classified": {
+      "description": "Wait mode classes are classified with correct rules",
+      "wait_modes": {
+        "wakeup_capable_normal": {"polling_prohibited": true, "valid": true},
+        "non_wakeup_transport": {"explicit_retrieval_allowed": true, "valid": true},
+        "isolated_probe_with_marker": {
+          "has_polling_marker": true,
+          "valid": true
+        },
+        "isolated_probe_without_marker": {
+          "has_polling_marker": false,
+          "valid": false,
+          "expected_error": "isolated_probe_polling_without_marker"
+        },
+        "recovery_with_reason": {
+          "recovery_reason": "launcher_timeout_retry",
+          "valid": true
+        },
+        "recovery_without_reason": {
+          "recovery_reason": null,
+          "valid": false,
+          "expected_error": "recovery_without_reason"
+        }
+      },
+      "expected_result": "pass"
+    },
+    "case_a_runtime_only_unmanaged": {
+      "description": "Runtime-only Skill without canonical source is unmanaged",
+      "skill_id": "aota-runtime-orphan",
+      "in_managed_manifest": false,
+      "in_profile_specific_manifest": false,
+      "is_runtime_generated": false,
+      "is_bundled": false,
+      "expected_source_class": "unmanaged",
+      "expected_result": "unmanaged"
+    },
+    "case_b_canonical_merge": {
+      "description": "All 8 profile-local orchestration Skills have canonical source",
+      "skills_to_verify": [
+        "aota-task-lifecycle",
+        "aota-workspace-diagnostics",
+        "aota-workspace-model",
+        "aota-canonical-spec-contract",
+        "aota-canonical-spec-pitfalls",
+        "aota-work-classify-and-plan-gate",
+        "workspace-file-access-strategy",
+        "aota-multi-phase-doc-closure"
+      ],
+      "expected_result": "pass"
+    },
+    "case_c_conflicting_rule": {
+      "description": "Content drift detection — source hash differs from runtime projection",
+      "skills_to_verify": [
+        "aota-task-lifecycle",
+        "aota-workspace-diagnostics",
+        "aota-workspace-model",
+        "aota-canonical-spec-contract",
+        "aota-canonical-spec-pitfalls",
+        "aota-work-classify-and-plan-gate",
+        "workspace-file-access-strategy",
+        "aota-multi-phase-doc-closure"
+      ],
+      "runtime_parity_status": "PENDING_DEPLOY",
+      "expected_result": "pass_source_only"
+    },
+    "case_d_qualified_probe_polling": {
+      "description": "Isolated probe polling is valid only with the POLLING_ALLOWED_FOR_ISOLATED_PROBE_ONLY marker",
+      "wait_mode": "isolated_probe",
+      "marker_required": "POLLING_ALLOWED_FOR_ISOLATED_PROBE_ONLY",
+      "with_marker_valid": true,
+      "without_marker_invalid": true,
+      "expected_result": "pass"
+    },
+    "case_e_profile_specific_managed": {
+      "description": "Explicit profile-specific managed Skill with declared override passes",
+      "skill_id": "aota-skill-development",
+      "in_managed_manifest": false,
+      "in_profile_specific_manifest": true,
+      "is_runtime_generated": false,
+      "is_bundled": false,
+      "source_classes_present": ["profile_specific_managed", "canonical_managed"],
+      "override_declared": true,
+      "expected_result": "pass"
+    },
+    "case_f_undeclared_shadow_fail": {
+      "description": "Same-name Skill with different hash, undeclared collision → fail",
+      "skill_id": "aota-task-lifecycle",
+      "source_classes_present": ["canonical_managed", "unmanaged"],
+      "override_declared": false,
+      "expected_errors": ["undeclared_collision"],
+      "expected_result": "fail"
+    },
+    "case_g_declared_override_pass": {
+      "description": "Same-name Skill with declared override passes with shadow chain",
+      "skill_id": "aota-task-lifecycle",
+      "source_classes_present": ["profile_specific_managed", "canonical_managed"],
+      "override_declared": true,
+      "expected_winning_class": "profile_specific_managed",
+      "expected_result": "pass"
+    },
+    "case_h_inventory_authority_violation": {
+      "description": "Lifecycle inventory must not be used as deployment authority; governance metadata only",
+      "inventory_section": "skill_authority_contract",
+      "expected_deployment_authority": false,
+      "expected_result": "pass"
+    },
+    "case_i_routing_map_no_duplication": {
+      "description": "Orchestration Skill contains a minimal Skill Loading Map without duplicating reference Skill content",
+      "required_routes": [
+        "intake",
+        "spec_create",
+        "spec_retry",
+        "task_start_wait_handoff",
+        "tool_failure",
+        "coder",
+        "reviewer"
+      ],
+      "expected_result": "pass"
+    },
+    "case_j_legacy_skills_unaffected": {
+      "description": "Existing coder/reviewer/project-steward/architect/debugger active Skills are unaffected",
+      "profiles_to_check": ["coder", "reviewer", "project-steward", "architect", "debugger"],
+      "expected_result": "pass"
+    },
+    "wi1_case_a_task_main_reference_skills": {
+      "description": "WI1-A: task-main reference Skill source exists + assembly reference declared + not active-injected + direct destination expected = pass",
+      "skills": ["aota-plugin-tool-development", "aota-skill-development"],
+      "profile": "task-main",
+      "projection_class": "reference",
+      "expected_result": "pass"
+    },
+    "wi1_case_b_coder_reference_skills": {
+      "description": "WI1-B: coder active/reference Skill source exists + assembly class declared + not disabled + destination expected = pass",
+      "skills": ["aota-plugin-tool-development", "aota-skill-development"],
+      "profile": "coder",
+      "must_not_be_disabled": true,
+      "expected_result": "pass"
+    },
+    "wi1_case_c_projection_disabled_conflict": {
+      "description": "WI1-C: A Skill projected to a profile must not also be disabled in that profile config = fail",
+      "expected_result": "pass"
+    },
+    "wi1_case_d_worker_skill_inventory_entries": {
+      "description": "WI1-D: three worker Skill inventory entries complete = pass",
+      "skills": {
+        "aota-implementation-review": "reviewer",
+        "aota-architecture-review": "architect",
+        "aota-evidence-first-debugging": "debugger"
+      },
+      "required_fields": ["source_path", "scope", "owning_profiles"],
+      "deployment_authority": false,
+      "activation_class": "active",
+      "expected_result": "pass"
+    },
+    "wi1_case_e_inventory_no_projection_inference": {
+      "description": "WI1-E: inventory entry exists but assembly absent = must not infer runtime projection from inventory alone",
+      "expected_result": "pass"
+    },
+    "wi1_case_f_assembly_source_fail_closed": {
+      "description": "WI1-F: assembly reference source does not exist = fail closed",
+      "expected_result": "pass"
+    },
+    "wi1_case_g_soul_summary_drift": {
+      "description": "WI1-G: SOUL active-skills summary must match assembly active_skills (no drift) = pass",
+      "expected_result": "pass"
+    },
+    "wi1_case_h_profile_compatibility": {
+      "description": "WI1-H: existing Profile compatibility (architect/debugger/reviewer active Skills match assembly) = pass",
+      "profiles": {
+        "architect": ["aota-architecture-review"],
+        "debugger": ["aota-evidence-first-debugging"],
+        "reviewer": ["aota-implementation-review"]
+      },
+      "coder_unchanged": ["aota-spec-driven-implementation"],
+      "expected_result": "pass"
+    },
+    "wi1_case_i_tool_count_canonical": {
+      "description": "WI1-I: tool count is plugin.yaml actual count (60), not hardcoded 59; toolsets=28 from inventory, profiles=6 from assembly = pass",
+      "canonical_source": "plugin/aota-tools/plugin.yaml",
+      "actual_count": 60,
+      "must_not_hardcode": 59,
+      "canonical_toolsets_source": "deploy/aota-lifecycle-inventory.yaml",
+      "expected_toolsets": 28,
+      "canonical_profiles_source": "deploy/profile-runtime-assembly.yaml",
+      "expected_profiles": 6,
+      "expected_result": "pass"
+    },
+    "wi1_case_j_wi0_source_integrity": {
+      "description": "WI1-J: WI-0 source integrity (NO_POLL_SOUL_INVARIANT, wait semantics, retrieval_reason guard) = pass",
+      "invariants": ["NO_POLL_SOUL_INVARIANT", "wait_semantics", "retrieval_reason_guard"],
+      "expected_result": "pass"
+    },
+    "managed_skill_tree_no_reference": {
+      "description": "Managed Skill with SKILL.md only, no references/ subtree — expansion includes SKILL.md, excludes caches and backup files",
+      "skill_id": "aota-architecture-review",
+      "expected_files": ["SKILL.md"],
+      "expected_result": "pass"
+    },
+    "managed_skill_tree_single_reference": {
+      "description": "Managed Skill with a references/ subtree containing one file — expansion includes SKILL.md and references/ref.md",
+      "skill_id": "fixture-single-ref",
+      "expected_files": ["SKILL.md", "references/ref.md"],
+      "expected_result": "pass"
+    },
+    "managed_skill_tree_nested_reference": {
+      "description": "Managed Skill with nested references/deep/nested/file.md — expansion includes nested reference files",
+      "skill_id": "fixture-nested-ref",
+      "expected_files": ["SKILL.md", "references/deep/nested/file.md"],
+      "expected_result": "pass"
+    },
+    "managed_skill_tree_missing_reference": {
+      "description": "Runtime projection missing a reference file from canonical source — parity check fails closed",
+      "skill_id": "fixture-missing-ref",
+      "expected_error_prefix": "parity:references/ref.md",
+      "expected_result": "fail"
+    },
+    "managed_skill_tree_undeclared_runtime_extra": {
+      "description": "Runtime projection contains a file absent from canonical source — detected as UNDECLARED_RUNTIME_EXTRA",
+      "skill_id": "fixture-undeclared-extra",
+      "expected_error_prefix": "undeclared-runtime-extra:extra.md",
+      "expected_result": "fail"
+    },
+    "managed_skill_tree_hash_mismatch": {
+      "description": "Runtime projection file content differs from canonical source — parity check detects hash mismatch",
+      "skill_id": "fixture-hash-mismatch",
+      "expected_error_prefix": "parity:SKILL.md",
+      "expected_result": "fail"
+    },
+    "managed_skill_tree_symlink_path_traversal": {
+      "description": "Runtime projection contains a symlink pointing outside the managed root — detected as symlink-escape",
+      "skill_id": "fixture-symlink-escape",
+      "expected_error_prefix": "symlink-escape:escape.md",
+      "expected_result": "fail"
+    },
+    "managed_skill_tree_unmanaged_reference": {
+      "description": "Runtime projection contains an unmanaged references/ file absent from canonical source — detected as undeclared-runtime-extra",
+      "skill_id": "fixture-unmanaged-ref",
+      "expected_error_prefix": "undeclared-runtime-extra:references/unmanaged.md",
+      "expected_result": "fail"
+    },
+    "receipt_count_canonical_source": {
+      "description": "Deployment receipt counts derived from canonical sources: tools=60 (plugin.yaml), toolsets=28 (lifecycle inventory), profiles=6 (assembly)",
+      "canonical_tools_source": "plugin/aota-tools/plugin.yaml",
+      "canonical_toolsets_source": "deploy/aota-lifecycle-inventory.yaml",
+      "canonical_profiles_source": "deploy/profile-runtime-assembly.yaml",
+      "expected_tools": 60,
+      "expected_toolsets": 28,
+      "expected_profiles": 6,
+      "must_not_hardcode_tools": 59,
+      "expected_result": "pass"
+    },
+    "readiness_receipt_count_parity": {
+      "description": "Readiness, backup metadata, deployment receipt, and verification use the same canonical count resolver",
+      "resolver_function": "canonical_counts",
+      "expected_result": "pass"
+    },
+    "package_assembly_exact_equality": {
+      "description": "Package projection file set and profile assembly expected file set are generated from one shared expansion path and compare exactly for all managed active/reference Skills",
+      "shared_helper": "expand_skill_tree",
+      "expected_result": "pass"
+    },
+    "runtime_reference_absent_undeclared": {
+      "description": "A runtime reference absent from canonical source fails closed as UNDECLARED_RUNTIME_EXTRA",
+      "skill_id": "fixture-runtime-extra",
+      "expected_error_prefix": "undeclared-runtime-extra:references/runtime_only.md",
+      "expected_result": "fail"
+    }
+  }
+}

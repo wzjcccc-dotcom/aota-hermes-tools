@@ -18,7 +18,7 @@ from typing import Any, Iterable
 
 _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
 _PROFILE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
-_PROFILES = {"coder", "debugger", "reviewer", "architect", "project-steward"}
+_PROFILES = {"coder", "debugger", "reviewer", "architect", "project-steward", "task-main"}
 _MAX_META_BYTES = 256 * 1024
 MAX_ARTIFACT_BYTES = 64 * 1024
 MAX_ARTIFACT_LINES = 2000

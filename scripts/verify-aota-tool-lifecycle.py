@@ -107,7 +107,18 @@ def errors_for(root: Path = ROOT) -> list[str]:
             toolset = item["toolset"]
             if profile in allowed and toolset not in enabled:
                 errors.append(f"profile-enable:{tool_id}:{profile}")
-            if profile in denied and toolset not in disabled:
+            # A toolset may be shared by tools with different profile policy.
+            # In that case lifecycle inventory is the per-tool authority and
+            # disabling the shared toolset would also hide unrelated allowed
+            # tools.  The handler/dispatch layer must enforce the denied tool.
+            shared_by_allowed_tool = any(
+                other != tool_id
+                and isinstance(other_item, dict)
+                and other_item.get("toolset") == toolset
+                and profile in set(other_item.get("allowed_profiles", []))
+                for other, other_item in tools.items()
+            )
+            if profile in denied and toolset not in disabled and not shared_by_allowed_tool:
                 errors.append(f"profile-deny:{tool_id}:{profile}")
             for transport in item["transports"]:
                 configured = set(config.get("platform_toolsets", {}).get(transport, []))

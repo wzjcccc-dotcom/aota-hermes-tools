@@ -42,6 +42,11 @@ PROVIDER_METADATA: dict[str, dict[str, str]] = {
         "key_env": "OPENCODE_GO_API_KEY",
         "base_url_env": "OPENCODE_GO_BASE_URL",
     },
+    "ollama-cloud": {
+        "auth_type": "api_key",
+        "key_env": "OLLAMA_API_KEY",
+        "base_url_env": "",
+    },
     "openai-codex": {
         "auth_type": "oauth",
         "key_env": "",

@@ -1,0 +1,841 @@
+{
+  "_header": "此檔案由 scripts/generate-profile-capability-matrix.py 自動生成，不可手動編輯。Source authority 為 deploy/profile-runtime-assembly.yaml, profiles/<profile>/config.yaml, plugin/aota-tools/plugin.yaml, deploy/aota-lifecycle-inventory.yaml",
+  "canonical_tool_count": 61,
+  "generated_at": "2026-07-22T15:14:25.778148+00:00",
+  "generator": "scripts/generate-profile-capability-matrix.py",
+  "profile_count": 6,
+  "profiles": [
+    {
+      "active_skills": [
+        "aota-profile-task-orchestration",
+        "aota-runtime-smoke-verification"
+      ],
+      "config_path": "profiles/task-main/config.yaml",
+      "declared_toolsets": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_codegraph_rebuild",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_handoff",
+        "aota_operator",
+        "aota_orchestration",
+        "aota_plan_read",
+        "aota_plan_write",
+        "aota_profile_task",
+        "aota_repo_readonly",
+        "aota_task_spec",
+        "aota_web_readonly",
+        "aota_webui_attachment_read",
+        "aota_work_intake",
+        "aota_workspace_readonly"
+      ],
+      "disabled_skills": [
+        "aota-architecture-review",
+        "aota-evidence-first-debugging",
+        "aota-implementation-review",
+        "aota-spec-driven-implementation",
+        "ask-matt",
+        "code-review",
+        "codebase-design",
+        "design-an-interface",
+        "diagnosing-bugs",
+        "domain-modeling",
+        "grill-with-docs",
+        "implement",
+        "improve-codebase-architecture",
+        "prototype",
+        "qa",
+        "request-refactor-plan",
+        "research",
+        "resolving-merge-conflicts",
+        "setup-matt-pocock-skills",
+        "tdd",
+        "to-spec",
+        "to-tickets",
+        "triage",
+        "ubiquitous-language",
+        "wayfinder"
+      ],
+      "disabled_toolsets": [
+        "aota_architect_artifact",
+        "aota_coder_artifact",
+        "aota_coder_command",
+        "aota_coder_file_mutation",
+        "aota_debugger_artifact",
+        "aota_fs_copy",
+        "aota_project_readonly",
+        "aota_project_steward",
+        "aota_project_steward_artifact",
+        "aota_reviewer_artifact",
+        "aota_worker_outcome",
+        "file",
+        "terminal"
+      ],
+      "expected_projection_paths": [
+        "skills/aota-canonical-spec-contract/SKILL.md",
+        "skills/aota-canonical-spec-pitfalls/SKILL.md",
+        "skills/aota-multi-phase-doc-closure/SKILL.md",
+        "skills/aota-plugin-tool-development/SKILL.md",
+        "skills/aota-profile-task-orchestration/SKILL.md",
+        "skills/aota-runtime-smoke-verification/SKILL.md",
+        "skills/aota-skill-development/SKILL.md",
+        "skills/aota-task-lifecycle/SKILL.md",
+        "skills/aota-tool-failure-fallback/SKILL.md",
+        "skills/aota-work-classify-and-plan-gate/SKILL.md",
+        "skills/aota-workspace-diagnostics/SKILL.md",
+        "skills/aota-workspace-model/SKILL.md",
+        "skills/workspace-file-access-strategy/SKILL.md"
+      ],
+      "inventory_ownership": {
+        "aota-canonical-spec-contract": [
+          "task-main"
+        ],
+        "aota-canonical-spec-pitfalls": [
+          "task-main"
+        ],
+        "aota-multi-phase-doc-closure": [
+          "task-main"
+        ],
+        "aota-plugin-tool-development": [
+          "coder",
+          "task-main"
+        ],
+        "aota-profile-task-orchestration": [
+          "task-main"
+        ],
+        "aota-runtime-smoke-verification": [
+          "task-main"
+        ],
+        "aota-skill-development": [
+          "project-steward",
+          "task-main"
+        ],
+        "aota-task-lifecycle": [
+          "project-steward",
+          "task-main"
+        ],
+        "aota-tool-failure-fallback": [
+          "project-steward",
+          "task-main"
+        ],
+        "aota-work-classify-and-plan-gate": [
+          "task-main"
+        ],
+        "aota-workspace-diagnostics": [
+          "project-steward",
+          "task-main"
+        ],
+        "aota-workspace-model": [
+          "project-steward",
+          "task-main"
+        ],
+        "workspace-file-access-strategy": [
+          "task-main"
+        ]
+      },
+      "mismatches": [],
+      "plugin": "plugin/aota-tools",
+      "profile": "task-main",
+      "reference_skills": [
+        "aota-canonical-spec-contract",
+        "aota-canonical-spec-pitfalls",
+        "aota-multi-phase-doc-closure",
+        "aota-plugin-tool-development",
+        "aota-skill-development",
+        "aota-task-lifecycle",
+        "aota-tool-failure-fallback",
+        "aota-work-classify-and-plan-gate",
+        "aota-workspace-diagnostics",
+        "aota-workspace-model",
+        "workspace-file-access-strategy"
+      ],
+      "registered_tools": [
+        "aota_codegraph_explore",
+        "aota_codegraph_query",
+        "aota_codegraph_rebuild",
+        "aota_codegraph_status",
+        "aota_followup_task_create",
+        "aota_handoff_ack",
+        "aota_handoff_list",
+        "aota_handoff_open",
+        "aota_operator_consistency_check",
+        "aota_operator_inbox_list",
+        "aota_operator_inbox_open",
+        "aota_orchestration_decision_list",
+        "aota_orchestration_decision_open",
+        "aota_orchestration_decision_record",
+        "aota_orchestration_decision_resume",
+        "aota_orchestration_lineage",
+        "aota_path_info",
+        "aota_plan_create",
+        "aota_plan_open",
+        "aota_plan_update",
+        "aota_profile_task_approve",
+        "aota_profile_task_cancel",
+        "aota_profile_task_start",
+        "aota_profile_task_status",
+        "aota_read_file",
+        "aota_repo_diff_readonly",
+        "aota_repo_status_readonly",
+        "aota_runtime_info",
+        "aota_search_files",
+        "aota_subject_task_artifact_open",
+        "aota_task_spec_create",
+        "aota_task_spec_freeze",
+        "aota_task_spec_update",
+        "aota_web_fetch",
+        "aota_webui_attachment_read",
+        "aota_work_classify",
+        "aota_workspace_list",
+        "aota_workspace_open",
+        "aota_workspace_selection_record"
+      ],
+      "runtime_visible_toolsets_expected": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_codegraph_rebuild",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_handoff",
+        "aota_operator",
+        "aota_orchestration",
+        "aota_plan_read",
+        "aota_plan_write",
+        "aota_profile_task",
+        "aota_repo_readonly",
+        "aota_task_spec",
+        "aota_web_readonly",
+        "aota_webui_attachment_read",
+        "aota_work_intake",
+        "aota_workspace_readonly"
+      ],
+      "soul_path": "profiles/task-main/SOUL.md"
+    },
+    {
+      "active_skills": [
+        "aota-architecture-review"
+      ],
+      "config_path": "profiles/architect/config.yaml",
+      "declared_toolsets": [
+        "aota_active_task_context",
+        "aota_architect_artifact",
+        "aota_codegraph_readonly",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_project_readonly",
+        "aota_repo_readonly",
+        "aota_web_readonly",
+        "aota_worker_outcome"
+      ],
+      "disabled_skills": [
+        "aota-evidence-first-debugging",
+        "aota-implementation-review",
+        "aota-profile-task-orchestration",
+        "aota-spec-driven-implementation",
+        "aota-verification",
+        "ask-matt",
+        "code-review",
+        "codebase-design",
+        "design-an-interface",
+        "diagnosing-bugs",
+        "domain-modeling",
+        "grill-with-docs",
+        "hermes-agent-architecture",
+        "hermes-debugging",
+        "hermes-override-sync",
+        "hermes-plugin-development",
+        "implement",
+        "improve-codebase-architecture",
+        "petdex",
+        "prototype",
+        "qa",
+        "request-refactor-plan",
+        "research",
+        "resolving-merge-conflicts",
+        "setup-matt-pocock-skills",
+        "simplify-code",
+        "tdd",
+        "to-spec",
+        "to-tickets",
+        "triage",
+        "ubiquitous-language",
+        "wayfinder"
+      ],
+      "disabled_toolsets": [
+        "aota_codegraph_rebuild",
+        "aota_coder_artifact",
+        "aota_coder_command",
+        "aota_coder_file_mutation",
+        "aota_debugger_artifact",
+        "aota_fs_copy",
+        "aota_handoff",
+        "aota_operator",
+        "aota_orchestration",
+        "aota_plan_read",
+        "aota_plan_write",
+        "aota_profile_task",
+        "aota_project_steward",
+        "aota_project_steward_artifact",
+        "aota_reviewer_artifact",
+        "aota_task_spec",
+        "aota_webui_attachment_read",
+        "aota_work_intake",
+        "aota_workspace_readonly",
+        "file",
+        "terminal"
+      ],
+      "expected_projection_paths": [
+        "skills/aota-architecture-review/SKILL.md"
+      ],
+      "inventory_ownership": {
+        "aota-architecture-review": [
+          "architect"
+        ]
+      },
+      "mismatches": [],
+      "plugin": "plugin/aota-tools",
+      "profile": "architect",
+      "reference_skills": [],
+      "registered_tools": [
+        "aota_active_task_artifact_open",
+        "aota_architect_report_submit",
+        "aota_codegraph_explore",
+        "aota_codegraph_query",
+        "aota_codegraph_status",
+        "aota_path_info",
+        "aota_project_open",
+        "aota_project_prepare",
+        "aota_project_registry_open",
+        "aota_project_relationship_brief",
+        "aota_project_scan",
+        "aota_project_search",
+        "aota_read_file",
+        "aota_repo_diff_readonly",
+        "aota_repo_status_readonly",
+        "aota_runtime_info",
+        "aota_search_files",
+        "aota_subject_task_artifact_open",
+        "aota_web_fetch",
+        "aota_worker_outcome_submit"
+      ],
+      "runtime_visible_toolsets_expected": [
+        "aota_active_task_context",
+        "aota_architect_artifact",
+        "aota_codegraph_readonly",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_project_readonly",
+        "aota_repo_readonly",
+        "aota_web_readonly",
+        "aota_worker_outcome"
+      ],
+      "soul_path": "profiles/architect/SOUL.md"
+    },
+    {
+      "active_skills": [
+        "aota-implementation-review"
+      ],
+      "config_path": "profiles/reviewer/config.yaml",
+      "declared_toolsets": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_project_readonly",
+        "aota_repo_readonly",
+        "aota_reviewer_artifact",
+        "aota_worker_outcome"
+      ],
+      "disabled_skills": [
+        "aota-architecture-review",
+        "aota-evidence-first-debugging",
+        "aota-profile-task-orchestration",
+        "aota-spec-driven-implementation",
+        "aota-verification",
+        "ask-matt",
+        "code-review",
+        "codebase-design",
+        "design-an-interface",
+        "diagnosing-bugs",
+        "domain-modeling",
+        "grill-with-docs",
+        "hermes-agent-architecture",
+        "hermes-debugging",
+        "hermes-override-sync",
+        "hermes-plugin-development",
+        "implement",
+        "improve-codebase-architecture",
+        "petdex",
+        "prototype",
+        "qa",
+        "request-refactor-plan",
+        "research",
+        "resolving-merge-conflicts",
+        "setup-matt-pocock-skills",
+        "simplify-code",
+        "tdd",
+        "to-spec",
+        "to-tickets",
+        "triage",
+        "ubiquitous-language",
+        "wayfinder"
+      ],
+      "disabled_toolsets": [
+        "aota_architect_artifact",
+        "aota_codegraph_rebuild",
+        "aota_coder_artifact",
+        "aota_coder_command",
+        "aota_coder_file_mutation",
+        "aota_debugger_artifact",
+        "aota_fs_copy",
+        "aota_handoff",
+        "aota_operator",
+        "aota_orchestration",
+        "aota_plan_read",
+        "aota_plan_write",
+        "aota_profile_task",
+        "aota_project_steward",
+        "aota_project_steward_artifact",
+        "aota_task_spec",
+        "aota_web_readonly",
+        "aota_webui_attachment_read",
+        "aota_work_intake",
+        "aota_workspace_readonly",
+        "file",
+        "terminal"
+      ],
+      "expected_projection_paths": [
+        "skills/aota-implementation-review/SKILL.md"
+      ],
+      "inventory_ownership": {
+        "aota-implementation-review": [
+          "reviewer"
+        ]
+      },
+      "mismatches": [],
+      "plugin": "plugin/aota-tools",
+      "profile": "reviewer",
+      "reference_skills": [],
+      "registered_tools": [
+        "aota_active_task_artifact_open",
+        "aota_codegraph_explore",
+        "aota_codegraph_query",
+        "aota_codegraph_status",
+        "aota_path_info",
+        "aota_project_open",
+        "aota_project_prepare",
+        "aota_project_registry_open",
+        "aota_project_relationship_brief",
+        "aota_project_scan",
+        "aota_project_search",
+        "aota_read_file",
+        "aota_repo_diff_readonly",
+        "aota_repo_status_readonly",
+        "aota_reviewer_report_submit",
+        "aota_runtime_info",
+        "aota_search_files",
+        "aota_subject_task_artifact_open",
+        "aota_worker_outcome_submit"
+      ],
+      "runtime_visible_toolsets_expected": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_project_readonly",
+        "aota_repo_readonly",
+        "aota_reviewer_artifact",
+        "aota_worker_outcome"
+      ],
+      "soul_path": "profiles/reviewer/SOUL.md"
+    },
+    {
+      "active_skills": [
+        "aota-spec-driven-implementation"
+      ],
+      "config_path": "profiles/coder/config.yaml",
+      "declared_toolsets": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_coder_artifact",
+        "aota_coder_command",
+        "aota_coder_file_mutation",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_project_readonly",
+        "aota_repo_readonly",
+        "aota_worker_outcome"
+      ],
+      "disabled_skills": [
+        "aota-architecture-review",
+        "aota-evidence-first-debugging",
+        "aota-implementation-review",
+        "aota-profile-task-orchestration",
+        "aota-verification",
+        "ask-matt",
+        "code-review",
+        "codebase-design",
+        "design-an-interface",
+        "diagnosing-bugs",
+        "domain-modeling",
+        "grill-with-docs",
+        "hermes-agent-architecture",
+        "hermes-debugging",
+        "hermes-override-sync",
+        "hermes-plugin-development",
+        "implement",
+        "improve-codebase-architecture",
+        "petdex",
+        "prototype",
+        "qa",
+        "request-refactor-plan",
+        "research",
+        "resolving-merge-conflicts",
+        "setup-matt-pocock-skills",
+        "simplify-code",
+        "tdd",
+        "to-spec",
+        "to-tickets",
+        "triage",
+        "ubiquitous-language",
+        "wayfinder"
+      ],
+      "disabled_toolsets": [
+        "aota_architect_artifact",
+        "aota_codegraph_rebuild",
+        "aota_debugger_artifact",
+        "aota_fs_copy",
+        "aota_handoff",
+        "aota_operator",
+        "aota_orchestration",
+        "aota_plan_read",
+        "aota_plan_write",
+        "aota_profile_task",
+        "aota_project_steward",
+        "aota_project_steward_artifact",
+        "aota_reviewer_artifact",
+        "aota_task_spec",
+        "aota_web_readonly",
+        "aota_webui_attachment_read",
+        "aota_work_intake",
+        "aota_workspace_readonly",
+        "file",
+        "terminal"
+      ],
+      "expected_projection_paths": [
+        "skills/aota-plugin-tool-development/SKILL.md",
+        "skills/aota-spec-driven-implementation/SKILL.md"
+      ],
+      "inventory_ownership": {
+        "aota-plugin-tool-development": [
+          "coder",
+          "task-main"
+        ],
+        "aota-spec-driven-implementation": [
+          "coder"
+        ]
+      },
+      "mismatches": [
+        "skills in assembly (active+reference) but NOT owned per lifecycle inventory: ['aota-skill-development']"
+      ],
+      "plugin": "plugin/aota-tools",
+      "profile": "coder",
+      "reference_skills": [
+        "aota-plugin-tool-development",
+        "aota-skill-development"
+      ],
+      "registered_tools": [
+        "aota_active_task_artifact_open",
+        "aota_codegraph_explore",
+        "aota_codegraph_query",
+        "aota_codegraph_status",
+        "aota_coder_report_submit",
+        "aota_path_info",
+        "aota_project_command_run",
+        "aota_project_file_patch",
+        "aota_project_file_read",
+        "aota_project_file_write",
+        "aota_project_open",
+        "aota_project_prepare",
+        "aota_project_registry_open",
+        "aota_project_relationship_brief",
+        "aota_project_scan",
+        "aota_project_search",
+        "aota_read_file",
+        "aota_repo_diff_readonly",
+        "aota_repo_status_readonly",
+        "aota_runtime_info",
+        "aota_search_files",
+        "aota_worker_outcome_submit"
+      ],
+      "runtime_visible_toolsets_expected": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_coder_artifact",
+        "aota_coder_command",
+        "aota_coder_file_mutation",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_project_readonly",
+        "aota_repo_readonly",
+        "aota_worker_outcome"
+      ],
+      "soul_path": "profiles/coder/SOUL.md"
+    },
+    {
+      "active_skills": [
+        "aota-evidence-first-debugging"
+      ],
+      "config_path": "profiles/debugger/config.yaml",
+      "declared_toolsets": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_core",
+        "aota_debugger_artifact",
+        "aota_fs_readonly",
+        "aota_repo_readonly",
+        "aota_web_readonly",
+        "aota_worker_outcome"
+      ],
+      "disabled_skills": [
+        "aota-architecture-review",
+        "aota-implementation-review",
+        "aota-profile-task-orchestration",
+        "aota-spec-driven-implementation",
+        "aota-verification",
+        "ask-matt",
+        "code-review",
+        "codebase-design",
+        "design-an-interface",
+        "diagnosing-bugs",
+        "domain-modeling",
+        "grill-with-docs",
+        "hermes-agent-architecture",
+        "hermes-debugging",
+        "hermes-override-sync",
+        "hermes-plugin-development",
+        "implement",
+        "improve-codebase-architecture",
+        "petdex",
+        "prototype",
+        "qa",
+        "request-refactor-plan",
+        "research",
+        "resolving-merge-conflicts",
+        "setup-matt-pocock-skills",
+        "simplify-code",
+        "tdd",
+        "to-spec",
+        "to-tickets",
+        "triage",
+        "ubiquitous-language",
+        "wayfinder"
+      ],
+      "disabled_toolsets": [
+        "aota_architect_artifact",
+        "aota_codegraph_rebuild",
+        "aota_coder_artifact",
+        "aota_coder_command",
+        "aota_coder_file_mutation",
+        "aota_fs_copy",
+        "aota_handoff",
+        "aota_operator",
+        "aota_orchestration",
+        "aota_plan_read",
+        "aota_plan_write",
+        "aota_profile_task",
+        "aota_project_readonly",
+        "aota_project_steward",
+        "aota_project_steward_artifact",
+        "aota_reviewer_artifact",
+        "aota_task_spec",
+        "aota_webui_attachment_read",
+        "aota_work_intake",
+        "aota_workspace_readonly",
+        "delegation",
+        "file",
+        "terminal"
+      ],
+      "expected_projection_paths": [
+        "skills/aota-evidence-first-debugging/SKILL.md"
+      ],
+      "inventory_ownership": {
+        "aota-evidence-first-debugging": [
+          "debugger"
+        ]
+      },
+      "mismatches": [],
+      "plugin": "plugin/aota-tools",
+      "profile": "debugger",
+      "reference_skills": [],
+      "registered_tools": [
+        "aota_active_task_artifact_open",
+        "aota_codegraph_explore",
+        "aota_codegraph_query",
+        "aota_codegraph_status",
+        "aota_debugger_report_submit",
+        "aota_path_info",
+        "aota_read_file",
+        "aota_repo_diff_readonly",
+        "aota_repo_status_readonly",
+        "aota_runtime_info",
+        "aota_search_files",
+        "aota_web_fetch",
+        "aota_worker_outcome_submit"
+      ],
+      "runtime_visible_toolsets_expected": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_core",
+        "aota_debugger_artifact",
+        "aota_fs_readonly",
+        "aota_repo_readonly",
+        "aota_web_readonly",
+        "aota_worker_outcome"
+      ],
+      "soul_path": "profiles/debugger/SOUL.md"
+    },
+    {
+      "active_skills": [
+        "aota-pcf-project-steward",
+        "aota-task-lifecycle",
+        "aota-tool-failure-fallback",
+        "aota-workspace-diagnostics",
+        "aota-workspace-model"
+      ],
+      "config_path": "profiles/project-steward/config.yaml",
+      "declared_toolsets": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_project_readonly",
+        "aota_project_steward",
+        "aota_project_steward_artifact",
+        "aota_webui_attachment_read",
+        "aota_worker_outcome",
+        "aota_workspace_readonly"
+      ],
+      "disabled_skills": [
+        "aota-architecture-review",
+        "aota-evidence-first-debugging",
+        "aota-implementation-review",
+        "aota-spec-driven-implementation",
+        "ask-matt",
+        "code-review",
+        "implement",
+        "qa",
+        "research"
+      ],
+      "disabled_toolsets": [
+        "aota_architect_artifact",
+        "aota_codegraph_rebuild",
+        "aota_coder_artifact",
+        "aota_coder_command",
+        "aota_coder_file_mutation",
+        "aota_debugger_artifact",
+        "aota_fs_copy",
+        "aota_handoff",
+        "aota_operator",
+        "aota_orchestration",
+        "aota_plan_read",
+        "aota_plan_write",
+        "aota_profile_task",
+        "aota_repo_readonly",
+        "aota_reviewer_artifact",
+        "aota_task_spec",
+        "aota_web_readonly",
+        "aota_work_intake",
+        "file",
+        "terminal"
+      ],
+      "expected_projection_paths": [
+        "skills/aota-pcf-project-steward/SKILL.md",
+        "skills/aota-skill-development/SKILL.md",
+        "skills/aota-task-lifecycle/SKILL.md",
+        "skills/aota-tool-failure-fallback/SKILL.md",
+        "skills/aota-workspace-diagnostics/SKILL.md",
+        "skills/aota-workspace-model/SKILL.md"
+      ],
+      "inventory_ownership": {
+        "aota-pcf-project-steward": [
+          "project-steward"
+        ],
+        "aota-skill-development": [
+          "project-steward",
+          "task-main"
+        ],
+        "aota-task-lifecycle": [
+          "project-steward",
+          "task-main"
+        ],
+        "aota-tool-failure-fallback": [
+          "project-steward",
+          "task-main"
+        ],
+        "aota-workspace-diagnostics": [
+          "project-steward",
+          "task-main"
+        ],
+        "aota-workspace-model": [
+          "project-steward",
+          "task-main"
+        ]
+      },
+      "mismatches": [
+        "skills in assembly (active+reference) but NOT owned per lifecycle inventory: ['aota-profile-task-orchestration']"
+      ],
+      "plugin": "plugin/aota-tools",
+      "profile": "project-steward",
+      "reference_skills": [
+        "aota-profile-task-orchestration",
+        "aota-skill-development"
+      ],
+      "registered_tools": [
+        "aota_active_task_artifact_open",
+        "aota_codegraph_explore",
+        "aota_codegraph_query",
+        "aota_codegraph_status",
+        "aota_path_info",
+        "aota_project_artifact_link",
+        "aota_project_docs_update",
+        "aota_project_initialize_core",
+        "aota_project_open",
+        "aota_project_prepare",
+        "aota_project_registry_open",
+        "aota_project_registry_refresh",
+        "aota_project_relationship_brief",
+        "aota_project_scan",
+        "aota_project_search",
+        "aota_project_steward_report",
+        "aota_read_file",
+        "aota_runtime_info",
+        "aota_search_files",
+        "aota_webui_attachment_read",
+        "aota_worker_outcome_submit",
+        "aota_workspace_list",
+        "aota_workspace_open"
+      ],
+      "runtime_visible_toolsets_expected": [
+        "aota_active_task_context",
+        "aota_codegraph_readonly",
+        "aota_core",
+        "aota_fs_readonly",
+        "aota_project_readonly",
+        "aota_project_steward",
+        "aota_project_steward_artifact",
+        "aota_webui_attachment_read",
+        "aota_worker_outcome",
+        "aota_workspace_readonly"
+      ],
+      "soul_path": "profiles/project-steward/SOUL.md"
+    }
+  ],
+  "source_authorities": [
+    "deploy/profile-runtime-assembly.yaml",
+    "profiles/<profile>/config.yaml",
+    "plugin/aota-tools/plugin.yaml",
+    "deploy/aota-lifecycle-inventory.yaml"
+  ]
+}

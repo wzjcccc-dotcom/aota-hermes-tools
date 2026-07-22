@@ -40,6 +40,12 @@ from ._active_task_artifact_open import (
     TOOL_NAME as _active_task_artifact_open_name,
     TOOLSET_NAME as _active_task_artifact_open_toolset,
 )
+from ._subject_task_artifact_open import (
+    handle as _handle_subject_task_artifact_open,
+    SCHEMA as _subject_task_artifact_open_schema,
+    TOOL_NAME as _subject_task_artifact_open_name,
+    TOOLSET_NAME as _subject_task_artifact_open_toolset,
+)
 
 # P3 tools
 from ._web_fetch import handle as _handle_web_fetch, SCHEMA as _web_fetch_schema, TOOL_NAME as _web_fetch_name
@@ -225,6 +231,7 @@ from ._codegraph_readonly import status_handle as _handle_codegraph_status, quer
 from ._codegraph_rebuild import handle as _handle_codegraph_rebuild, SCHEMA as _codegraph_rebuild_schema, TOOL_NAME as _codegraph_rebuild_name, TOOLSET_NAME as TOOLSET_CODEGRAPH_REBUILD
 from ._project_file_mutation import handle_read as _handle_project_file_read, handle_write as _handle_project_file_write, handle_patch as _handle_project_file_patch, READ_SCHEMA as _project_file_read_schema, WRITE_SCHEMA as _project_file_write_schema, PATCH_SCHEMA as _project_file_patch_schema, READ_TOOL_NAME as _project_file_read_name, WRITE_TOOL_NAME as _project_file_write_name, PATCH_TOOL_NAME as _project_file_patch_name, TOOLSET_NAME as TOOLSET_CODER_FILE_MUTATION
 from ._project_command_run import handle as _handle_project_command_run, SCHEMA as _project_command_run_schema, TOOL_NAME as _project_command_run_name, TOOLSET_NAME as TOOLSET_CODER_COMMAND
+from ._project_initializer import handle_initialize_core as _handle_project_initialize_core, INITIALIZE_SCHEMA as _project_initialize_schema, TOOL_NAME as _project_initialize_name
 
 PLUGIN_NAME = "aota-tools"
 
@@ -363,6 +370,13 @@ def register(ctx) -> None:
         schema=_active_task_artifact_open_schema,
         handler=_handle_active_task_artifact_open,
         description=_active_task_artifact_open_schema["description"],
+    )
+    ctx.register_tool(
+        name=_subject_task_artifact_open_name,
+        toolset=_subject_task_artifact_open_toolset,
+        schema=_subject_task_artifact_open_schema,
+        handler=_handle_subject_task_artifact_open,
+        description=_subject_task_artifact_open_schema["description"],
     )
 
     # P2: aota_repo_readonly
@@ -658,6 +672,7 @@ def register(ctx) -> None:
         (_project_registry_refresh_name, _project_registry_refresh_schema, _handle_project_registry_refresh),
         (_project_docs_update_name, _project_docs_update_schema, _handle_project_docs_update),
         (_project_artifact_link_name, _project_artifact_link_schema, _handle_project_artifact_link),
+        (_project_initialize_name, _project_initialize_schema, _handle_project_initialize_core),
     ):
         ctx.register_tool(name=name, toolset=TOOLSET_PROJECT_STEWARD, schema=schema, handler=handler, description=schema["description"])
     # PCF-WI-08: the public CodeGraph surface is exactly status/query/explore/rebuild.

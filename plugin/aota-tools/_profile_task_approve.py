@@ -38,7 +38,39 @@ SCHEMA = {
         "This tool does not start execution, modify SPEC, choose profile, or create "
         "another task. Call this only when the current human reviewer has explicitly "
         "approved the exact SPEC revision/hash for execution. "
-        "Approval is bound to exact revision+hash; spec updates invalidate approval."
+        "Approval is bound to exact revision+hash; spec updates invalidate approval.\n\n"
+        "REQUIRED PARAMETERS:\n"
+        "- expected_spec_hash (REQUIRED for canonical WI-09C SPECs): The exact "
+        "canonical frozen SPEC hash returned by aota_task_spec_freeze. This is the "
+        "spec_hash field from the freeze response (64-char hex string).\n"
+        "- expected_revision (REQUIRED): The exact frozen SPEC revision number.\n"
+        "- workspace_id, task_id: Task identification.\n\n"
+        "DEPRECATED PARAMETER:\n"
+        "- expected_spec_sha256: This is a LEGACY binding (raw SHA-256 of SPEC.md "
+        "file content), NOT the canonical freeze spec_hash. Do NOT use this for "
+        "canonical WI-09C SPECs. Use expected_spec_hash instead.\n\n"
+        "HASH CONFLICT RESOLUTION:\n"
+        "If the SPEC has been updated/re-frozen since you last read it, the hash "
+        "will not match. Error: spec_hash_conflict with expected vs actual hash.\n"
+        "Corrective action: re-read the SPEC from the task directory to get the "
+        "current spec_hash, then re-approve with that hash. If the revision "
+        "has also changed, re-read and use the current revision.\n\n"
+        "VALID EXAMPLE (canonical WI-09C SPEC):\n"
+        "  workspace_id: my-ws, task_id: pt_20260721T120000_abcdef01, "
+        "expected_revision: 3, "
+        "expected_spec_hash: 4d05d6b4cdd3907b2d3e8674f699951064b8d3e8df868704b5c83a750f141dbc\n"
+        "  -> returns {status: approved, spec_sha256: <canonical spec_hash>, ...}\n\n"
+        "VALID EXAMPLE (legacy non-WI-09C SPEC):\n"
+        "  workspace_id: my-ws, task_id: pt_..., "
+        "expected_revision: 3, "
+        "expected_spec_sha256: abcd1234...\n"
+        "  -> returns {status: approved, spec_sha256: <file hash>, ...}\n\n"
+        "ERROR EXAMPLE (hash mismatch):\n"
+        "  workspace_id: my-ws, task_id: pt_..., "
+        "expected_revision: 3, expected_spec_hash: wrong_hash\n"
+        "  -> error: spec_hash_conflict: expected=<wrong>, actual=<correct>. "
+        "The SPEC may have been re-frozen. Re-read the current frozen SPEC hash "
+        "and retry with the correct value."
     ),
     "parameters": {
         "type": "object",
@@ -53,13 +85,16 @@ SCHEMA = {
             },
             "expected_revision": {
                 "type": "integer",
-                "description": "Expected SPEC revision number for optimistic locking",
+                "description": "Expected SPEC revision number for optimistic locking. Must match the frozen SPEC's current revision exactly.",
             },
             "expected_spec_sha256": {
                 "type": "string",
-                "description": "Expected SHA-256 hex digest of the exact SPEC.md content",
+                "description": "DEPRECATED for canonical WI-09C SPECs. Raw SHA-256 of SPEC.md file content (legacy binding). For canonical SPECs, use expected_spec_hash instead. This is NOT the freeze return spec_hash.",
             },
-            "expected_spec_hash": {"type": "string", "description": "Canonical frozen SPEC hash (WI-09C)."},
+            "expected_spec_hash": {
+                "type": "string",
+                "description": "REQUIRED for canonical WI-09C SPECs. The exact canonical frozen SPEC hash (spec_hash from aota_task_spec_freeze response). 64-char hex string. This is the authoritative hash for approval binding.",
+            },
         },
         "required": [
             "workspace_id",
@@ -70,6 +105,7 @@ SCHEMA = {
         "additionalProperties": False,
     },
 }
+SCHEMA["description"] += " For canonical WI-09C SPECs (contract_version=1), expected_spec_hash is required and expected_spec_sha256 is deprecated."
 SCHEMA["parameters"]["required"] = ["workspace_id", "task_id", "expected_revision"]
 
 
@@ -109,6 +145,22 @@ def _do_approve(args: dict) -> str:
     spec_md = load_spec_md(task_dir)
     contract = meta.get("contract_version") == 1
 
+    # For canonical SPECs, expected_spec_hash is required; expected_spec_sha256 is legacy
+    if contract and not args.get("expected_spec_hash"):
+        raise WorkspaceError(
+            "expected_spec_hash_required: canonical WI-09C SPECs (contract_version=1) require "
+            "expected_spec_hash (the frozen spec_hash from aota_task_spec_freeze), not "
+            "expected_spec_sha256 (which is the legacy raw file hash). "
+            "Re-read the frozen SPEC's spec_hash from the freeze response and retry."
+        )
+    if contract and args.get("expected_spec_sha256") and not args.get("expected_spec_hash"):
+        raise WorkspaceError(
+            "expected_spec_sha256_is_legacy: expected_spec_sha256 is the legacy raw file hash "
+            "binding, not the canonical frozen spec_hash. For canonical WI-09C SPECs, "
+            "use expected_spec_hash with the value returned by aota_task_spec_freeze. "
+            "The expected_spec_sha256 parameter is only valid for legacy non-WI-09C SPECs."
+        )
+
     # 3. Verify meta.task_id matches
     if meta.get("task_id") != task_id:
         raise WorkspaceError("task_id_mismatch: meta.task_id does not match input")
@@ -129,7 +181,9 @@ def _do_approve(args: dict) -> str:
     current_status = meta.get("status", "")
     if (contract and current_status != "frozen") or (not contract and (current_status != STATUS_DRAFT or meta.get("frozen_revision") != meta.get("revision"))):
         raise WorkspaceError(
-            f"task_not_approvable: task '{task_id}' requires its current draft revision to be frozen"
+            f"task_not_approvable: task '{task_id}' requires its current draft revision to be frozen. "
+            f"For canonical SPECs: status must be 'frozen' (current: {current_status}). "
+            f"For legacy SPECs: status must be 'draft' with frozen_revision matching revision."
         )
 
     # 7. Verify revision
@@ -137,7 +191,8 @@ def _do_approve(args: dict) -> str:
     if expected_revision != current_revision:
         raise WorkspaceError(
             f"revision_conflict: expected_revision={expected_revision}, "
-            f"actual_revision={current_revision}"
+            f"actual_revision={current_revision}. "
+            f"Re-read the current SPEC revision and retry."
         )
 
     # 8. Compute actual SPEC SHA-256
@@ -155,7 +210,10 @@ def _do_approve(args: dict) -> str:
     if expected_spec_sha256 != actual_spec_sha256:
         raise WorkspaceError(
             f"spec_hash_conflict: expected={expected_spec_sha256}, "
-            f"actual={actual_spec_sha256}"
+            f"actual={actual_spec_sha256}. "
+            f"The SPEC may have been re-frozen since you last read it. "
+            f"Re-read the current frozen SPEC revision and hash, then retry with the correct values. "
+            f"Corrective action: reopen_spec_and_retry_with_current_hash."
         )
 
     # 9. Acquire lock

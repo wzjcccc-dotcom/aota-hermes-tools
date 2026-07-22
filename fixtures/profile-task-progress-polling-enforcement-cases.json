@@ -1,0 +1,92 @@
+{
+  "description": "Fixture cases for PCF-WI-PROFILE-TASK-PROGRESS-POLLING-ENFORCEMENT-MINIMUM verifier. Cases A-J cover no-poll enforcement for running task status queries.",
+  "schema_version": 1,
+  "retrieval_reasons": [
+    "completion_notification_timeout",
+    "lost_notification",
+    "suspected_runtime_failure",
+    "non_wakeup_reentry",
+    "user_requested",
+    "isolated_probe"
+  ],
+  "case_fixtures": {
+    "case_a_terminal_status_no_retrieval_reason_needed": {
+      "description": "Terminal (done) task queried without retrieval_reason must succeed normally.",
+      "meta_status": "done",
+      "retrieval_reason": "",
+      "expected_result_status": "done",
+      "expected_reject": false
+    },
+    "case_b_draft_status_no_retrieval_reason_needed": {
+      "description": "Draft task queried without retrieval_reason must succeed normally.",
+      "meta_status": "draft",
+      "retrieval_reason": "",
+      "expected_result_status": "draft",
+      "expected_reject": false
+    },
+    "case_c_running_missing_retrieval_reason_rejected": {
+      "description": "Running task queried without retrieval_reason must be rejected with normal_path_progress_poll_forbidden.",
+      "meta_status": "running",
+      "retrieval_reason": "",
+      "expected_result_status": "rejected",
+      "expected_reject_reason": "normal_path_progress_poll_forbidden",
+      "expected_reject": true
+    },
+    "case_d_running_with_valid_retrieval_reason_passes": {
+      "description": "Running task queried with valid retrieval_reason must not be rejected by the missing-reason guard.",
+      "meta_status": "running",
+      "retrieval_reason": "user_requested",
+      "expected_reject_reason_absent": "normal_path_progress_poll_forbidden",
+      "expected_reject": false,
+      "expected_status_in": ["running", "done", "failed", "needs_input", "cancelled", "timeout"]
+    },
+    "case_e_running_with_invalid_retrieval_reason_rejected": {
+      "description": "Running task queried with invalid retrieval_reason value must be rejected with invalid_retrieval_reason error.",
+      "meta_status": "running",
+      "retrieval_reason": "just_curious",
+      "expected_result_status": "error",
+      "expected_reject": true
+    },
+    "case_f_running_repeated_poll_rejected": {
+      "description": "Running task queried twice within min interval with valid retrieval_reason must be rejected with repeated_progress_poll_forbidden on the second query.",
+      "meta_status": "running",
+      "retrieval_reason": "user_requested",
+      "first_query_expected_reject": false,
+      "second_query_expected_status": "rejected",
+      "second_query_expected_reject_reason": "repeated_progress_poll_forbidden",
+      "expected_reject": true
+    },
+    "case_g_terminal_with_retrieval_reason_still_works": {
+      "description": "Terminal task queried WITH retrieval_reason must still succeed (retrieval_reason is optional, not forbidden, for terminal tasks).",
+      "meta_status": "done",
+      "retrieval_reason": "user_requested",
+      "expected_result_status": "done",
+      "expected_reject": false
+    },
+    "case_h_not_found_task_no_retrieval_reason_needed": {
+      "description": "Non-existent task queried without retrieval_reason returns not_found (no poll guard needed).",
+      "meta_status": null,
+      "retrieval_reason": "",
+      "expected_result_status": "not_found",
+      "expected_reject": false
+    },
+    "case_i_all_retrieval_reasons_valid": {
+      "description": "All six retrieval_reason values must be accepted by the validator.",
+      "retrieval_reasons": [
+        "completion_notification_timeout",
+        "lost_notification",
+        "suspected_runtime_failure",
+        "non_wakeup_reentry",
+        "user_requested",
+        "isolated_probe"
+      ],
+      "expected_all_valid": true
+    },
+    "case_j_schema_has_retrieval_reason_parameter": {
+      "description": "The SCHEMA must declare retrieval_reason as an optional parameter in the properties.",
+      "expected_schema_has_property": "retrieval_reason",
+      "expected_schema_property_type": "string",
+      "expected_schema_required_includes_retrieval_reason": false
+    }
+  }
+}

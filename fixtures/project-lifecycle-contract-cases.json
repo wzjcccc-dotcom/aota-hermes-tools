@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "fixture_name": "project-lifecycle-contract-minimum",
+  "description": "Fixture for PCF-WI-PROJECT-LIFECYCLE-CONTRACT-MINIMUM verification Cases A-H",
+  "dispatch_invariant": "PROJECT_AND_PROFILE_MUTATION_REQUIRES_TASK_MAIN_DISPATCH",
+  "dispatch_authority_profiles": ["task-main"],
+  "execution_owner_profiles": ["project-steward"],
+  "protected_mutation_classes": [
+    "project_initialization",
+    "project_git_lifecycle",
+    "project_codegraph_lifecycle",
+    "project_registry_mutation",
+    "project_closure",
+    "project_metadata_mutation"
+  ],
+  "runtime_artifact_write_exemptions": [
+    "CARD",
+    "RESULT",
+    "worker_outcome",
+    "completion_receipt",
+    "handoff",
+    "review_decision",
+    "task_runtime_meta",
+    "bounded_logs",
+    "bounded_temporary_state"
+  ],
+  "task_main_authority": [
+    "dispatch",
+    "spec_creation",
+    "spec_freeze",
+    "task_approval",
+    "task_start",
+    "durable_decision",
+    "work_item_closure",
+    "workspace_selection"
+  ],
+  "project_steward_authority": [
+    "docs_update",
+    "artifact_link",
+    "registry_refresh",
+    "close_checks",
+    "context_prepare",
+    "relationship_resolve"
+  ],
+  "initialization_states": ["initialized_core", "initialized", "failed"],
+  "initialization_receipt_minimum_fields": [
+    "schema_version",
+    "project_id",
+    "workspace_id",
+    "state",
+    "git_summary",
+    "codegraph_summary",
+    "authority",
+    "completed_at"
+  ],
+  "receipt_authorities": ["trusted_finalizer", "authoritative_receipt"],
+  "worker_observation_artifacts": ["CARD", "RESULT"],
+  "codex_escalation_boundary": {
+    "current_fallback_dependency": "REQUIRED",
+    "target_default_project_operator": "NOT_REQUIRED",
+    "boundary": "host_infra_escalation"
+  },
+  "fail_closed_reject_reasons": [
+    "non_task_main_protected_mutation_spec",
+    "unfrozen_spec",
+    "binding_mismatch",
+    "profile_mismatch",
+    "artifact_exemption_used_for_project_source_write",
+    "steward_mutation_missing_binding",
+    "initialized_receipt_missing_git_codegraph_summary",
+    "receipt_authoritative_wrong_reconciliation_source",
+    "unknown_initialization_state",
+    "unknown_protected_mutation_class"
+  ],
+  "valid_receipt_example": {
+    "schema_version": 1,
+    "project_id": "fixture-project",
+    "workspace_id": "fixture-ws",
+    "state": "initialized",
+    "git_summary": {"present": true, "head": "abc123def456"},
+    "codegraph_summary": {"present": true, "state": "ready"},
+    "authority": "trusted_finalizer",
+    "completed_at": "2026-07-20T12:00:00Z"
+  },
+  "invalid_receipt_examples": {
+    "missing_git_summary": {
+      "schema_version": 1,
+      "project_id": "fixture-project",
+      "workspace_id": "fixture-ws",
+      "state": "initialized",
+      "git_summary": null,
+      "codegraph_summary": {"present": true},
+      "authority": "trusted_finalizer",
+      "completed_at": "2026-07-20T12:00:00Z"
+    },
+    "unknown_state": {
+      "schema_version": 1,
+      "project_id": "fixture-project",
+      "workspace_id": "fixture-ws",
+      "state": "unknown",
+      "git_summary": {"present": true},
+      "codegraph_summary": {"present": true},
+      "authority": "trusted_finalizer",
+      "completed_at": "2026-07-20T12:00:00Z"
+    },
+    "wrong_authority": {
+      "schema_version": 1,
+      "project_id": "fixture-project",
+      "workspace_id": "fixture-ws",
+      "state": "initialized",
+      "git_summary": {"present": true},
+      "codegraph_summary": {"present": true},
+      "authority": "project-steward",
+      "completed_at": "2026-07-20T12:00:00Z"
+    }
+  }
+}

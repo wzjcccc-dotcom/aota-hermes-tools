@@ -60,6 +60,156 @@ reports only baseline deltas as postflight observations. A workspace-wide Git
 diff is never a current-task worker action by itself. Missing or foreign event
 identity is counted and unattributed project deltas fail closed.
 
+## Project Lifecycle Contract
+
+The minimal project lifecycle contract has one canonical source:
+`plugin/aota-tools/_project_lifecycle_contract.py`, also declared in
+`deploy/aota-lifecycle-inventory.yaml` under `project_lifecycle_contract`.
+
+Key definitions (authoritative in the canonical source):
+
+- **Dispatch invariant** `PROJECT_AND_PROFILE_MUTATION_REQUIRES_TASK_MAIN_DISPATCH`:
+  protected project/profile mutation requires a task-main dispatched Profile
+  Task with a frozen SPEC.  This covers ONLY protected mutation classes, NOT
+  all filesystem writes.
+- **Protected mutation classes**: project_initialization, project_git_lifecycle,
+  project_codegraph_lifecycle, project_registry_mutation, project_closure,
+  project_metadata_mutation.
+- **Runtime artifact write exemptions**: CARD, RESULT, worker_outcome,
+  completion_receipt, handoff, review_decision, task_runtime_meta,
+  bounded_logs, bounded_temporary_state -- NOT protected mutations.
+- **task-main dispatch authority** vs **Project Steward execution ownership**:
+  task-main originates dispatch; Project Steward executes dispatched
+  operations but cannot originate un-dispatched protected mutation.
+- **Initialization states**: `initialized_core` (scaffold/metadata/registry
+  complete, Git/CodeGraph not yet guaranteed) vs `initialized`
+  (initialized_core + Git + CodeGraph + aggregate verification +
+  authoritative receipt).
+- **Initialization receipt authority**: CARD/RESULT are worker observations;
+  the trusted finalizer / authoritative receipt is the final lifecycle
+  result.  Project Steward cannot self-declare authoritative success.
+- **Codex escalation boundary**: Codex is a Host/infra escalation path, not a
+  general project operator.  Current Git/init gap requires Codex fallback
+  (REQUIRED); target state is NOT_REQUIRED once bounded tools are implemented.
+- **Fail-closed**: reject non-task-main protected mutation SPEC, unfrozen SPEC,
+  binding mismatch, profile mismatch, artifact exemption used for project
+  source write, steward mutation missing binding, initialized receipt missing
+  Git/CodeGraph summary, receipt authoritative but wrong reconciliation source,
+  unknown initialization state, unknown protected mutation class.
+
+## Wait mode semantics
+
+The task lifecycle distinguishes four wait modes for task completion
+retrieval, classified by transport capability:
+
+- **wakeup_capable_normal**: The transport supports wakeup notifications.
+  Polling is PROHIBITED. The system must wait for a wakeup signal, not poll
+  for completion.
+- **non_wakeup_transport**: The transport does not support wakeup
+  notifications. Explicit retrieval (checking status on demand via
+  `aota_profile_task_status`) is allowed. The API Server transport has
+  `supports_async_delivery=False`, which classifies it as
+  `non_wakeup_transport` — it is NOT a handoff wakeup channel.
+- **isolated_probe**: A bounded, one-time status check. Polling is allowed
+  ONLY when the `POLLING_ALLOWED_FOR_ISOLATED_PROBE_ONLY` marker is present.
+  Without the marker, isolated probe polling is rejected.
+- **recovery**: Retry after a failure. Requires an explicit reason string.
+  Recovery without a reason is rejected.
+
+The canonical wait mode rules are defined in
+`plugin/aota-tools/_skill_authority_contract.py` under `WAIT_MODE_RULES`.
+The lifecycle inventory mirrors these as governance metadata. No second
+authority is created.
+
+## WebUI task-main session wait-mode classification
+
+When task-main starts a Profile Task from a WebUI session, the wait mode is
+classified from runtime evidence — not from model self-inference about the
+transport.
+
+### Classification rules
+
+| Session context | Transport evidence | Wait mode |
+|---|---|---|
+| WebUI task-main session | Transport supports async delivery (wakeup) | `wakeup_capable_normal` |
+| WebUI task-main session | API Server (`supports_async_delivery=False`) | `non_wakeup_transport` |
+| CLI session | Hermes CLI with handoff wakeup | `wakeup_capable_normal` |
+| Any session | No wakeup channel available | `non_wakeup_transport` |
+| One-time check | Explicit isolated probe with marker | `isolated_probe` |
+| Post-failure retry | Explicit reason provided | `recovery` |
+
+The model must NOT self-classify the transport. The wait mode is resolved from
+runtime evidence during the orchestration preflight (see
+`aota-profile-task-orchestration` Skill, preflight step 1).
+
+### START_RESULT=running / WAIT_MODE=wakeup_capable_normal
+
+When `aota_profile_task_start` returns `running` and the wait mode is
+`wakeup_capable_normal`:
+
+- **NEXT_ALLOWED_ACTION**: Wait for the wakeup signal (handoff notification).
+  Do not call `aota_profile_task_status` unless a valid `retrieval_reason`
+  is provided.
+- **FORBIDDEN_PROGRESS_ACTIONS** (all prohibited without `retrieval_reason`):
+  1. Calling `aota_profile_task_status` without a `retrieval_reason`.
+  2. Reading worker logs (`worker.<task_id>.log`) to check progress.
+  3. Reading process output or inspecting process registry for progress.
+  4. Inspecting repo changes (git diff/status) to infer worker activity.
+  5. Checking artifact existence (CARD.json, RESULT.md, etc.) to infer
+     completion.
+  6. Reading output files or checking file sizes to gauge progress.
+  7. Using `aota_path_info` or `aota_read_file` on task directories to poll
+     for new artifacts.
+
+### Non-recovery conditions
+
+The following observations are NOT recovery conditions and do NOT authorize
+polling:
+
+- Running status returned by a prior status query.
+- Unchanged worker log size (the worker may simply not have written yet).
+- Absence of new files or artifacts (the worker may still be working).
+- Curiosity about worker health or progress.
+
+### One authorized check does not authorize repeated polling
+
+A single status query with a valid `retrieval_reason` is an authorized
+recovery check. It does NOT authorize a second query. A second query within
+the minimum interval is rejected as `repeated_progress_poll_forbidden`.
+
+### non_wakeup_transport explicit retrieval conditions
+
+When the wait mode is `non_wakeup_transport` (e.g., API Server with
+`supports_async_delivery=False`), explicit retrieval via
+`aota_profile_task_status` is allowed, but ONLY under these conditions:
+
+1. **External re-entry**: A new session or turn that is not a busy-wait
+   continuation of the same turn that started the task.
+2. **Declared timeout**: The completion notification timeout has elapsed
+   (`retrieval_reason=completion_notification_timeout`).
+3. **Scheduled retrieval**: A scheduled or cron-triggered check
+   (`retrieval_reason=non_wakeup_reentry`).
+4. **User-triggered check**: The user explicitly requests a status check
+   (`retrieval_reason=user_requested`).
+
+Explicit retrieval must NOT happen within the same turn as task start. Do
+not busy-wait in the same turn — start the task, then exit and wait for
+re-entry.
+
+## Binding, receipt, and handoff authority
+
+The completion receipt is the trusted finalizer / authoritative result.
+`done` requires exit code zero, a valid terminal worker outcome, and a
+canonical receipt with `status=done`. Wakeups must never invent `done` when
+a receipt is absent. CARD/RESULT are worker observations; they are not
+authoritative lifecycle results.
+
+task-main validates the handoff binding and records the durable decision
+before acknowledgement. Handoff acknowledgment only means the orchestration
+layer consumed the completion. It does NOT mean: task approved, source
+correct, review passed, user accepted, or next task started. Auto-dispatch
+is never implied by ack.
+
 ## Deployment and Runtime Guidance
 
 - Profile runtime assembly is manifest-driven. The canonical assembly manifest

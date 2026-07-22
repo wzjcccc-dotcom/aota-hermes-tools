@@ -165,6 +165,12 @@ groups:
         required: true
         expected_mode: preserve
         managed: true
+      - source: deploy/evidence/orphaned-profile-skill-runtime-files-20260722.json
+        destination: deploy/evidence/orphaned-profile-skill-runtime-files-20260722.json
+        file_type: json
+        required: true
+        expected_mode: preserve
+        managed: true
 
   runtime_projection:
     # Retained as a rollback/compatibility artifact only. The runtime

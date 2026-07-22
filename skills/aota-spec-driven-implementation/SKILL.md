@@ -137,6 +137,38 @@ If required information, specifications, or approvals are missing, report via `a
 
 When a task cannot be completed due to a blocking issue, error, or scope violation, report via `aota_worker_outcome_submit` with status `failed`. Include the reason clearly.
 
+## 25. Mandatory Self Validation
+
+Before submitting a terminal outcome, the coder MUST execute every
+validation command declared in the SPEC's `validation_commands` list.
+Validation is not optional, not best-effort, and not deferrable to
+review.
+
+1. **Execute in declared order**: Run validation commands in the order
+   they appear in `validation_commands`. Do not skip or reorder.
+
+2. **Check expected_exit**: After each command, verify the actual exit
+   code matches `expected_exit`. A mismatch is a validation failure.
+
+3. **Capture expected_evidence**: Record the evidence each command was
+   expected to produce. Missing evidence is a validation failure.
+
+4. **Report validation results**: Include the complete validation results
+   (command, exit code, evidence captured, pass/fail) in the coder report
+   via `aota_coder_report_submit`.
+
+5. **Verifier failure is Source failure, not operator limitation**: If a
+   validation command fails (wrong exit code, missing evidence, command
+   not found), this is a **Source failure** — the implementation or its
+   validation setup is defective. It is NOT an operator limitation,
+   runtime environment issue, or tool unavailability. Do not classify
+   verifier failures as `needs_input` due to missing tools; classify them
+   as `failed` with the specific validation failure evidence.
+
+6. **All must pass**: Every validation command must pass before the task
+   can be submitted as `completed`. A single validation failure means the
+   task outcome must be `partial` or `failed`, not `completed`.
+
 ## Bounded command constraints
 
 Use only frozen-SPEC-authorized command IDs. The runner uses fixed argv,

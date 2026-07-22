@@ -4,12 +4,18 @@ P6: Durable Lifecycle Reconciliation & Profile Task Status.
 Returns compact task state, terminal status, receipt status, registry status,
 and reconciliation metadata. For running tasks, attempts to reconcile via
 completion receipt or process registry.
+
+PCF-WI-PROFILE-TASK-PROGRESS-POLLING-ENFORCEMENT-MINIMUM:
+Adds retrieval_reason optional parameter and enforcement guards to prevent
+progress polling of running tasks in wakeup-capable sessions. Terminal/draft
+task queries are unaffected (retrieval_reason is not required for them).
 """
 
 from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any, Optional
 
@@ -49,6 +55,17 @@ SCHEMA = {
                 "type": "string",
                 "description": "Existing AOTA task ID to query",
             },
+            "retrieval_reason": {
+                "type": "string",
+                "description": (
+                    "Optional typed reason for querying a running task. "
+                    "Required for running tasks to prevent progress polling. "
+                    "Ignored for terminal/draft tasks. "
+                    "Must be one of: completion_notification_timeout, "
+                    "lost_notification, suspected_runtime_failure, "
+                    "non_wakeup_reentry, user_requested, isolated_probe."
+                ),
+            },
         },
         "required": [
             "workspace_id",
@@ -57,6 +74,28 @@ SCHEMA = {
         "additionalProperties": False,
     },
 }
+
+#: Valid retrieval_reason values for running task status queries.
+RETRIEVAL_REASONS = frozenset(
+    {
+        "completion_notification_timeout",
+        "lost_notification",
+        "suspected_runtime_failure",
+        "non_wakeup_reentry",
+        "user_requested",
+        "isolated_probe",
+    }
+)
+
+#: Minimum interval (seconds) between running-task status queries before a
+#: repeated_progress_poll_forbidden rejection is returned.
+_REPEAT_POLL_MIN_INTERVAL_SECONDS = 30.0
+
+#: Rejection reason for missing retrieval_reason on a running task query.
+_REJECT_NORMAL_PATH_PROGRESS_POLL_FORBIDDEN = "normal_path_progress_poll_forbidden"
+
+#: Rejection reason for short-interval repeated running-task status queries.
+_REJECT_REPEATED_PROGRESS_POLL_FORBIDDEN = "repeated_progress_poll_forbidden"
 
 _TERMINAL_STATUSES = frozenset(
     {
@@ -77,6 +116,15 @@ _FORBIDDEN_CHARS = ("\x00", "/", "\\", " ")
 # ---------------------------------------------------------------------------
 
 
+def _validate_retrieval_reason(retrieval_reason: str) -> Optional[str]:
+    """Validate retrieval_reason value."""
+    if not retrieval_reason:
+        return "retrieval_reason is empty"
+    if retrieval_reason not in RETRIEVAL_REASONS:
+        return f"retrieval_reason must be one of {sorted(RETRIEVAL_REASONS)}, got {retrieval_reason!r}"
+    return None
+
+
 def _validate_workspace_id(workspace_id: str) -> Optional[str]:
     """Validate workspace_id (no path traversal, no NUL)."""
     if not workspace_id:
@@ -89,6 +137,64 @@ def _validate_workspace_id(workspace_id: str) -> Optional[str]:
     if ".." in workspace_id:
         return "workspace_id contains '..' segment"
     return None
+
+
+# ---------------------------------------------------------------------------
+# Status query history (anti-poll enforcement)
+# ---------------------------------------------------------------------------
+
+
+def _record_status_query(
+    meta: dict[str, Any],
+    task_dir: Path,
+    retrieval_reason: str,
+) -> list[dict[str, Any]]:
+    """Record a status query in meta.json execution.status_queries.
+
+    Appends a new entry with timestamp and retrieval_reason. Returns the
+    updated status_queries list. Writes the updated meta atomically.
+    """
+    execution = meta.get("execution", {})
+    status_queries: list[dict[str, Any]] = execution.get("status_queries", [])
+    now = utc_now_iso()
+    entry = {
+        "queried_at": now,
+        "retrieval_reason": retrieval_reason,
+        "epoch_seconds": time.time(),
+    }
+    status_queries = status_queries + [entry]
+    new_execution = dict(execution)
+    new_execution["status_queries"] = status_queries
+    new_meta = dict(meta)
+    new_meta["execution"] = new_execution
+    try:
+        write_json(task_dir / "meta.json", new_meta)
+    except Exception:
+        pass  # Best-effort recording
+    return status_queries
+
+
+def _detect_repeated_poll(
+    status_queries: list[dict[str, Any]],
+    *,
+    min_interval_seconds: float = _REPEAT_POLL_MIN_INTERVAL_SECONDS,
+) -> bool:
+    """Detect short-interval repeated status queries.
+
+    Returns True if the most recent query (before the current one) was
+    within min_interval_seconds of the current query, indicating polling.
+    """
+    if len(status_queries) < 2:
+        return False
+    # Compare the last two entries by epoch_seconds
+    last = status_queries[-1].get("epoch_seconds", 0)
+    prev = status_queries[-2].get("epoch_seconds", 0)
+    if not isinstance(last, (int, float)) or not isinstance(prev, (int, float)):
+        return False
+    if last <= 0 or prev <= 0:
+        return False
+    interval = last - prev
+    return 0 <= interval < min_interval_seconds
 
 
 # ---------------------------------------------------------------------------
@@ -622,6 +728,7 @@ def _do_status(args: dict) -> dict[str, Any]:
     """Core status logic: validate, locate, load, reconcile, return."""
     workspace_id: str = args.get("workspace_id", "")
     task_id: str = args.get("task_id", "")
+    retrieval_reason: str = args.get("retrieval_reason", "")
 
     # 1. Validate inputs
     err = _validate_workspace_id(workspace_id)
@@ -631,6 +738,12 @@ def _do_status(args: dict) -> dict[str, Any]:
     err = validate_task_id(task_id)
     if err:
         return {"status": "error", "error": f"invalid_task_id: {err}"}
+
+    # Validate retrieval_reason if provided (even if not yet needed)
+    if retrieval_reason:
+        err = _validate_retrieval_reason(retrieval_reason)
+        if err:
+            return {"status": "error", "error": f"invalid_retrieval_reason: {err}"}
 
     # 2. Locate task_dir
     task_dir = get_task_dir(workspace_id, task_id)
@@ -666,7 +779,7 @@ def _do_status(args: dict) -> dict[str, Any]:
 
     meta_status = meta.get("status", "")
 
-    # 6. Terminal status — meta is authority
+    # 6. Terminal status — meta is authority (retrieval_reason NOT required)
     if meta_status in _TERMINAL_STATUSES:
         execution = meta.get("execution", {})
         receipt_path_str: str = execution.get("completion_receipt_path", "")
@@ -687,7 +800,7 @@ def _do_status(args: dict) -> dict[str, Any]:
             reconciliation_source=execution.get("reconciliation_source", "meta"),
         )
 
-    # 7. Draft status
+    # 7. Draft status (retrieval_reason NOT required)
     if meta_status == "draft":
         return _build_status_dict(
             meta,
@@ -699,9 +812,9 @@ def _do_status(args: dict) -> dict[str, Any]:
             reconciliation_source="meta",
         )
 
-    # 8. Running status — attempt reconciliation
+    # 8. Running status — enforce anti-poll guards, then attempt reconciliation
     if meta_status == "running":
-        return _handle_running_status(meta, task_id, workspace_id, task_dir)
+        return _handle_running_status(meta, task_id, workspace_id, task_dir, retrieval_reason)
 
     # Unknown status
     return _build_status_dict(
@@ -720,19 +833,40 @@ def _handle_running_status(
     task_id: str,
     workspace_id: str,
     task_dir: Path,
+    retrieval_reason: str = "",
 ) -> dict[str, Any]:
     """Handle status query for a running task with reconciliation attempts.
 
-    8a. Acquire task lock
-    8b. Reload meta under lock
-    8c. If now terminal → return
-    8d. Check completion receipt → reconcile if valid
-    8e. Query ProcessRegistry → reconcile if exited
-    8f. Release lock
+    Enforces anti-poll guards before reconciliation:
+    - retrieval_reason missing → normal_path_progress_poll_forbidden rejection
+    - short-interval repeated query → repeated_progress_poll_forbidden rejection
+
+    8a. Enforce retrieval_reason guard
+    8b. Acquire task lock
+    8c. Reload meta under lock
+    8d. If now terminal → return
+    8e. Record status query and detect repeated polling
+    8f. Check completion receipt → reconcile if valid
+    8g. Query ProcessRegistry → reconcile if exited
+    8h. Release lock
     """
     execution = meta.get("execution", {})
 
-    # 8a. Acquire lock (bounded 5s timeout)
+    # 8a. Enforce retrieval_reason guard for running tasks
+    if not retrieval_reason:
+        return {
+            "status": "rejected",
+            "reject_reason": _REJECT_NORMAL_PATH_PROGRESS_POLL_FORBIDDEN,
+            "task_id": task_id,
+            "workspace_id": workspace_id,
+            "message": (
+                "Querying a running task without retrieval_reason is forbidden. "
+                "Provide one of: "
+                + ", ".join(sorted(RETRIEVAL_REASONS))
+            ),
+        }
+
+    # 8b. Acquire lock (bounded 5s timeout)
     lock_fd = _try_acquire_status_lock(workspace_id, task_id, timeout=5.0)
 
     if lock_fd is None:
@@ -748,12 +882,12 @@ def _handle_running_status(
         )
 
     try:
-        # 8b. Reload meta under lock (finalizer may have reconciled)
+        # 8c. Reload meta under lock (finalizer may have reconciled)
         meta = load_meta(task_dir)
         meta_status = meta.get("status", "")
         execution = meta.get("execution", {})
 
-        # 8c. If now terminal
+        # 8d. If now terminal — retrieval_reason not needed for terminal tasks
         if meta_status in _TERMINAL_STATUSES:
             return _build_status_dict(
                 meta,
@@ -782,7 +916,22 @@ def _handle_running_status(
                 reconciliation_source="meta",
             )
 
-        # 8d. Check for completion receipt
+        # 8e. Record status query and detect repeated polling
+        status_queries = _record_status_query(meta, task_dir, retrieval_reason)
+        if _detect_repeated_poll(status_queries):
+            return {
+                "status": "rejected",
+                "reject_reason": _REJECT_REPEATED_PROGRESS_POLL_FORBIDDEN,
+                "task_id": task_id,
+                "workspace_id": workspace_id,
+                "message": (
+                    "Repeated status query within "
+                    f"{_REPEAT_POLL_MIN_INTERVAL_SECONDS:.0f}s is forbidden. "
+                    "This is progress polling, not authorized recovery."
+                ),
+            }
+
+        # 8f. Check for completion receipt
         reconciled = _reconcile_from_receipt(meta, task_dir)
         if reconciled is not None:
             # Receipt valid — reconcile meta atomically
@@ -809,7 +958,7 @@ def _handle_running_status(
             and (task_dir / receipt_path_str).exists()
         )
 
-        # 8e. No valid receipt — query ProcessRegistry
+        # 8g. No valid receipt — query ProcessRegistry
         registry_state = "unavailable"
         try:
             from tools.process_registry import process_registry  # type: ignore[import-untyped]
@@ -863,6 +1012,6 @@ def _handle_running_status(
         )
 
     finally:
-        # 8f. Release lock
+        # 8h. Release lock
         if lock_fd is not None:
             release_lock(lock_fd)

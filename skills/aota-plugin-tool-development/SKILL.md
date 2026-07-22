@@ -38,6 +38,56 @@ Completion states are separate: `PASS_SOURCE_TOOL_LIFECYCLE`,
 
 `AOTA_PLUGIN_TOOL_DEVELOPMENT_SKILL_PASS`
 
+## Plugin Import Validation
+
+Before claiming `PASS_SOURCE_TOOL_LIFECYCLE`, the coder MUST validate that
+the plugin module imports correctly in the target environment:
+
+1. **Verify import path**: The plugin's Python module path must match its
+   declared toolset registration. A mismatch between the file path and the
+   import path in `TOOLSET_REGISTRY` is a blocking defect.
+
+2. **Verify no import-time side effects**: The plugin module must not
+   execute network calls, file writes, subprocess launches, or global
+   state mutations at import time. Import must be pure registration.
+
+3. **Verify registration completeness**: After a successful import, the
+   tool must appear in the Hermes tool registry. If the module imports
+   without error but the tool does not register, this is a lifecycle
+   defect — not a deploy or runtime issue.
+
+4. **Import validation is a source-level gate**: Import validation is
+   part of `PASS_SOURCE_TOOL_LIFECYCLE`. It does not require deploy or
+   runtime activation. A plugin that fails import validation must not
+   proceed to deploy.
+
+## Source Lifecycle Completion Rules
+
+The plugin tool source lifecycle has four distinct completion states.
+Each is a separate gate; passing one does not imply the next:
+
+1. **PASS_SOURCE_TOOL_LIFECYCLE**: Source is written, syntactically valid,
+   importable, and registered in the toolset. All source-level validation
+   (import check, registration check, fixture check) must pass.
+
+2. **PASS_DEPLOYED_TOOL_LIFECYCLE**: Source is deployed via managed deploy
+   to the target profile home. Hash parity between source and deployed
+   file is verified. Backup and receipt are present.
+
+3. **PASS_RUNTIME_TOOL_LIFECYCLE**: Importing processes are recreated. The
+   tool is visible in the runtime tool list of a new session. The tool
+   accepts a dispatch call without import or registration errors.
+
+4. **PASS_EXACT_DISPATCH_TOOL_LIFECYCLE**: The tool correctly handles a
+   bounded dispatch (correct parameters, correct return, correct error
+   handling). Exact dispatch evidence is captured.
+
+A task MUST NOT claim `completed` at a higher lifecycle gate than the
+SPEC authorizes. If the SPEC only authorizes source-level work, the task
+must stop at `PASS_SOURCE_TOOL_LIFECYCLE` and must not proceed to deploy.
+Claiming a deploy or runtime gate without SPEC authorization is a scope
+violation.
+
 ## Deployment and Runtime Guidance
 
 - Profile runtime assembly is manifest-driven. The canonical assembly manifest

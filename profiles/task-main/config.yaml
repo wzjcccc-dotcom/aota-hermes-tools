@@ -16,7 +16,6 @@ agent:
     - aota_project_steward_artifact
     - aota_reviewer_artifact
     - aota_worker_outcome
-    - aota_active_task_context
     - file
     - terminal
   reasoning_effort: max
@@ -38,6 +37,7 @@ toolsets:
   - aota_codegraph_readonly
   - aota_codegraph_rebuild
   - aota_workspace_readonly
+  - aota_active_task_context
 platform_toolsets:
   api_server:
     - aota_work_intake
@@ -56,6 +56,7 @@ platform_toolsets:
     - aota_codegraph_readonly
     - aota_codegraph_rebuild
     - aota_workspace_readonly
+    - aota_active_task_context
   cli:
     - aota_work_intake
     - aota_plan_read
@@ -73,6 +74,7 @@ platform_toolsets:
     - aota_codegraph_readonly
     - aota_codegraph_rebuild
     - aota_workspace_readonly
+    - aota_active_task_context
 plugins:
   enabled:
     - aota-tools
@@ -91,6 +93,11 @@ providers:
       - deepseek-v4-flash
       - deepseek-v4-pro
       - kimi-k2.6
+  ollama-cloud:
+    api: http://100.123.10.71:8792/v1
+    key_env: OLLAMA_API_KEY
+    models:
+      - glm-5.2
 terminal:
   backend: local
   timeout: 600

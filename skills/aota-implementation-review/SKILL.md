@@ -105,6 +105,37 @@ Submit all review reports, findings, and interim assessments using `aota_reviewe
 
 When the review task completes, submit the terminal outcome using `aota_worker_outcome_submit` with the appropriate verdict.
 
+## 19. Independent Validation Rule
+
+The reviewer MUST independently verify validation evidence. Do not accept
+the coder's self-reported validation claims at face value.
+
+1. **Do not trust coder-reported validation without inspection**: The coder's
+   claim that validation passed is not sufficient. The reviewer must examine
+   the actual validation output, exit codes, and evidence.
+
+2. **Cross-check validation_commands execution**: Verify that every
+   `validation_commands` entry declared in the subject SPEC was actually
+   executed. Missing command execution is a blocking finding.
+
+3. **Verify exit codes**: Compare the coder's reported exit codes against the
+   `expected_exit` declared in the SPEC. Mismatches are a finding.
+
+4. **Check evidence completeness**: Verify that `expected_evidence` was
+   produced for each validation command. Missing evidence is a finding.
+
+5. **Validation gap is a Source failure, not an operator limitation**: If
+   validation commands were not executed, were executed incorrectly, or
+   produced insufficient evidence, this is a Source failure in the
+   implementation — not an operator limitation, tool unavailability, or
+   runtime environment issue. The reviewer must classify this as a blocking
+   finding, not as `inconclusive` due to missing tools.
+
+6. **Independent re-execution is not required**: The reviewer is not required
+   to re-execute validation commands. However, if the coder's validation
+   evidence is insufficient, the reviewer must report `inconclusive` or
+   `fail` with the specific evidence gap, not assume validation passed.
+
 ## Verdict rules
 
 - **pass** — only when: scope compliant, all acceptance criteria provable with evidence, necessary validation done at the claimed level, no blocking findings, no major missing evidence.

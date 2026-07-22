@@ -89,7 +89,6 @@ skills:
   disabled:
     - aota-evidence-first-debugging
     - aota-implementation-review
-    - aota-profile-task-orchestration
     - aota-spec-driven-implementation
     - aota-architecture-review
     - ask-matt

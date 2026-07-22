@@ -10,6 +10,7 @@ provides_tools:
   - aota_search_files
   - aota_webui_attachment_read
   - aota_active_task_artifact_open
+  - aota_subject_task_artifact_open
   - aota_repo_status_readonly
   - aota_repo_diff_readonly
   - aota_web_fetch
@@ -60,6 +61,7 @@ provides_tools:
   - aota_project_file_write
   - aota_project_file_patch
   - aota_project_command_run
+  - aota_project_initialize_core
   - aota_workspace_list
   - aota_workspace_open
   - aota_workspace_selection_record

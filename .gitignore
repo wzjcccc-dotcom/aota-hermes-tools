@@ -1,8 +1,10 @@
 __pycache__/
 *.pyc
 .deploy-backups/
+.deploy-receipts/
 .env
 *.log
+tmp/
 runtime-data/
 profile-tasks/
 handoffs/
@@ -25,3 +27,4 @@ build/
 .env.*
 !.env.example
 .codegraph/
+.aota/registry/

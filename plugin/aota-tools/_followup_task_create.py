@@ -57,9 +57,13 @@ from ._task_spec_common import (
     role_contract_errors_to_message,
     apply_defaults,
 )
+from ._role_contracts import FORBIDDEN_OPERATIONS
 
 TOOL_NAME = "aota_followup_task_create"
 TOOLSET_NAME = "aota_orchestration"
+
+_FORBIDDEN_OPS_LIST = sorted(FORBIDDEN_OPERATIONS)
+_FOLLOWUP_KINDS_LIST = sorted(_FOLLOWUP_TASK_KINDS)
 
 SCHEMA = {
     "name": TOOL_NAME,
@@ -68,8 +72,43 @@ SCHEMA = {
         "orchestration decision. Derives source_handoff_id, predecessor_task_id, "
         "and subject_task_id from the decision artifact. "
         "Does NOT auto-start the task.\n\n"
+        "FOLLOW-UP SEMANTICS:\n"
+        "Follow-up tasks are created FROM an existing orchestration decision, "
+        "NOT from scratch. The decision artifact carries the handoff lineage "
+        "(source_handoff_id → predecessor_task_id → subject_task_id). "
+        "Workers must NOT create their own follow-up mutation tasks; only "
+        "task-main can create follow-up tasks via orchestration decisions.\n\n"
+        "WHEN TO USE FOLLOW-UP vs NEW SPEC:\n"
+        "- Use followup_task_create when: an orchestration decision explicitly "
+        "requires a follow-up (decision=review_required/needs_followup/reopen_required). "
+        "The decision provides the handoff context.\n"
+        "- Use task_spec_create when: starting a brand new work item with no "
+        "prior decision lineage. No handoff context is available.\n\n"
+        "DECISION VALUE RULES:\n"
+        "- review_required → task_kind defaults to 'review' (or must be 'review' if explicit)\n"
+        "- needs_followup → task_kind must be explicitly provided\n"
+        "- reopen_required → task_kind must be explicitly provided\n"
+        "- accepted/no_action → follow-up not permitted\n\n"
+        "FORBIDDEN OPERATIONS (for implementation role_contract):\n"
+        "  " + ", ".join(_FORBIDDEN_OPS_LIST) + "\n\n"
+        "VALID EXAMPLE (reviewer follow-up from review_required decision):\n"
+        "  {workspace_id: my-ws, decision_id: od_..., "
+        "title: Review implementation, goal: Review the coder changes, "
+        "risk_level: low, read_scope: [plugin/**], "
+        "acceptance_criteria: [spec compliance verified], "
+        "stop_conditions: [all evidence reviewed], "
+        "evidence_required: [SPEC.md, git diff]}\n\n"
+        "VALID EXAMPLE (implementation correction from reopen_required):\n"
+        "  {workspace_id: my-ws, decision_id: od_..., "
+        "task_kind: implementation, "
+        "title: Fix review findings, goal: Address reviewer feedback, "
+        "risk_level: medium, read_scope: [plugin/**], "
+        "write_scope: [plugin/**], "
+        "acceptance_criteria: [all findings resolved], "
+        "stop_conditions: [all changes applied], "
+        "evidence_required: [git diff]}\n\n"
         "Role-specific contract (role_contract object):\n"
-        "- implementation: required_changes (list[str], required), change_budget (dict with max_changed_files, allow_create, allow_delete, allow_move, allow_dependency_change), behavioral_invariants, allowed_validation_targets, forbidden_operations, checkpoint_conditions, compatibility_requirements\n"
+        "- implementation: required_changes (list[str], required), change_budget (dict with max_changed_files, allow_create, allow_delete, allow_move, allow_dependency_change), behavioral_invariants, allowed_validation_targets, forbidden_operations (accepted: " + ", ".join(_FORBIDDEN_OPS_LIST) + "), checkpoint_conditions, compatibility_requirements\n"
         "- diagnosis: observed_symptoms (list[str], required), diagnostic_questions (list[str], required), reproduction_context, suspected_components, initial_hypotheses, evidence_plan, mutation_policy (readonly|isolated_reproduction_only), confidence_expectation (exploratory|probable|confirmed_required)\n"
         "- review: artifacts_under_review (list[str], required), review_dimensions (list[str], required), acceptance_mapping_required (bool), verdict_rules, inconclusive_conditions, independence_requirements\n"
         "- architecture: review_questions (list[str], required), gate_criteria (list[str], required), constraints, risk_focus + design_review: problem_statement (required), proposed_design (required), alternatives_considered, blast_radius, rollback_strategy, compatibility_strategy, unresolved_decisions, validation_strategy + spec_preflight: preflight_dimensions (required)\n"
@@ -90,7 +129,8 @@ SCHEMA = {
                 "type": "string",
                 "enum": list(_FOLLOWUP_TASK_KINDS),
                 "description": (
-                    "Task kind for the follow-up. Constraints depend on the "
+                    "Task kind for the follow-up. Accepted values: " + ", ".join(_FOLLOWUP_KINDS_LIST) + ". "
+                    "Constraints depend on the "
                     "decision value. "
                     "review_required -> must be 'review' (default if omitted). "
                     "needs_followup/reopen_required -> must be explicitly provided. "
@@ -177,7 +217,7 @@ SCHEMA = {
             },
             "role_contract": {
                 "type": "object",
-                "description": "Role-specific contract fields. Required fields and allowed fields depend on task_kind. See tool description for per-kind schema. Forbidden fields will be rejected.",
+                "description": "Role-specific contract fields. Required fields and allowed fields depend on task_kind. See tool description for per-kind schema. For implementation: forbidden_operations accepted values are " + ", ".join(_FORBIDDEN_OPS_LIST) + ". Forbidden fields will be rejected.",
                 "default": {},
             },
         },
@@ -383,7 +423,8 @@ def _do_create(args: dict) -> dict[str, Any]:
             "status": "error",
             "error": (
                 f"invalid task_kind: {task_kind!r}. "
-                f"Must be one of: {', '.join(_FOLLOWUP_TASK_KINDS)}"
+                f"Accepted values: " + ", ".join(_FOLLOWUP_KINDS_LIST) + ". "
+                f"Choose the correct task_kind for the follow-up."
             ),
         }
 
@@ -393,7 +434,8 @@ def _do_create(args: dict) -> dict[str, Any]:
                 "status": "error",
                 "error": (
                     f"review_required decision requires task_kind "
-                    f"to be 'review', got {task_kind!r}"
+                    f"to be 'review', got {task_kind!r}. "
+                    f"review_required follow-ups must be review tasks."
                 ),
             }
         resolved_task_kind = task_kind or "review"
@@ -403,7 +445,7 @@ def _do_create(args: dict) -> dict[str, Any]:
                 "status": "error",
                 "error": (
                     f"needs_followup decision requires an explicit "
-                    f"task_kind"
+                    f"task_kind. Accepted values: " + ", ".join(_FOLLOWUP_KINDS_LIST) + "."
                 ),
             }
         resolved_task_kind = task_kind
@@ -413,7 +455,7 @@ def _do_create(args: dict) -> dict[str, Any]:
                 "status": "error",
                 "error": (
                     f"reopen_required decision requires an explicit "
-                    f"task_kind"
+                    f"task_kind. Accepted values: " + ", ".join(_FOLLOWUP_KINDS_LIST) + "."
                 ),
             }
         resolved_task_kind = task_kind
@@ -427,7 +469,8 @@ def _do_create(args: dict) -> dict[str, Any]:
             "status": "error",
             "error": (
                 f"decision '{decision_value}' does not permit "
-                f"follow-up task creation"
+                f"follow-up task creation. Only review_required, needs_followup, "
+                f"reopen_required decisions can create follow-up tasks."
             ),
         }
 

@@ -44,6 +44,28 @@ Registry refresh 是 bounded project metadata mutation，不是 readonly action�
 `aota_project_docs_update` 與 `aota_project_artifact_link` 只可依 trusted
 stewardship task binding 寫入 allowlisted 目標。CodeGraph 僅可 status/query/explore；ready 才使用查詢，stale/missing/broken/busy 改用 read/search，不 rebuild、不等 lock。
 
+## Project Lifecycle Contract: Execution Ownership
+
+The canonical project lifecycle contract lives in
+`plugin/aota-tools/_project_lifecycle_contract.py`.
+
+Project Steward is an **execution owner**, not a dispatch authority:
+- Steward may execute dispatched lifecycle operations (docs_update,
+  artifact_link, registry_refresh, close_checks, context_prepare,
+  relationship_resolve) under a frozen stewardship SPEC.
+- Steward **cannot** originate un-dispatched protected mutation, create a
+  SPEC, make a durable project selection, or self-declare authoritative
+  initialization success.
+- Protected mutation classes (project_initialization, project_git_lifecycle,
+  project_codegraph_lifecycle, project_registry_mutation, project_closure)
+  require task-main dispatch with a frozen SPEC.
+- Runtime artifact writes (CARD, RESULT, worker_outcome, completion_receipt,
+  handoff, etc.) are exempt from the dispatch invariant -- they are worker
+  observations, not project mutation.
+- Initialization receipt authority belongs to the trusted finalizer /
+  authoritative receipt, not to Steward self-declaration.  CARD/RESULT are
+  worker observations only.
+
 ## Active AOTA Skills
 
 - **aota-pcf-project-steward**：bounded intake、context preparation、docs update、

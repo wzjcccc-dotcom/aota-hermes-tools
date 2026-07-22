@@ -44,10 +44,26 @@ from ._task_spec_common import (
     apply_defaults,
 )
 from ._spec_traceability import build_trusted_snapshot, validate_traceability_input
-from ._spec_contract import ContractError, ROUTING, SPEC_KINDS, validate_spec
+from ._spec_contract import ContractError, ROUTING, SPEC_KINDS, validate_spec, PAYLOAD_FIELDS, REF_TYPES
 
 TOOL_NAME = "aota_task_spec_create"
 TOOLSET_NAME = "aota_task_spec"
+
+# ---------------------------------------------------------------------------
+# WI-2: build canonical SCHEMA description
+# ---------------------------------------------------------------------------
+
+_REF_TYPE_LIST = sorted(REF_TYPES)
+_SPEC_KINDS_LIST = list(SPEC_KINDS)
+
+def _build_payload_field_matrix() -> str:
+    lines = ["Canonical payload fields per spec_kind (closed field matrix):"]
+    for kind in _SPEC_KINDS_LIST:
+        fields = sorted(PAYLOAD_FIELDS.get(kind, frozenset()))
+        lines.append(f"  {kind}: {fields}")
+    return "\n".join(lines)
+
+_PAYLOAD_FIELD_MATRIX = _build_payload_field_matrix()
 
 SCHEMA = {
     "name": TOOL_NAME,
@@ -55,13 +71,55 @@ SCHEMA = {
         "Use to create a bounded AOTA task specification artifact. "
         "This tool only creates a draft SPEC; it does not approve or start "
         "execution. Use it before any profile execution task.\n\n"
+        "CANONICAL CREATE: Use spec_kind (not task_kind). task_kind is a "
+        "deprecated compatibility alias and will be REJECTED on new writes. "
+        "Accepted spec_kind values: " + ", ".join(_SPEC_KINDS_LIST) + ".\n\n"
+        "CONTEXT_REFS ARTIFACT REF: Each context_refs entry is an object with fields:\n"
+        '  ref_type (required): one of ' + ", ".join(_REF_TYPE_LIST) + "\n"
+        "  artifact_id (required): bounded logical id string\n"
+        "  artifact_path (optional): workspace-relative path, no .. or backslash\n"
+        "  revision (optional): integer >= 1\n"
+        "  hash (optional): 64-char hex string\n\n"
+        "WORKSPACE_DECISION_ID: Accepts only a workspace-selection authority decision "
+        "(created by task-main). Not a plan decision, review decision, or user input. "
+        "When provided, workspace_context is derived from that decision.\n\n"
+        "REVIEW SPEC: context_refs MUST include at least one ref with "
+        "ref_type=subject_spec. subject_task_id is a required top-level parameter "
+        "for review SPECs.\n\n"
+        + _PAYLOAD_FIELD_MATRIX + "\n\n"
         "Role-specific contract (role_contract object):\n"
         "- implementation: required_changes (list[str], required), change_budget (dict with max_changed_files, allow_create, allow_delete, allow_move, allow_dependency_change), behavioral_invariants, allowed_validation_targets, forbidden_operations, checkpoint_conditions, compatibility_requirements\n"
         "- diagnosis: observed_symptoms (list[str], required), diagnostic_questions (list[str], required), reproduction_context, suspected_components, initial_hypotheses, evidence_plan, mutation_policy (readonly|isolated_reproduction_only), confidence_expectation (exploratory|probable|confirmed_required)\n"
         "- review: artifacts_under_review (list[str], required), review_dimensions (list[str], required), acceptance_mapping_required (bool), verdict_rules, inconclusive_conditions, independence_requirements\n"
         "- architecture: review_questions (list[str], required), gate_criteria (list[str], required), constraints, risk_focus + design_review: problem_statement (required), proposed_design (required), alternatives_considered, blast_radius, rollback_strategy, compatibility_strategy, unresolved_decisions, validation_strategy + spec_preflight: preflight_dimensions (required)\n"
         "- stewardship (temporary WI-09B compatibility): project_id, allowed_project_artifacts, operation, forbidden_actions; write_scope must be empty\n"
-        "Forbidden fields from other task kinds will be rejected."
+        "Forbidden fields from other task kinds will be rejected.\n\n"
+        "VALID EXAMPLES:\n"
+        "1. Implementation SPEC (canonical):\n"
+        "  {workspace_id: my-ws, spec_kind: implementation, project_id: my-proj, "
+        "work_item_id: WI-01, objective: Add feature X, summary: Implement X, "
+        "acceptance_criteria: [test passes], constraints: [no deploy], "
+        "capability_contract: {source_read: true, source_write: true}, "
+        "payload: {read_scope: [src/**], write_scope: [src/**], "
+        "forbidden_scope: [src/secret/**], implementation_requirements: [add function], "
+        "validation_commands: [python_module_compile], validation_strategy: Tier 1, "
+        "runtime_actions: {}}}\n"
+        "2. Review SPEC (canonical):\n"
+        "  {workspace_id: my-ws, spec_kind: review, project_id: my-proj, "
+        "work_item_id: WI-02, objective: Review implementation, summary: Review WI-01, "
+        "subject_task_id: pt_20260721T120000_abcdef01, "
+        "context_refs: [{ref_type: subject_spec, artifact_id: pt_20260721T120000_abcdef01}], "
+        "acceptance_criteria: [spec compliance verified], "
+        "capability_contract: {source_read: true}, "
+        "payload: {subject_spec_ref: {ref_type: subject_spec, artifact_id: pt_20260721T120000_abcdef01}, "
+        "subject_result_ref: {ref_type: subject_result, artifact_id: pt_20260721T120000_abcdef01}, "
+        "review_dimensions: [spec_compliance, correctness]}}\n"
+        "3. INVALID: task_kind is rejected on canonical create:\n"
+        "  {workspace_id: my-ws, task_kind: implementation, ...} "
+        "-> error: task_kind is a deprecated read compatibility alias; create requires spec_kind\n"
+        "4. INVALID: context_refs artifact ref as string:\n"
+        "  {context_refs: [plan-123]} "
+        "-> error: artifact ref must be an object with ref_type, artifact_id fields"
     ),
     "parameters": {
         "type": "object",
@@ -73,7 +131,7 @@ SCHEMA = {
             "task_kind": {
                 "type": "string",
                 "enum": list(TASK_KINDS),
-                "description": "Task kind: implementation, diagnosis, review, architecture, or stewardship",
+                "description": "DEPRECATED compatibility alias. Use spec_kind instead. task_kind is rejected on new canonical writes; only accepted for legacy read compatibility.",
             },
             "title": {
                 "type": "string",
@@ -134,7 +192,7 @@ SCHEMA = {
             },
             "subject_task_id": {
                 "type": "string",
-                "description": "Subject task ID (required for review tasks)",
+                "description": "Subject task ID (required for review and architecture tasks)",
             },
             "parent_task_id": {
                 "type": "string",
@@ -163,7 +221,7 @@ SCHEMA = {
             },
             "role_contract": {
                 "type": "object",
-                "description": "Role-specific contract fields. Required fields and allowed fields depend on task_kind. See tool description for per-kind schema. Forbidden fields from other task kinds will be rejected.",
+                "description": "Role-specific contract fields. Required fields and allowed fields depend on spec_kind/task_kind. See tool description for per-kind schema. Forbidden fields from other task kinds will be rejected.",
                 "default": {},
             },
             "traceability": {
@@ -189,19 +247,22 @@ SCHEMA = {
 # WI-09C canonical input surface.  The legacy fields above remain documented
 # for migration readers, but a canonical creation is selected by spec_kind.
 SCHEMA["parameters"]["properties"].update({
-    "spec_kind": {"type": "string", "enum": list(SPEC_KINDS), "description": "Canonical SPEC kind."},
-    "project_id": {"type": "string"}, "work_item_id": {"type": "string"},
-    "objective": {"type": "string"}, "summary": {"type": "string"},
-    "context_refs": {"type": "array", "items": {"type": "object"}},
-    "related_artifacts": {"type": "array", "items": {"type": "object"}},
-    "constraints": {"type": "array", "items": {"type": "string"}},
-    "forbidden_actions": {"type": "array", "items": {"type": "string"}},
-    "expected_artifacts": {"type": "array", "items": {"type": "string"}},
-    "capability_contract": {"type": "object"}, "payload": {"type": "object"},
-    "supersedes_spec_id": {"type": "string"},
-    "workspace_decision_id": {"type": "string"},
+    "spec_kind": {"type": "string", "enum": list(SPEC_KINDS), "description": "Canonical SPEC kind. Required for new writes. Accepted values: " + ", ".join(_SPEC_KINDS_LIST) + ". task_kind is a deprecated alias and will be rejected on canonical create."},
+    "project_id": {"type": "string", "description": "Canonical project identifier."},
+    "work_item_id": {"type": "string", "description": "Work item identifier for traceability."},
+    "objective": {"type": "string", "description": "Concise objective statement."},
+    "summary": {"type": "string", "description": "Bounded summary of the task."},
+    "context_refs": {"type": "array", "items": {"type": "object"}, "description": "Artifact references. Each item is an object with: ref_type (required, one of " + ", ".join(_REF_TYPE_LIST) + "), artifact_id (required), artifact_path (optional), revision (optional int >= 1), hash (optional 64-char hex). Strings are rejected."},
+    "related_artifacts": {"type": "array", "items": {"type": "object"}, "description": "Related artifact references (same shape as context_refs)."},
+    "constraints": {"type": "array", "items": {"type": "string"}, "description": "Bounded constraints."},
+    "forbidden_actions": {"type": "array", "items": {"type": "string"}, "description": "Explicitly forbidden actions."},
+    "expected_artifacts": {"type": "array", "items": {"type": "string"}, "description": "Expected output artifacts."},
+    "capability_contract": {"type": "object", "description": "Requested capabilities (boolean flags)."},
+    "payload": {"type": "object", "description": "Closed per-kind payload. Allowed fields per spec_kind:\n" + _PAYLOAD_FIELD_MATRIX},
+    "supersedes_spec_id": {"type": "string", "description": "ID of the SPEC this one supersedes."},
+    "workspace_decision_id": {"type": "string", "description": "Workspace-selection authority decision ID (from task-main). Only workspace-selection decisions are accepted; not plan/review/user decisions."},
 })
-SCHEMA["description"] += " New writes use canonical spec_kind; task_kind is a deprecated compatibility alias."
+SCHEMA["description"] += " New writes use canonical spec_kind; task_kind is a deprecated compatibility alias that is rejected on create."
 SCHEMA["parameters"]["required"] = ["workspace_id"]
 
 
@@ -230,7 +291,7 @@ def _do_create(args: dict) -> str:
             raise WorkspaceError("spec_kind is canonical; caller profile/task_kind override is rejected")
         return _do_create_contract(args)
     if "task_kind" in args:
-        raise WorkspaceError("task_kind is a deprecated read compatibility alias; create requires spec_kind")
+        raise WorkspaceError("task_kind is a deprecated read compatibility alias; create requires spec_kind. Use spec_kind with one of: " + ", ".join(_SPEC_KINDS_LIST))
     # ------------------------------------------------------------------
     # Extract parameters
     # ------------------------------------------------------------------
@@ -522,14 +583,14 @@ def _do_create_contract(args: dict) -> str:
     workspace_id = args.get("workspace_id", "")
     spec_kind = args.get("spec_kind")
     if spec_kind not in SPEC_KINDS:
-        raise WorkspaceError("invalid spec_kind")
+        raise WorkspaceError("invalid spec_kind: must be one of " + ", ".join(_SPEC_KINDS_LIST) + ", received=" + str(spec_kind) + ". Use spec_kind (not task_kind) for canonical creates.")
     subject_task_id = args.get("subject_task_id")
     if subject_task_id == "":
         subject_task_id = None
     if subject_task_id is not None and not isinstance(subject_task_id, str):
         raise WorkspaceError("subject_task_id must be a string")
     if spec_kind == "review" and not subject_task_id:
-        raise WorkspaceError("review_missing_subject: review task requires subject_task_id")
+        raise WorkspaceError("review_missing_subject: review task requires subject_task_id; also ensure context_refs includes a ref with ref_type=subject_spec")
     if subject_task_id:
         validate_task_reference(
             workspace_id,

@@ -98,7 +98,7 @@ roadmap in Todo.
 
 `clarify` is not a mandatory questionnaire. A `needs_input` record must name
 the exact missing decision, bounded options when useful, blocking artifact, and
-next action; never say only “need more information.” Reclassify after answers.
+next action; never say only "need more information." Reclassify after answers.
 
 ## 4. Flow selection
 
@@ -206,6 +206,100 @@ Profile Task closure consumes the scope receipt as two bounded evidence streams:
 with the task-start baseline so pre-existing dirty paths are not attributed to
 the worker. Scope status and violation counts retain task/start identity, scope
 digest/source, foreign-event counts, and unattributed-delta counts.
+
+## 7a. Task start preflight (wait-mode resolution)
+
+Before calling `aota_profile_task_start`, task-main MUST execute a 5-step
+preflight to resolve and record the wait mode. This prevents progress polling
+after the task returns `running`.
+
+1. **Resolve delivery capability**: Determine from runtime evidence whether
+   the current transport supports async delivery (wakeup notifications).
+   - WebUI session with wakeup-capable transport → `wakeup_capable_normal`
+   - API Server (`supports_async_delivery=False`) → `non_wakeup_transport`
+   - Do NOT self-infer the transport from model reasoning. Use runtime
+     evidence (e.g., `aota_runtime_info`, platform transport metadata).
+
+2. **Record wait_mode**: Record the resolved wait mode in Todo or session
+   state. This is the authoritative wait mode for this task — it must not be
+   reinterpreted after start.
+
+3. **Load aota-task-lifecycle**: Load the `aota-task-lifecycle` Skill to
+   access the wait-mode classification rules, FORBIDDEN_PROGRESS_ACTIONS
+   list, and non_wakeup_transport explicit retrieval conditions.
+
+4. **Start task**: Call `aota_profile_task_start` with the frozen SPEC
+   revision/SHA. The start returns `running` (or an error).
+
+5. **Apply selected wait_mode without reinterpretation**: After start returns
+   `running`, apply the wait mode resolved in step 1. Do NOT re-evaluate the
+   transport or change the wait mode. For `wakeup_capable_normal`: wait for
+   the wakeup signal (handoff), do NOT poll. For `non_wakeup_transport`:
+   exit the turn and wait for external re-entry; do NOT busy-wait in the
+   same turn.
+
+### Post-start no-poll enforcement
+
+After `aota_profile_task_start` returns `running`:
+
+- For `wakeup_capable_normal`: Do NOT call `aota_profile_task_status` without
+  a valid `retrieval_reason`. The typed `retrieval_reason` parameter is
+  enforced by `plugin/aota-tools/_profile_task_status.py`. Missing
+  `retrieval_reason` returns `normal_path_progress_poll_forbidden`.
+- A second status query within the minimum interval is rejected as
+  `repeated_progress_poll_forbidden`.
+- One authorized recovery check does NOT authorize repeated polling.
+- For `non_wakeup_transport`: explicit retrieval is allowed but must NOT
+  happen within the same turn as task start. Exit the turn and wait for
+  re-entry.
+
+## 7b. Validation Authority Preflight
+
+Before freezing a SPEC that declares `validation_commands`, task-main MUST
+execute a validation authority preflight:
+
+1. **Verify command IDs are registered**: Every `command_id` in the SPEC's
+   `validation_commands` must be a known, registered command class in the
+   project's command registry. Unknown command IDs are a blocking SPEC
+   defect — do not freeze.
+
+2. **Verify execution_class is valid**: Each validation command must
+   declare an `execution_class` that matches a known execution class
+   (`python_compileall`, `python_module_compile`, `node_check`, `ruff_check`,
+   `mypy_check`, `pytest_isolated`, `project_script`). Unknown execution
+   classes are rejected.
+
+3. **Verify authorized_profile matches the SPEC's resolved_profile**: The
+   `authorized_profile` on each validation command must match the profile
+   that will execute the task (e.g., `coder` for implementation SPECs).
+   Mismatched profile authorization is a blocking defect.
+
+4. **Verify operator_boundary is consistent**: Commands that cross the
+   operator boundary (e.g., `project_script`) must declare
+   `operator_boundary=true` and require explicit operator approval.
+   Commands with `operator_boundary=false` must be fully automated and
+   not require human intervention.
+
+This preflight is required for every implementation SPEC that declares
+non-empty `validation_commands`. It is optional but recommended for
+diagnosis and review SPECs.
+
+## 7c. Capability Coverage Check
+
+Before freezing a SPEC, task-main MUST verify that the
+`capability_contract` covers every declared requirement:
+
+1. **source_read must be true** when any `read_scope` entry is non-empty.
+2. **source_write must be true** when any `write_scope` entry is non-empty.
+3. **command_execution must be true** when `validation_commands` is
+   non-empty and the SPEC requires command execution.
+4. Every boolean in `capability_contract` must be explicitly `true` or
+   `false` — never missing, `null`, or a non-boolean value.
+
+A SPEC whose `capability_contract` is missing a required capability or
+contains an invalid value is a blocking defect. Do not freeze. The
+canonical contract definition in `aota-canonical-spec-contract` is the
+single authority for required capabilities per `spec_kind`.
 
 ## 8. Evidence, review, and closure
 
@@ -315,12 +409,44 @@ durable redacted diagnostics. `done` requires exit code zero, a valid terminal
 worker outcome, and a canonical receipt with `status=done`; wakeups must never
 invent `done` when a receipt is absent.
 
+## Skill Loading Map
+
+This is a minimal routing map. It does NOT duplicate the full field matrix,
+artifact reference schema, full lifecycle Phase, all pitfalls, or full
+reviewer contract. Each entry names the phase, the required Skill or
+reference, the load timing, and a fallback.
+
+For SPEC routing, preserve the canonical `spec_id` and `spec_kind` fields;
+the reference Skill owns their full contract.
+
+| Phase | Required Skill / Reference | Load Timing | Fallback |
+|-------|---------------------------|-------------|----------|
+| Intake / classification | `aota-work-classify-and-plan-gate` (reference) | Before SPEC creation | Inline classification rules in this Skill (Section 2) |
+| SPEC create / freeze | `aota-canonical-spec-contract` (reference) | During SPEC creation | Inline SPEC rules in this Skill (Section 7) |
+| SPEC pre-submit checklist | `aota-canonical-spec-contract` § Pre-submit Checklist (reference) | Before SPEC freeze | Inline SPEC rules in this Skill (Section 7) |
+| SPEC validation / structured error | `aota-canonical-spec-pitfalls` (reference) | On validation/review failure | Inline stop conditions in this Skill |
+| SPEC structured error | `aota-tool-failure-fallback` (reference) | On tool failure / structured error | Inline fallback guidance in this Skill |
+| Task start / wait / handoff | `aota-task-lifecycle` (reference, also active in project-steward) | After freeze, during execution | Inline lifecycle rules in this Skill (Section 7) |
+| Coder execution | `aota-spec-driven-implementation` (active in coder) | Dispatched to coder | N/A — coder owns execution |
+| Review execution | `aota-implementation-review` (active in reviewer) | Dispatched to reviewer | N/A — reviewer owns review |
+| File access strategy | `workspace-file-access-strategy` (reference) | When reading workspace files | Inline read-tool guidance |
+| Closure | `aota-multi-phase-doc-closure` (reference) | Before Work Item closure | Inline closure rules in this Skill (Section 8) |
+| Tool failure / structured error | `aota-tool-failure-fallback` (reference, also active in project-steward) | On first tool failure — do not wait for repeated failures | Inline fallback guidance |
+| Workspace diagnostics | `aota-workspace-diagnostics` (reference, also active in project-steward) | On missing workspace context | Inline workspace model rules |
+| Workspace model | `aota-workspace-model` (reference, also active in project-steward) | When resolving workspace/project IDs | Inline workspace model rules |
+| Plugin/tool development | `aota-plugin-tool-development` (reference in task-main, coder) | When creating a SPEC for plugin/tool/toolset development | N/A — development Skill owns the full SOP |
+| Skill development | `aota-skill-development` (reference in task-main, project-steward) | When creating a SPEC for Skill development or binding | N/A — development Skill owns the full SOP |
+
+Reference Skills are loaded by task-main but are not in `active_skills` in
+the profile runtime assembly. They provide detailed contract content that
+this orchestration Skill routes to without duplicating.
+
 ## Deployment and Runtime Guidance
 
 - Profile runtime assembly is manifest-driven. The canonical assembly manifest
-  (`deploy/profile-runtime-assembly.yaml`) declares active Skills per Profile;
-  runtime projections are built from this manifest, not from file-system
-  enumeration.
+  (`deploy/profile-runtime-assembly.yaml`) declares active and reference Skills
+  per Profile; runtime projections are built from this manifest, not from
+  file-system enumeration.
 - Profile-local plugin and Skill projections are required when the Hermes
   loader uses profile home (`~/.hermes/profiles/<name>/plugins/`,
   `~/.hermes/profiles/<name>/skills/`). Verify the projection exists with hash
@@ -345,4 +471,6 @@ invent `done` when a receipt is absent.
 - Runtime-generated files (logs, snapshots, receipts, backups) are not managed
   source and must not be added to the managed manifest.
 - No generic `/aota-runtime` file access; use bounded tools
-  (`aota_runtime_info`, `aota_active_task_artifact_open`).
+  (`aota_runtime_info`, `aota_active_task_artifact_open`). Architect/reviewer
+  subject review uses `aota_subject_task_artifact_open` with only
+  `SPEC.md`, `scope.json`, and `meta.json`; it never accepts a runtime path.

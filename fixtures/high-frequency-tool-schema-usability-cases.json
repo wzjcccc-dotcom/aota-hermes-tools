@@ -1,0 +1,128 @@
+{
+  "description": "Fixture cases for WI-2 PCF Closure: high-frequency tool schema usability verification. Cases A-J cover schema description accuracy, error message shape, enum visibility, identifier semantics, and role payload visibility across 6 task-main tools.",
+  "schema_version": 1,
+  "fixture_name": "high-frequency-tool-schema-usability",
+  "tools_under_test": [
+    "aota_work_classify",
+    "aota_task_spec_create",
+    "aota_task_spec_update",
+    "aota_task_spec_freeze",
+    "aota_followup_task_create",
+    "aota_profile_task_approve"
+  ],
+  "case_fixtures": {
+    "case_a_work_classify_valid_facts": {
+      "description": "Case A: work_classify with valid facts (all 31 fields) returns classification_status=classified on first attempt.",
+      "tool": "aota_work_classify",
+      "input": {
+        "workspace_id": "fixture",
+        "title": "Test work item",
+        "summary": "A test work item for classification",
+        "facts": {
+          "estimated_work_items": 1, "estimated_sessions": 1, "estimated_duration_days": 1,
+          "modules_touched": 1, "repositories_touched": 1, "services_touched": 1,
+          "human_checkpoints_expected": 0,
+          "has_dependencies": false, "has_milestones": false, "cross_session_required": false,
+          "multiple_profiles_required": false, "new_durable_contract": false, "schema_change": false,
+          "data_migration": false, "auth_or_security_change": false, "cross_service_protocol_change": false,
+          "deployment_topology_change": false, "runtime_control_plane_change": false,
+          "irreversible_change": false, "high_blast_radius": false, "production_runtime_impact": false,
+          "rollback_required": false, "external_dependency_change": false, "novel_architecture": false,
+          "competing_designs": false, "requirements_ambiguity": "low", "technical_uncertainty": "low",
+          "write_scope": "local", "validation_scope": "isolated", "requested_plan": false,
+          "requested_architect_review": false
+        }
+      },
+      "expected_classification_status": "classified",
+      "expected_reject": false
+    },
+    "case_b_unknown_classification_fact_accepted_fields": {
+      "description": "Case B: work_classify with unknown fact key returns CLASSIFICATION_FACT_UNKNOWN with accepted_fields list in error response.",
+      "tool": "aota_work_classify",
+      "input": {
+        "workspace_id": "fixture",
+        "title": "Test",
+        "summary": "Test",
+        "facts": {"unknown_field": true}
+      },
+      "expected_error_code": "CLASSIFICATION_FACT_UNKNOWN",
+      "expected_field_in_error": "accepted_fields",
+      "expected_reject": true
+    },
+    "case_c_task_spec_create_task_kind_rejected": {
+      "description": "Case C: task_spec_create with task_kind (not spec_kind) is rejected with error message stating task_kind is deprecated and spec_kind should be used.",
+      "tool": "aota_task_spec_create",
+      "schema_check_only": true,
+      "check_schema_description_contains": ["task_kind is a deprecated", "spec_kind"],
+      "check_schema_has_property": "spec_kind",
+      "check_schema_spec_kind_enum_includes": ["implementation", "diagnosis", "review", "architecture", "stewardship"],
+      "expected_result": "pass"
+    },
+    "case_d_review_spec_missing_subject_spec_ref": {
+      "description": "Case D: review SPEC context_refs validation - schema description must state that review requires subject_spec ref and subject_task_id.",
+      "tool": "aota_task_spec_create",
+      "schema_check_only": true,
+      "check_schema_description_contains": ["subject_spec", "subject_task_id", "review"],
+      "expected_result": "pass"
+    },
+    "case_e_artifact_ref_string_rejected": {
+      "description": "Case E: context_refs with string items are rejected - schema description must state that artifact refs must be objects with ref_type and artifact_id.",
+      "tool": "aota_task_spec_create",
+      "schema_check_only": true,
+      "check_schema_description_contains": ["artifact ref must be an object", "ref_type", "artifact_id"],
+      "expected_result": "pass"
+    },
+    "case_f_followup_invalid_enum_accepted_values": {
+      "description": "Case F: followup_task_create schema description must list FORBIDDEN_OPERATIONS accepted enum values and follow-up semantics.",
+      "tool": "aota_followup_task_create",
+      "schema_check_only": true,
+      "check_schema_description_contains": ["delete", "move", "dependency_change", "docker", "FOLLOW-UP SEMANTICS", "follow-up vs new"],
+      "check_schema_task_kind_enum_includes": ["implementation", "diagnosis", "review", "architecture"],
+      "expected_result": "pass"
+    },
+    "case_g_approve_missing_hash_error": {
+      "description": "Case G: approve without expected_spec_hash on canonical SPEC must return error about expected_spec_hash_required, current hash, and corrective action.",
+      "tool": "aota_profile_task_approve",
+      "schema_check_only": true,
+      "check_schema_description_contains": ["expected_spec_hash", "REQUIRED", "expected_spec_sha256", "DEPRECATED", "spec_hash_conflict", "reopen", "corrective"],
+      "check_schema_has_property": "expected_spec_hash",
+      "expected_result": "pass"
+    },
+    "case_h_freeze_legacy_spec_error": {
+      "description": "Case H: freeze on legacy SPEC must return error with detected_format=legacy and required_action=create_or_migrate_canonical_spec.",
+      "tool": "aota_task_spec_freeze",
+      "schema_check_only": true,
+      "check_schema_description_contains": ["CANONICAL vs LEGACY", "contract_version", "legacy", "create_or_migrate_canonical_spec", "detected_format"],
+      "check_error_message_contains": ["legacy SPEC has no canonical freeze contract"],
+      "expected_result": "pass"
+    },
+    "case_i_update_unknown_field_accepted_fields": {
+      "description": "Case I: update with unknown/cross-role field must return error listing accepted mutable fields.",
+      "tool": "aota_task_spec_update",
+      "schema_check_only": true,
+      "check_schema_description_contains": ["PATCH SHAPE", "ALLOWED MUTABLE", "IMMUTABLE", "FROZEN", "LEGACY", "unknown"],
+      "check_error_message_contains": ["unknown_fields", "accepted fields"],
+      "expected_result": "pass"
+    },
+    "case_j_valid_examples_schema_acceptance": {
+      "description": "Case J: all 6 tools have at least one minimal valid example in their SCHEMA description that can be parsed.",
+      "tools_expected_examples": {
+        "aota_work_classify": "valid minimal example",
+        "aota_task_spec_create": "VALID EXAMPLE",
+        "aota_task_spec_update": "VALID EXAMPLE",
+        "aota_task_spec_freeze": "VALID EXAMPLE",
+        "aota_followup_task_create": "VALID EXAMPLE",
+        "aota_profile_task_approve": "VALID EXAMPLE"
+      },
+      "expected_min_examples": 6,
+      "expected_result": "pass"
+    }
+  },
+  "verifier_expected_outputs": {
+    "VALID_EXAMPLE_SCHEMA_ACCEPTANCE": "6/6",
+    "ERROR_MESSAGE_HAS_EXPECTED_SHAPE": "pass",
+    "ENUM_VISIBILITY": "pass",
+    "IDENTIFIER_SEMANTICS": "pass",
+    "ROLE_PAYLOAD_VISIBILITY": "pass"
+  }
+}

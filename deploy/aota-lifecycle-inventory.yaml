@@ -106,6 +106,7 @@ tools:
   aota_search_files: {<<: *all_profiles, module: _search_files, toolset: aota_fs_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
   aota_webui_attachment_read: {allowed_profiles: [task-main, project-steward], denied_profiles: [architect, reviewer, coder, debugger], transports: [cli, api_server], activation_targets: [hermes-agent, hermes-webui, new-session], exact_dispatch_required: true, module: _webui_attachment_read, toolset: aota_webui_attachment_read, mutation_class: readonly, path_dependencies: [webui_attachments]}
   aota_active_task_artifact_open: {allowed_profiles: [coder, debugger, reviewer, architect, project-steward], denied_profiles: [task-main], transports: [cli, api_server], activation_targets: [hermes-agent, hermes-webui, new-session], exact_dispatch_required: true, module: _active_task_artifact_open, toolset: aota_active_task_context, mutation_class: readonly, authority: active_task_only, path_dependencies: [aota_runtime]}
+  aota_subject_task_artifact_open: {allowed_profiles: [architect, reviewer, task-main], denied_profiles: [coder, debugger, project-steward], transports: [cli, api_server], activation_targets: [hermes-agent, hermes-webui, new-session], exact_dispatch_required: true, module: _subject_task_artifact_open, toolset: aota_active_task_context, mutation_class: readonly, authority: bound_subject_task_only, path_dependencies: [aota_runtime]}
   aota_repo_status_readonly: {<<: *repo_readers, module: _repo_status, toolset: aota_repo_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
   aota_repo_diff_readonly: {<<: *repo_readers, module: _repo_diff, toolset: aota_repo_readonly, mutation_class: readonly, path_dependencies: [canonical_workspace]}
   aota_web_fetch: {<<: *web_readers, module: _web_fetch, toolset: aota_web_readonly, mutation_class: readonly, path_dependencies: [network_read]}
@@ -159,11 +160,15 @@ tools:
   aota_project_file_write: {<<: *coder, module: _project_file_mutation, toolset: aota_coder_file_mutation, mutation_class: bounded_project_mutation, path_dependencies: [canonical_workspace]}
   aota_project_file_patch: {<<: *coder, module: _project_file_mutation, toolset: aota_coder_file_mutation, mutation_class: bounded_project_mutation, path_dependencies: [canonical_workspace]}
   aota_project_command_run: {<<: *coder, module: _project_command_run, toolset: aota_coder_command, mutation_class: bounded_project_mutation, path_dependencies: [canonical_workspace]}
+  aota_project_initialize_core: {<<: *steward, module: _project_initializer, toolset: aota_project_steward, mutation_class: bounded_project_mutation, path_dependencies: [canonical_workspace]}
 
 skills:
   aota-profile-task-orchestration: {scope: global, owning_profiles: [task-main], source_path: skills/aota-profile-task-orchestration/SKILL.md, deployed_path: ~/.hermes/skills/aota-profile-task-orchestration/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
   aota-pcf-project-steward: {scope: global, owning_profiles: [project-steward], source_path: skills/aota-pcf-project-steward/SKILL.md, deployed_path: ~/.hermes/skills/aota-pcf-project-steward/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
   aota-spec-driven-implementation: {scope: global, owning_profiles: [coder], source_path: skills/aota-spec-driven-implementation/SKILL.md, deployed_path: ~/.hermes/skills/aota-spec-driven-implementation/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  aota-implementation-review: {scope: global, owning_profiles: [reviewer], source_path: skills/aota-implementation-review/SKILL.md, deployed_path: ~/.hermes/skills/aota-implementation-review/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true, activation_class: active, deployment_authority: false}
+  aota-architecture-review: {scope: global, owning_profiles: [architect], source_path: skills/aota-architecture-review/SKILL.md, deployed_path: ~/.hermes/skills/aota-architecture-review/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true, activation_class: active, deployment_authority: false}
+  aota-evidence-first-debugging: {scope: global, owning_profiles: [debugger], source_path: skills/aota-evidence-first-debugging/SKILL.md, deployed_path: ~/.hermes/skills/aota-evidence-first-debugging/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true, activation_class: active, deployment_authority: false}
   aota-plugin-tool-development: {scope: global, owning_profiles: [task-main, coder], source_path: skills/aota-plugin-tool-development/SKILL.md, deployed_path: ~/.hermes/skills/aota-plugin-tool-development/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
   aota-skill-development: {scope: global, owning_profiles: [task-main, project-steward], source_path: skills/aota-skill-development/SKILL.md, deployed_path: ~/.hermes/skills/aota-skill-development/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
   aota-task-lifecycle: {scope: global, owning_profiles: [task-main, project-steward], source_path: skills/aota-task-lifecycle/SKILL.md, deployed_path: ~/.hermes/skills/aota-task-lifecycle/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
@@ -171,6 +176,165 @@ skills:
   aota-workspace-diagnostics: {scope: global, owning_profiles: [task-main, project-steward], source_path: skills/aota-workspace-diagnostics/SKILL.md, deployed_path: ~/.hermes/skills/aota-workspace-diagnostics/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
   aota-tool-failure-fallback: {scope: global, owning_profiles: [task-main, project-steward], source_path: skills/aota-tool-failure-fallback/SKILL.md, deployed_path: ~/.hermes/skills/aota-tool-failure-fallback/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
   aota-runtime-smoke-verification: {scope: global, owning_profiles: [task-main], source_path: skills/aota-runtime-smoke-verification/SKILL.md, deployed_path: ~/.hermes/skills/aota-runtime-smoke-verification/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true}
+  # Reference Skills (canonical_managed, activation_class=reference, not in active_skills)
+  aota-canonical-spec-contract: {scope: global, owning_profiles: [task-main], source_path: skills/aota-canonical-spec-contract/SKILL.md, deployed_path: ~/.hermes/skills/aota-canonical-spec-contract/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true, activation_class: reference}
+  aota-canonical-spec-pitfalls: {scope: global, owning_profiles: [task-main], source_path: skills/aota-canonical-spec-pitfalls/SKILL.md, deployed_path: ~/.hermes/skills/aota-canonical-spec-pitfalls/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true, activation_class: reference}
+  aota-work-classify-and-plan-gate: {scope: global, owning_profiles: [task-main], source_path: skills/aota-work-classify-and-plan-gate/SKILL.md, deployed_path: ~/.hermes/skills/aota-work-classify-and-plan-gate/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true, activation_class: reference}
+  workspace-file-access-strategy: {scope: global, owning_profiles: [task-main], source_path: skills/workspace-file-access-strategy/SKILL.md, deployed_path: ~/.hermes/skills/workspace-file-access-strategy/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true, activation_class: reference}
+  aota-multi-phase-doc-closure: {scope: global, owning_profiles: [task-main], source_path: skills/aota-multi-phase-doc-closure/SKILL.md, deployed_path: ~/.hermes/skills/aota-multi-phase-doc-closure/SKILL.md, activation_targets: [hermes-agent, hermes-webui, new-session], behavior_smoke_required: true, activation_class: reference}
+
+project_lifecycle_contract:
+  canonical_source: plugin/aota-tools/_project_lifecycle_contract.py
+  dispatch_invariant: PROJECT_AND_PROFILE_MUTATION_REQUIRES_TASK_MAIN_DISPATCH
+  dispatch_authority_profiles: [task-main]
+  execution_owner_profiles: [project-steward]
+  protected_mutation_classes:
+    - project_initialization
+    - project_git_lifecycle
+    - project_codegraph_lifecycle
+    - project_registry_mutation
+    - project_closure
+    - project_metadata_mutation
+  runtime_artifact_write_exemptions:
+    - CARD
+    - RESULT
+    - worker_outcome
+    - completion_receipt
+    - handoff
+    - review_decision
+    - task_runtime_meta
+    - bounded_logs
+    - bounded_temporary_state
+  task_main_authority:
+    - dispatch
+    - spec_creation
+    - spec_freeze
+    - task_approval
+    - task_start
+    - durable_decision
+    - work_item_closure
+    - workspace_selection
+  project_steward_authority:
+    - docs_update
+    - artifact_link
+    - registry_refresh
+    - close_checks
+    - context_prepare
+    - relationship_resolve
+  initialization_states:
+    - initialized_core
+    - initialized
+    - failed
+  initialization_receipt_minimum_fields:
+    - schema_version
+    - project_id
+    - workspace_id
+    - state
+    - git_summary
+    - codegraph_summary
+    - authority
+    - completed_at
+  receipt_authorities:
+    - trusted_finalizer
+    - authoritative_receipt
+  worker_observation_artifacts:
+    - CARD
+    - RESULT
+  codex_escalation_boundary:
+    current_fallback_dependency: REQUIRED
+    target_default_project_operator: NOT_REQUIRED
+    boundary: host_infra_escalation
+  fail_closed_reject_reasons:
+    - non_task_main_protected_mutation_spec
+    - unfrozen_spec
+    - binding_mismatch
+    - profile_mismatch
+    - artifact_exemption_used_for_project_source_write
+    - steward_mutation_missing_binding
+    - initialized_receipt_missing_git_codegraph_summary
+    - receipt_authoritative_wrong_reconciliation_source
+    - unknown_initialization_state
+    - unknown_protected_mutation_class
+
+skill_authority_contract:
+  canonical_source: plugin/aota-tools/_skill_authority_contract.py
+  deployment_authority: false
+  source_authority: repository_canonical
+  runtime_projection_not_canonical: true
+  owning_profiles_not_active_skills: true
+  runtime_discoverable_not_managed: true
+  runtime_discoverable_not_authoritative: true
+  source_classes:
+    - canonical_managed
+    - profile_specific_managed
+    - bundled_or_global
+    - runtime_generated
+    - unmanaged
+  activation_classes:
+    - active
+    - reference
+    - discoverable
+    - disabled
+  collision_resolution_order:
+    - profile_specific_managed
+    - canonical_managed
+    - bundled_or_global
+    - unmanaged
+    - runtime_generated
+  override_requires_explicit_declaration: true
+  reference_routing_map:
+    intake: aota-work-classify
+    spec_create: aota-spec-driven-implementation
+    spec_retry: aota-spec-driven-implementation
+    task_start_wait_handoff: aota-task-lifecycle
+    tool_failure: aota-tool-failure-fallback
+    coder: aota-spec-driven-implementation
+    reviewer: aota-implementation-review
+  orchestration_entry_point: aota-profile-task-orchestration
+  wait_mode_classes:
+    - wakeup_capable_normal
+    - non_wakeup_transport
+    - isolated_probe
+    - recovery
+  wait_mode_rules:
+    wakeup_capable_normal:
+      polling_prohibited: true
+    non_wakeup_transport:
+      explicit_retrieval_allowed: true
+    isolated_probe:
+      requires_marker: POLLING_ALLOWED_FOR_ISOLATED_PROBE_ONLY
+    recovery:
+      requires_reason: true
+  fail_closed_reject_reasons:
+    - undeclared_collision
+    - override_missing_explicit_declaration
+    - runtime_projection_treated_as_canonical
+    - inventory_as_deployment_authority
+    - unknown_source_class
+    - unknown_activation_class
+    - unknown_wait_mode
+    - isolated_probe_polling_without_marker
+    - recovery_without_reason
+    - path_length_authority_inference
+  migration_findings:
+    - id: MF-01
+      title: "orchestration/ namespace contains Skills not formally managed"
+      classification: unmanaged_runtime_projection
+      status: resolved_in_source
+      resolution: "5 reference Skills created in canonical source; profile-runtime-assembly.yaml updated with reference_skills declarations; lifecycle inventory updated with canonical_managed entries"
+      pending_deploy: true
+    - id: MF-02
+      title: "aota-task-lifecycle source version diverges from profile-local detailed version"
+      classification: source_runtime_divergence
+      status: resolved_in_source
+      resolution: "Wait mode semantics and binding/receipt/handoff authority sections merged into canonical source skills/aota-task-lifecycle/SKILL.md"
+      pending_deploy: true
+    - id: MF-03
+      title: "Missing source for 5 profile-local Skills"
+      classification: missing_canonical_source
+      status: resolved_in_source
+      resolution: "Canonical source created for aota-canonical-spec-contract, aota-canonical-spec-pitfalls, aota-work-classify-and-plan-gate, workspace-file-access-strategy, aota-multi-phase-doc-closure"
+      pending_deploy: true
 
 profile_task_launcher_hardening:
   source_handlers:

@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "fixture_id": "spec-preflight-and-tool-failure-stop-rule-cases",
+  "description": "WI-3: SPEC preflight checklist and tool failure stop-rule test cases. stdlib-only; no managed runtime.",
+  "cases": {
+    "case_a_valid_spec_passes_pre_submit_checklist": {
+      "description": "A valid implementation SPEC passes all pre-submit checklist items.",
+      "spec": {
+        "schema_version": 1,
+        "artifact_type": "spec",
+        "spec_id": "pt_20260721T000000_a0000001",
+        "spec_kind": "implementation",
+        "resolved_profile": "coder",
+        "revision": 1,
+        "status": "draft",
+        "created_by": "task-main",
+        "objective": "Implement a bounded fixture feature",
+        "summary": "Fixture SPEC for pre-submit checklist validation",
+        "project_id": "fixture-project",
+        "work_item_id": "wi-case-a",
+        "acceptance_criteria": ["fixture passes", "checklist validated"],
+        "constraints": ["no runtime mutation"],
+        "forbidden_actions": [],
+        "expected_artifacts": ["fixture-output.txt"],
+        "context_refs": [],
+        "related_artifacts": [],
+        "capability_contract": {
+          "source_read": true,
+          "source_write": true,
+          "bounded_project_command": true,
+          "codegraph_read": true
+        },
+        "payload": {
+          "read_scope": ["src/**", "skills/**"],
+          "write_scope": ["src/**"],
+          "forbidden_scope": ["secrets/**", ".env"],
+          "implementation_requirements": ["create fixture file"],
+          "validation_commands": ["python_module_compile"],
+          "validation_strategy": "Tier 0 static",
+          "human_checkpoints": [],
+          "runtime_actions": {}
+        },
+        "supersedes_spec_id": null,
+        "spec_hash": null
+      },
+      "expected_result": "pass",
+      "checklist_items_verified": [1, 2, 3, 4, 5, 6, 18, 19, 20]
+    },
+    "case_b_missing_task_kind_failure_with_correction": {
+      "description": "A SPEC with task_kind but no spec_kind fails validation with clear correction message.",
+      "spec": {
+        "schema_version": 1,
+        "artifact_type": "spec",
+        "spec_id": "pt_20260721T000000_b0000002",
+        "task_kind": "review",
+        "resolved_profile": "reviewer",
+        "revision": 1,
+        "status": "draft",
+        "created_by": "task-main",
+        "objective": "Review a subject task",
+        "summary": "Fixture SPEC with deprecated task_kind",
+        "project_id": "fixture-project",
+        "work_item_id": "wi-case-b",
+        "acceptance_criteria": ["review complete"],
+        "constraints": [],
+        "forbidden_actions": [],
+        "expected_artifacts": [],
+        "context_refs": [
+          {"ref_type": "subject_spec", "artifact_id": "subject-spec-b"}
+        ],
+        "related_artifacts": [],
+        "capability_contract": {
+          "source_read": true,
+          "codegraph_read": true
+        },
+        "payload": {
+          "subject_spec_ref": {"ref_type": "subject_spec", "artifact_id": "subject-spec-b"},
+          "subject_result_ref": {"ref_type": "subject_result", "artifact_id": "subject-result-b"},
+          "review_dimensions": ["scope"],
+          "required_evidence": []
+        },
+        "subject_task_id": "subject-task-b",
+        "supersedes_spec_id": null,
+        "spec_hash": null
+      },
+      "expected_result": "fail",
+      "expected_error": "unknown or missing spec_kind",
+      "correction": "Replace 'task_kind' with 'spec_kind' and ensure spec_kind is one of: implementation, diagnosis, review, architecture, stewardship"
+    },
+    "case_c_unknown_payload_field_failure_with_accepted_field_list": {
+      "description": "An implementation SPEC with an unknown payload field (diagnosis-only field) fails with accepted field list.",
+      "spec": {
+        "schema_version": 1,
+        "artifact_type": "spec",
+        "spec_id": "pt_20260721T000000_c0000003",
+        "spec_kind": "implementation",
+        "resolved_profile": "coder",
+        "revision": 1,
+        "status": "draft",
+        "created_by": "task-main",
+        "objective": "Implement a fixture feature",
+        "summary": "Fixture SPEC with cross-role payload field",
+        "project_id": "fixture-project",
+        "work_item_id": "wi-case-c",
+        "acceptance_criteria": ["fixture passes"],
+        "constraints": [],
+        "forbidden_actions": [],
+        "expected_artifacts": [],
+        "context_refs": [],
+        "related_artifacts": [],
+        "capability_contract": {
+          "source_read": true,
+          "source_write": true
+        },
+        "payload": {
+          "read_scope": ["src/**"],
+          "write_scope": ["src/**"],
+          "forbidden_scope": ["secrets/**"],
+          "implementation_requirements": ["fixture"],
+          "validation_commands": [],
+          "validation_strategy": "compile",
+          "mutation_allowed": false,
+          "runtime_actions": {},
+          "human_checkpoints": []
+        },
+        "supersedes_spec_id": null,
+        "spec_hash": null
+      },
+      "expected_result": "fail",
+      "expected_error": "payload has unknown or cross-role field",
+      "accepted_fields_for_implementation": [
+        "read_scope", "write_scope", "forbidden_scope",
+        "implementation_requirements", "validation_commands",
+        "validation_strategy", "runtime_actions", "human_checkpoints"
+      ]
+    },
+    "case_d_review_missing_subject_spec_ref": {
+      "description": "A review SPEC without a subject_spec ref in context_refs fails validation.",
+      "spec": {
+        "schema_version": 1,
+        "artifact_type": "spec",
+        "spec_id": "pt_20260721T000000_d0000004",
+        "spec_kind": "review",
+        "resolved_profile": "reviewer",
+        "revision": 1,
+        "status": "draft",
+        "created_by": "task-main",
+        "objective": "Review a subject task",
+        "summary": "Fixture review SPEC missing subject_spec in context_refs",
+        "project_id": "fixture-project",
+        "work_item_id": "wi-case-d",
+        "acceptance_criteria": ["review complete"],
+        "constraints": [],
+        "forbidden_actions": [],
+        "expected_artifacts": [],
+        "context_refs": [],
+        "related_artifacts": [],
+        "capability_contract": {
+          "source_read": true,
+          "codegraph_read": true
+        },
+        "payload": {
+          "subject_spec_ref": {"ref_type": "subject_spec", "artifact_id": "subject-spec-d"},
+          "subject_result_ref": {"ref_type": "subject_result", "artifact_id": "subject-result-d"},
+          "review_dimensions": ["scope"],
+          "required_evidence": []
+        },
+        "subject_task_id": "subject-task-d",
+        "supersedes_spec_id": null,
+        "spec_hash": null
+      },
+      "expected_result": "fail",
+      "expected_error": "review context_refs must include subject_spec",
+      "correction": "Add context_refs entry with ref_type=subject_spec"
+    },
+    "case_e_artifact_ref_as_string_rejected_with_object_shape": {
+      "description": "An artifact reference passed as a plain string is rejected; must be an object.",
+      "spec": {
+        "schema_version": 1,
+        "artifact_type": "spec",
+        "spec_id": "pt_20260721T000000_e0000005",
+        "spec_kind": "review",
+        "resolved_profile": "reviewer",
+        "revision": 1,
+        "status": "draft",
+        "created_by": "task-main",
+        "objective": "Review a subject task",
+        "summary": "Fixture review SPEC with string artifact ref",
+        "project_id": "fixture-project",
+        "work_item_id": "wi-case-e",
+        "acceptance_criteria": ["review complete"],
+        "constraints": [],
+        "forbidden_actions": [],
+        "expected_artifacts": [],
+        "context_refs": [
+          "subject_spec/subject-spec-e"
+        ],
+        "related_artifacts": [],
+        "capability_contract": {
+          "source_read": true,
+          "codegraph_read": true
+        },
+        "payload": {
+          "subject_spec_ref": "subject_spec/subject-spec-e",
+          "subject_result_ref": {"ref_type": "subject_result", "artifact_id": "subject-result-e"},
+          "review_dimensions": ["scope"],
+          "required_evidence": []
+        },
+        "subject_task_id": "subject-task-e",
+        "supersedes_spec_id": null,
+        "spec_hash": null
+      },
+      "expected_result": "fail",
+      "expected_error": "artifact ref must be an object",
+      "correction": "Replace string refs with objects containing ref_type and artifact_id"
+    },
+    "case_f_repeated_schema_error_detected": {
+      "description": "A worker making two consecutive invalid tool calls triggers repeated_schema_guess_detected.",
+      "worker_scenario": {
+        "tool": "aota_project_file_read",
+        "call_1": {
+          "error": "forbidden_scope_denied",
+          "error_class": "structured"
+        },
+        "call_2": {
+          "error": "invalid_parameter_format",
+          "error_class": "structured"
+        }
+      },
+      "expected_result": "stop",
+      "expected_stop_condition": "repeated_schema_guess_detected",
+      "expected_rule": "TOOL_STRUCTURED_ERROR_REQUIRES_CONTRACT_RELOAD_BEFORE_RETRY",
+      "correct_behavior": [
+        "1. Stop after first structured error",
+        "2. Load aota-tool-failure-fallback Skill",
+        "3. Load applicable contract (e.g. aota-canonical-spec-contract)",
+        "4. Inspect exact error message",
+        "5. Retry at most once with evidence-based correction",
+        "6. If second attempt also fails structured → needs_input"
+      ]
+    }
+  },
+  "source_authority": "plugin/aota-tools/_spec_contract.py",
+  "skill_authorities": {
+    "pre_submit_checklist": "skills/aota-canonical-spec-contract/SKILL.md",
+    "structured_error_fallback": "skills/aota-tool-failure-fallback/SKILL.md",
+    "pitfalls": "skills/aota-canonical-spec-pitfalls/SKILL.md",
+    "orchestration_routing": "skills/aota-profile-task-orchestration/SKILL.md"
+  }
+}

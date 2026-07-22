@@ -1,9 +1,14 @@
 schema_version: 1
-assembly_version: 1
+assembly_version: 2
 
 # This is the canonical Named Profile runtime assembly.  Profile config and
 # SOUL remain the behavioral authorities; this file only declares the runtime
 # projection required to make those declarations loadable and verifiable.
+#
+# Schema extension (assembly_version 2): reference_skills and
+# profile_specific_skills are backward-compatible additions.  Profiles that
+# do not declare them behave as before (only active_skills are projected).
+# No second assembly system is created.
 profiles:
   task-main:
     config: profiles/task-main/config.yaml
@@ -12,6 +17,21 @@ profiles:
     active_skills:
       - aota-profile-task-orchestration
       - aota-runtime-smoke-verification
+    # Reference Skills are available to task-main for routing lookup but are
+    # not loaded in the active prompt context.  They provide detailed contract
+    # content that the orchestration Skill routes to without duplicating.
+    reference_skills:
+      - aota-canonical-spec-contract
+      - aota-canonical-spec-pitfalls
+      - aota-work-classify-and-plan-gate
+      - workspace-file-access-strategy
+      - aota-multi-phase-doc-closure
+      - aota-task-lifecycle
+      - aota-workspace-model
+      - aota-workspace-diagnostics
+      - aota-tool-failure-fallback
+      - aota-plugin-tool-development
+      - aota-skill-development
   project-steward:
     config: profiles/project-steward/config.yaml
     soul: profiles/project-steward/SOUL.md
@@ -22,6 +42,9 @@ profiles:
       - aota-workspace-diagnostics
       - aota-task-lifecycle
       - aota-tool-failure-fallback
+    reference_skills:
+      - aota-profile-task-orchestration
+      - aota-skill-development
   architect:
     config: profiles/architect/config.yaml
     soul: profiles/architect/SOUL.md
@@ -34,6 +57,9 @@ profiles:
     plugin: plugin/aota-tools
     active_skills:
       - aota-spec-driven-implementation
+    reference_skills:
+      - aota-plugin-tool-development
+      - aota-skill-development
   debugger:
     config: profiles/debugger/config.yaml
     soul: profiles/debugger/SOUL.md
@@ -46,3 +72,8 @@ profiles:
     plugin: plugin/aota-tools
     active_skills:
       - aota-implementation-review
+
+# Same-name override declarations: when a Skill with the same bare name exists
+# in both canonical_managed and another source class, the override must be
+# explicitly declared here.  No undeclared collisions are permitted.
+overrides: []
