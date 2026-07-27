@@ -1,0 +1,11 @@
+{
+  "canonical_runtime_root": "/home/latios/.hermes",
+  "deploy_plan_safe": "yes",
+  "formal_runtime_deploy_executed": "no",
+  "invalid_projection_count": 0,
+  "physical_global_plugin_target_count": 1,
+  "runtime_mutated": "no",
+  "schema_version": 1,
+  "symlink_projection_valid_after_adapter": 5,
+  "symlink_rejected_before": 5
+}

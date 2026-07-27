@@ -1,0 +1,18 @@
+{
+  "argv_shape": [
+    "/home/latios/.local/bin/hermes-host",
+    "-p",
+    "<worker-profile>",
+    "-z",
+    "<bounded prompt>"
+  ],
+  "one_shot_argument": "-z",
+  "profile_argument": "-p <worker-profile>",
+  "prompt_transport": "one literal argv argument loaded from bounded prompt file",
+  "schema_version": 1,
+  "shell": false,
+  "status": "PASS",
+  "stdin": "DEVNULL",
+  "stdout_stderr": "captured and redacted into bounded worker log",
+  "workspace_binding": "Popen cwd=workspace_root"
+}

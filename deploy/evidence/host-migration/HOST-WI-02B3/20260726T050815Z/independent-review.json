@@ -1,0 +1,17 @@
+{
+  "blocking_finding_count": 0,
+  "checks": {
+    "content_exposed": false,
+    "db_write_executed": false,
+    "read_only_uri": true,
+    "recovery_options_source_based": true,
+    "runtime_vs_corruption_separated": true,
+    "verifier_fix_gate_respected": true,
+    "wal_handled_read_only": true
+  },
+  "findings": [
+    "Hermes website session-storage documentation is stale at schema version 21; source-of-truth assessment used hermes_state.py SCHEMA_VERSION=23."
+  ],
+  "non_blocking_finding_count": 1,
+  "verdict": "PASS"
+}

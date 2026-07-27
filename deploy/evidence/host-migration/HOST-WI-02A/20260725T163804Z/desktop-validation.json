@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-02A",
+  "expected_hermes_path": "/home/latios/.local/bin/hermes-host",
+  "operator_path_confirmation": "PENDING",
+  "desktop_reconnect": "PENDING",
+  "aota_runtime_info": "PENDING_DESKTOP_LIVE_SMOKE",
+  "workspace_read_only_smoke": "PENDING_DESKTOP_LIVE_SMOKE",
+  "mutation_tools_called": false
+}

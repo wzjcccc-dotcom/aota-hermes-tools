@@ -1,0 +1,17 @@
+{
+  "coarse_substring_only_check": false,
+  "docker_runner_forbidden": true,
+  "docker_started": false,
+  "forbidden_runner": "/usr/local/bin/hermes",
+  "known_legacy_markers_rejected": [
+    "docker exec",
+    "docker compose",
+    "docker-compose",
+    "/app/",
+    "/workspace/",
+    "/usr/src/"
+  ],
+  "legacy_wrapper_modified": false,
+  "schema_version": 1,
+  "status": "PASS"
+}

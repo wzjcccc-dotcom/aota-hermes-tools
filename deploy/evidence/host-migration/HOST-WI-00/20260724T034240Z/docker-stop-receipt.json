@@ -1,0 +1,48 @@
+{
+  "attempted_at": "2026-07-24T03:47:30Z",
+  "command": "docker compose stop",
+  "docker_runtime_state": "OFFLINE_STANDBY",
+  "post_stop_verification": {
+    "checks": {
+      "compose_ps": true,
+      "containers_stopped": true,
+      "image_checks": {
+        "sha256:754d8409808abb65afc66ee04f0bd7afbf81fa6af9a4df1b7e4c038868ebf447": true,
+        "sha256:ad2c82eeee5295ef919b970839c84ad924b93fa89883a434c3f800c1479e8105": true
+      },
+      "images_preserved": true,
+      "network_checks": {
+        "hermes-stack_hermes-net": true
+      },
+      "networks_preserved": true,
+      "observed_rows": [
+        {
+          "name": "hermes-agent",
+          "publishers": [],
+          "service": "hermes-agent",
+          "state": "exited"
+        },
+        {
+          "name": "hermes-webui",
+          "publishers": [],
+          "service": "hermes-webui",
+          "state": "exited"
+        }
+      ],
+      "ports_free": true,
+      "target_container_count": true,
+      "volume_checks": {
+        "hermes-stack_hermes-agent-src": true,
+        "hermes-stack_hermes-home": true
+      },
+      "volumes_preserved": true
+    },
+    "status": "PASS"
+  },
+  "preservation_result": "PASS",
+  "returncode": 0,
+  "rollback_preserved": true,
+  "schema_version": 1,
+  "status": "PASS",
+  "work_item": "HOST-WI-00"
+}

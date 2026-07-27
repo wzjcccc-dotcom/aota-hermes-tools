@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-02A",
+  "evidence_relative_path": "20260725T163804Z",
+  "final": "NEEDS_OPERATOR_DESKTOP_RECONNECT",
+  "host_environment": "PASS",
+  "desktop_validation": "PENDING",
+  "secret_exposed": false,
+  "commit": false,
+  "push": false
+}

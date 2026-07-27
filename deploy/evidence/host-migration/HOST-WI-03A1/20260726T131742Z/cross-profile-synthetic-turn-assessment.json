@@ -1,0 +1,15 @@
+{
+  "native_profile_model": "profile-local HERMES_HOME/state.db; GatewayRunner enters _profile_runtime_scope for multiplexed inbound runs",
+  "native_event_profile_field": "ABSENT in async_delegation schema/event; profile is implicit in current process scope",
+  "target_profile_auto_resolution": "NO for a foreign AOTA event; target source/session resolution does not infer a parent profile from worker profile",
+  "global_gateway_cross_db_lookup": "NOT_FOUND in the native completion path",
+  "api_multiplex_profile_support": "YES for explicit /p/<profile>/ API routing when profile is served; gateway.wake self-post helper does not select a profile prefix",
+  "parent_db_selection": "target session must be opened under the parent profile's state.db; worker profile DB is not the parent DB",
+  "parent_runtime_start_required": "parent backend must be live for push wake; API server must be live for self-post",
+  "worker_can_open_parent_db": "filesystem access may exist, but direct opening would bypass GatewayRunner ownership/locking/security and is not a supported delivery path",
+  "ownership_security": "native path checks session existence/ended state/compression lineage, but no cross-profile AOTA principal check",
+  "cross_profile_message_injection": "not supported by evidence in native async queue",
+  "native_cross_profile_delegation": "not established; native queue has no explicit profile routing field",
+  "blocker": "worker_profile is not parent_profile, current AOTA outbox omits parent_profile, and native delivery is scoped to the parent backend/profile",
+  "adapter_requirement": "explicit parent_profile plus parent session reference, profile-aware backend routing, ownership validation, and profile-local session DB handle"
+}

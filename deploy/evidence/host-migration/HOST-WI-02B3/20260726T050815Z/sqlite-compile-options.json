@@ -1,0 +1,59 @@
+{
+  "hermes_python": {
+    "compile_options_relevant": [
+      "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+      "DEFAULT_WAL_SYNCHRONOUS=2",
+      "ENABLE_COLUMN_METADATA",
+      "ENABLE_DBSTAT_VTAB",
+      "ENABLE_FTS3",
+      "ENABLE_FTS3_PARENTHESIS",
+      "ENABLE_FTS3_TOKENIZER",
+      "ENABLE_FTS4",
+      "ENABLE_FTS5",
+      "ENABLE_LOAD_EXTENSION",
+      "ENABLE_STMTVTAB",
+      "THREADSAFE=1",
+      "USE_URI"
+    ],
+    "module_path": "/usr/lib/python3.12/sqlite3/__init__.py",
+    "sqlite_version": "3.45.1"
+  },
+  "system_python": {
+    "compile_options_relevant": [
+      "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+      "DEFAULT_WAL_SYNCHRONOUS=2",
+      "ENABLE_COLUMN_METADATA",
+      "ENABLE_DBSTAT_VTAB",
+      "ENABLE_FTS3",
+      "ENABLE_FTS3_PARENTHESIS",
+      "ENABLE_FTS3_TOKENIZER",
+      "ENABLE_FTS4",
+      "ENABLE_FTS5",
+      "ENABLE_LOAD_EXTENSION",
+      "ENABLE_STMTVTAB",
+      "THREADSAFE=1",
+      "USE_URI"
+    ],
+    "module_path": "/usr/lib/python3.12/sqlite3/__init__.py",
+    "sqlite_version": "3.45.1"
+  },
+  "system_sqlite_cli": {
+    "compile_options_relevant": [
+      "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+      "DEFAULT_WAL_SYNCHRONOUS=2",
+      "ENABLE_COLUMN_METADATA",
+      "ENABLE_DBSTAT_VTAB",
+      "ENABLE_FTS3",
+      "ENABLE_FTS3_PARENTHESIS",
+      "ENABLE_FTS3_TOKENIZER",
+      "ENABLE_FTS4",
+      "ENABLE_FTS5",
+      "ENABLE_LOAD_EXTENSION",
+      "ENABLE_STMTVTAB",
+      "THREADSAFE=1",
+      "USE_URI"
+    ],
+    "module_path": "/usr/bin/sqlite3",
+    "sqlite_version": "3.45.1 2024-01-30 16:01:20 e876e51a0ed5c5b3126f52e532044363a014bc594cfefa87ffb5b82257ccalt1 (64-bit)"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "verifier": "scripts/verify-host-wi-03b-parent-turn-adapter.py",
+  "fixture_count": 37,
+  "result": "PASS",
+  "uses_temporary_directories": true,
+  "uses_fake_gateway_and_wake": true,
+  "formal_runtime_root_touched": false,
+  "profile_task_started": false,
+  "synthetic_turn_executed": false
+}

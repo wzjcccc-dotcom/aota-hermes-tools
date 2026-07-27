@@ -1,0 +1,49 @@
+[
+  {
+    "scope": [
+      "agent/api_server/aota_delegate_runtime_route.py",
+      "agent/api_server/api_server.py",
+      "api/aota_agent_runs.py",
+      "api/aota_delegate_runs.py",
+      "api/aota_delegate_runtime_client.py",
+      "api/background_process/background_process.py",
+      "api/process_event_utils/process_event_utils.py",
+      "api/routes/routes.py",
+      "api/streaming/streaming.py",
+      "frontend/index.html",
+      "tools/delegate_tool/aota_delegate_receipt.py",
+      "tools/delegate_tool/aota_delegate_runtime.py",
+      "tools/delegate_tool/delegate_tool.py"
+    ],
+    "status": "recommended; no removal performed",
+    "title": "Remove obsolete/upstreamed Docker and WebUI overlays from Host migration scope",
+    "work_item_id": "HOST-WI-02C1"
+  },
+  {
+    "scope": [
+      "agent/prompt_builder/prompt_builder.py"
+    ],
+    "status": "decision required before implementation",
+    "title": "Rebase minimal Host prompt overlay",
+    "work_item_id": "HOST-WI-02C2"
+  },
+  {
+    "scope": [
+      "aota-hermes-tools/plugin/aota-tools/_profile_task_common.py",
+      "_profile_task_start.py",
+      "_profile_task_launcher.py",
+      "deployment/runtime contract"
+    ],
+    "status": "recommended; separate from Hermes core overlay",
+    "title": "Host-native Profile Task runner activation",
+    "work_item_id": "HOST-WI-03A"
+  },
+  {
+    "scope": [
+      "compare Host Hermes async delegation with any remaining AOTA consumer"
+    ],
+    "status": "mostly upstreamed; retain only if a Host/Desktop consumer is demonstrated",
+    "title": "Delegate and durable wakeup reconciliation",
+    "work_item_id": "HOST-WI-02C4"
+  }
+]

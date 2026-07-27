@@ -1,0 +1,18 @@
+{
+  "profile_databases": {
+    "location_pattern": "/home/latios/.hermes/profiles/<profile>/state.db",
+    "observed_profiles": ["debugger", "coder", "architect", "project-steward", "task-main", "reviewer"],
+    "schema_facts": ["sessions.parent_session_id", "messages.session_id", "async_delegations.origin_session_id", "async_delegations.parent_session_id"]
+  },
+  "assessment": {
+    "task_main_parent_in_task_main_db": "YES_FOR_PROFILE_SCOPED_SESSIONS",
+    "worker_in_named_worker_db": "YES_FOR_SEPARATE_PROFILE_TASK_PROCESS",
+    "native_parent_child_cross_profile": "NOT_SUPPORTED_BY_EVIDENCE",
+    "global_cross_db_queue": "NOT_FOUND",
+    "AOTA_must_write_parent_DB": "Only if automatic parent-session message visibility is chosen; current AOTA code does not do so",
+    "desktop_reload_needed": "yes to see persisted messages after reconnect/session resume; no evidence of direct missed-event replay",
+    "UI_notification_without_LLM_resume": "possible in an adapter boundary, but current Desktop integration is not proven",
+    "live_task_main_model_resume": "not proven for AOTA and not implied by notify_on_complete metadata"
+  },
+  "boundary_rule": "UI notification, session message append, and automatic model resume are separate capabilities; evidence supports none of the latter two for the current AOTA-to-Desktop path."
+}

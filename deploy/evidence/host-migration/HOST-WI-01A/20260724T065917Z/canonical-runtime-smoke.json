@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-01A",
+  "environment": {
+    "HOME": "/home/latios",
+    "HERMES_HOME": "/home/latios/.hermes",
+    "executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes"
+  },
+  "version_command": "PASS",
+  "version": "Hermes Agent v0.19.0 (2026.7.20)",
+  "doctor": {
+    "completed": true,
+    "status": "completed_with_nonblocking_advisories",
+    "advisories": [
+      "network connectivity was restricted in the execution environment",
+      "doctor reported the venv entry-point installation advisory"
+    ],
+    "secrets_output": false
+  },
+  "provider": "opencode-zen",
+  "model": "deepseek-v4-flash-free",
+  "provider_model_smoke": "PASS",
+  "one_shot_prompt_constraint": "No Profile Task and no delegate_task; exact fixed response requested",
+  "one_shot_response": "CANONICAL_HOST_RUNTIME_OK",
+  "profile_count": 6,
+  "profile_names": ["architect", "coder", "debugger", "project-steward", "reviewer", "task-main"],
+  "default_profile_present": true,
+  "portal_setup_executed": false,
+  "config_migration_executed": false,
+  "hermes_update_executed": false,
+  "workspace_modified_by_smoke": false
+}

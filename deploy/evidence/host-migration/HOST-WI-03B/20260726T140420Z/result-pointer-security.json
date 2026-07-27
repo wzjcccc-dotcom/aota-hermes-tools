@@ -1,0 +1,10 @@
+{
+  "root": "AOTA_PROFILE_TASK_ROOT",
+  "task_binding_required": true,
+  "absolute_paths_rejected": true,
+  "dotdot_rejected": true,
+  "symlinks_rejected": true,
+  "regular_file_required": true,
+  "max_artifact_bytes": 5242880,
+  "full_artifact_read": false
+}

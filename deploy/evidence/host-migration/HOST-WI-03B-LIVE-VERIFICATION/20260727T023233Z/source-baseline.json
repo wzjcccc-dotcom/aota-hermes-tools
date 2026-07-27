@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "hermes_source_commit": "689b51bef68f9ec95b638121bb9c7fefa3703fb2",
+  "aota_forge_commit": "b7a5a5de3a5907bb8c5b80b428c722d80e862993",
+  "source_validation": "PASS",
+  "isolated_adapter_verifier": "PASS_37_FIXTURES",
+  "py_compile": "PASS",
+  "bash_n": "PASS",
+  "desktop_frontend_changed": false,
+  "legacy_overlay_deployed": false,
+  "async_delegations_insert": false,
+  "direct_parent_db_write": false
+}

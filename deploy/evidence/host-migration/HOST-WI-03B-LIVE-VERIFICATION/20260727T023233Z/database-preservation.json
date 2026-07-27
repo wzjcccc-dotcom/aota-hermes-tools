@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "global_state_db_quick_check": "ok",
+  "task_main_state_db_quick_check": "ok",
+  "coder_state_db_quick_check": "ok",
+  "debugger_state_db_quick_check": "ok",
+  "database_write_by_verification": false,
+  "session_content_recorded": false,
+  "message_content_recorded": false
+}

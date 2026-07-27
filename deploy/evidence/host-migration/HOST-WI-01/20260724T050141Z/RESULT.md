@@ -1,0 +1,18 @@
+# HOST-WI-01 Result
+
+FINAL=NEEDS_OPERATOR_PROVIDER_AUTH
+SOURCE_VALIDATION=PASS
+HOST_INSTALLATION=PASS
+HOST_SERVE_LOCAL=PASS
+LOCAL_WEBSOCKET=PASS
+LOCAL_SESSION_CREATE=PASS
+LOCAL_CHAT=BLOCKED_PROVIDER_AUTH
+HOST_REMOTE_READINESS=NOT_RUN
+DESKTOP_REMOTE_CONNECTION=NOT_RUN
+CANONICAL_HERMES_HOME_MUTATED=no_after_host_wi_01_start
+DOCKER_RUNTIME_STATE=OFFLINE_STANDBY
+COMMIT=no
+PUSH=no
+NEXT_WORK_ITEM=HOST-WI-02
+
+The exact source checkout and isolated venv are ready, but the package has no provider credential in the Vanilla home. Remote bind, systemd, Desktop validation, and restart persistence are intentionally not claimed.

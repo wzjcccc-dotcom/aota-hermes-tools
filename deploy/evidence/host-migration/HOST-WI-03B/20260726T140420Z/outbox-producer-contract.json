@@ -1,0 +1,8 @@
+{
+  "root": "AOTA_RUNTIME_ROOT/outbox/<workspace_id>",
+  "write_order": ["receipt", "meta terminal state", "handoff", "task-local pointer markers", "completion event"],
+  "atomic_event_write": "temp file + fsync + rename",
+  "producer_wakes_parent": false,
+  "stable_event_identity": true,
+  "outbox_failure_reverts_terminal_state": false
+}

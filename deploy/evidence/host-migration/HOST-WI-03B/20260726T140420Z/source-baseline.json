@@ -1,0 +1,11 @@
+{
+  "hermes_source_root": "/home/latios/workspace/hermes-agent-host",
+  "hermes_commit": "689b51bef68f9ec95b638121bb9c7fefa3703fb2",
+  "hermes_status_before": "clean",
+  "aota_forge_root": "/home/latios/workspace/aota-hermes-tools",
+  "aota_forge_commit": "b7a5a5de3a5907bb8c5b80b428c722d80e862993",
+  "aota_status_before": "pre-existing dirty changes recorded and preserved",
+  "docker_started": false,
+  "runtime_deployed": false,
+  "database_mutated": false
+}

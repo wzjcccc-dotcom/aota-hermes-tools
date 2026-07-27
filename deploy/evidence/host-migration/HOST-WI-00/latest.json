@@ -1,0 +1,11 @@
+{
+  "capture_status": "PASS",
+  "docker_final_state": "OFFLINE_STANDBY",
+  "evidence_relative_path": "deploy/evidence/host-migration/HOST-WI-00/20260724T034240Z",
+  "private_backup_path": "/home/latios/.local/state/aota-host-migration/HOST-WI-00/20260724T034240Z",
+  "schema_version": 1,
+  "sha256_manifest_reference": "private:manifests/hermes-home.json",
+  "timestamp": "20260724T034240Z",
+  "verify_status": "PASS",
+  "work_item": "HOST-WI-00"
+}

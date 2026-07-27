@@ -1,0 +1,7 @@
+{
+  "blocking_finding_count": null,
+  "non_blocking_finding_count": null,
+  "review_scope": "read-only static and fixture review of projection adapter",
+  "schema_version": 1,
+  "verdict": "PENDING_EXTERNAL_REVIEW"
+}

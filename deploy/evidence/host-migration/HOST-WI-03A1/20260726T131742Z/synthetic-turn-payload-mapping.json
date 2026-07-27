@@ -1,0 +1,34 @@
+{
+  "native_payload": {
+    "event_type": "async_delegation",
+    "delegation_identity": "delegation_id",
+    "origin_identity": ["session_key", "origin_ui_session_id", "origin_session_id"],
+    "parent_identity": "parent_session_id",
+    "status": ["completed", "error", "interrupted", "unknown", "plus runner terminal values"],
+    "summary_or_error": "structured event fields; formatter builds bounded synthetic text",
+    "timestamps": ["dispatched_at", "completed_at"],
+    "role_at_turn_entry": "user",
+    "trusted_marker": "internal=True on MessageEvent; trust is process/gateway controlled, not an event field",
+    "result_pointer": "not a native field; native event carries summary/error and optional child transcript metadata for batch"
+  },
+  "aota_mapping": {
+    "task_id": {"native": "delegation_id", "status": "ADAPTER_REQUIRED; not interchangeable"},
+    "source_session_id": {"native": "origin_session_id", "status": "PARTIAL; AOTA validates syntax but native ownership is separate"},
+    "parent_session_id": {"native": "parent_session_id", "status": "MISSING from current AOTA outbox event"},
+    "parent_profile": {"native": "no direct field", "status": "MISSING from current AOTA outbox event"},
+    "worker_profile": {"native": "implicit current profile", "status": "NOT a safe parent route"},
+    "terminal_status": {"native": "status", "status": "ADAPTER_REQUIRED; allowlist intersection needed"},
+    "result_pointer": {"native": "none", "status": "PROPOSED only; canonical path must be resolved by adapter"},
+    "handoff_pointer": {"native": "none", "status": "map to bounded handoff_id/reference"},
+    "safe_summary": {"native": "summary/error", "status": "map only bounded sanitized text"},
+    "idempotency_key": {"native": "delegation_id", "status": "AOTA event_id must remain producer identity; do not substitute blindly"}
+  },
+  "synthetic_turn_semantics": {
+    "enters_history": true,
+    "triggers_normal_prompt_build": true,
+    "triggers_tools": true,
+    "triggers_memory_injection": "normal turn hooks may run",
+    "triggers_new_assistant_generation": true,
+    "raw_completion_text_directly_injected": "formatter text is injected as a user-role message; AOTA must inject only sanitized summary/pointer, never raw worker output"
+  }
+}

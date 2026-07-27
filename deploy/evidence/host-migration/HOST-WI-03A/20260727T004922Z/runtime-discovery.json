@@ -1,0 +1,12 @@
+{
+  "aota_profile_task_start_present": true,
+  "default_runner": "/home/latios/.local/bin/hermes-host",
+  "discovery_mode": "static/import/read-only",
+  "formal_task_created": false,
+  "resolved_to_legacy_docker_runner": false,
+  "runner_contract_module_importable": true,
+  "schema_version": 1,
+  "state_db_written": false,
+  "status": "PASS",
+  "worker_started": false
+}

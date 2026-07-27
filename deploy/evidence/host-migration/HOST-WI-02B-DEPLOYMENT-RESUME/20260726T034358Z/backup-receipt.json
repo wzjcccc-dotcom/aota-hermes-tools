@@ -1,0 +1,9 @@
+{
+  "backup_entry_count": 321,
+  "backup_root": "/home/latios/workspace/aota-hermes-tools/.deploy-backups/20260726T033807Z",
+  "backup_self_check": "PASS",
+  "physical_target_deduplication": "PASS",
+  "schema_version": 1,
+  "state_db_targeted": false,
+  "unmanaged_targeted": false
+}

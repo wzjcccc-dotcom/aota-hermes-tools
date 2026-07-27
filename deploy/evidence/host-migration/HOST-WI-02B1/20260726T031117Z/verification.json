@@ -1,0 +1,41 @@
+{
+  "commit": "no",
+  "existing_fixture_regression": "PASS",
+  "formal_runtime_deploy_executed": "no",
+  "git_status_after": [
+    "## main...origin/main",
+    " M deploy/profile-runtime-assembly.yaml",
+    " M plugin/aota-tools/_followup_task_create.py",
+    " M scripts/aota_forge_plan_package.py",
+    " M scripts/profile_runtime_assembly.py",
+    "?? deploy/evidence/host-migration/",
+    "?? docs/aota-host-migration/",
+    "?? scripts/_host_symlink_projection.py",
+    "?? scripts/capture-host-migration-docker-baseline.py",
+    "?? scripts/capture-host-wi-02b.py",
+    "?? scripts/capture-host-wi-02b1.py",
+    "?? scripts/verify-host-symlink-projection.py"
+  ],
+  "git_status_before": [
+    "## main...origin/main",
+    " M deploy/profile-runtime-assembly.yaml",
+    " M plugin/aota-tools/_followup_task_create.py",
+    " M scripts/aota_forge_plan_package.py",
+    " M scripts/profile_runtime_assembly.py",
+    "?? deploy/evidence/host-migration/",
+    "?? docs/aota-host-migration/",
+    "?? scripts/_host_symlink_projection.py",
+    "?? scripts/capture-host-migration-docker-baseline.py",
+    "?? scripts/capture-host-wi-02b.py",
+    "?? scripts/capture-host-wi-02b1.py",
+    "?? scripts/verify-host-symlink-projection.py"
+  ],
+  "new_projection_fixtures": "PASS",
+  "path_traversal_protection": "PASS",
+  "push": "no",
+  "runtime_mutated": "no",
+  "schema_version": 1,
+  "source_validation": "PASS",
+  "symlink_protection": "PASS",
+  "toctou_revalidation": "PASS"
+}

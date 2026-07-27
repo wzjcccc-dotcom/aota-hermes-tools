@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "event_id": "aota-native-delivery:<task-id>:<start-id>",
+  "event_type": "aota_profile_task_terminal",
+  "task_id": "<aota-task-id>",
+  "parent_profile": "<validated-parent-profile>",
+  "parent_session_ref": "<opaque-canonical-parent-reference>",
+  "worker_profile": "<worker-profile>",
+  "terminal_status": "done|failed|needs_input|cancelled|timeout|scope_violation",
+  "result_pointer": "<canonical-bounded-artifact-reference>",
+  "handoff_pointer": "<bounded-handoff-reference-or-null>",
+  "safe_summary": "<bounded-sanitized-summary>",
+  "created_at": "<utc-iso8601>",
+  "idempotency_key": "<stable-task-start-event-key>",
+  "attempt": 1,
+  "source_trust_class": "validated-aota-finalizer",
+  "constraints": {
+    "raw_worker_output": false,
+    "terminal_stdout": false,
+    "secrets": false,
+    "tool_arguments": false,
+    "full_prompt": false,
+    "raw_session_id_in_evidence": false,
+    "payload_size_limit_chars": 4096,
+    "parent_ownership_required": true,
+    "result_pointer_canonicalization_required": true,
+    "symlink_rejection_required": true
+  },
+  "status": "PROPOSED_ONLY_NOT_WRITTEN_TO_RUNTIME"
+}

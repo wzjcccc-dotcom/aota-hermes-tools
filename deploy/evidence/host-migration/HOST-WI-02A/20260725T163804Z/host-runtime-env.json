@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-02A",
+  "path": "/home/latios/.config/hermes-host/runtime.env",
+  "mode": "600",
+  "owner_group": "latios:latios",
+  "key_count": 13,
+  "keys": [
+    "HOME", "HERMES_HOME", "AOTA_RUNTIME_ROOT", "AOTA_PROFILE_TASK_ROOT",
+    "AOTA_CANONICAL_WORKSPACE_ROOT", "AOTA_WORKSPACE_REGISTRY_PATH", "AMF_BASE_URL",
+    "AOTA_TRUSTED_PRINCIPAL", "AOTA_TRUSTED_AUTHORITIES", "AOTA_TRUSTED_WORKSPACE_ID",
+    "AOTA_CODEGRAPH_EXECUTABLE", "AOTA_CODEGRAPH_RUNTIME_ROOT", "PATH"
+  ],
+  "values_recorded": false,
+  "provider_credentials_copied": false,
+  "secret_exposed": false
+}

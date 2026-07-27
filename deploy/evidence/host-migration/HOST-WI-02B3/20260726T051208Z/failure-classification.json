@@ -1,0 +1,13 @@
+{
+  "classification": "CORE_DATABASE_CORRUPTION",
+  "core_database": "FAIL",
+  "core_database_corruption": "CONFIRMED",
+  "fts_compatibility_failure": "no",
+  "fts_failure": "GLOBAL_FTS_CONSTRUCTOR_AND_SHADOW_READ_FAILURE",
+  "fts_index_inconsistency": "CONFIRMED",
+  "fts_schema_mismatch": "no",
+  "fts_shadow_table_damage": "CONFIRMED",
+  "migration_recovery_required": "no_evidence",
+  "reason": "Both Python runtimes pass FTS5 and trigram memory fixtures. Formal global DB sqlite_master is readable, but sessions/messages reads fail with database disk image is malformed and btreeInitPage errors; FTS virtual-table constructor/count/MATCH and shadow reads also fail. This is not a runtime capability limitation.",
+  "verifier_false_positive": "no"
+}

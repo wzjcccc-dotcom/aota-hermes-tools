@@ -1,0 +1,32 @@
+{
+  "native_background_execution": {
+    "status": "SUPPORTED",
+    "evidence": [
+      {"file": "/home/latios/workspace/hermes-agent-host/tools/async_delegation.py", "line": 3, "symbol": "module contract", "finding": "background delegate completion is queued and later forged as a fresh turn"},
+      {"file": "/home/latios/workspace/hermes-agent-host/tools/delegate_tool.py", "line": 2925, "symbol": "background dispatch", "finding": "delegate_task can dispatch detached work and return a handle"}
+    ]
+  },
+  "durable_completion": {
+    "status": "SUPPORTED",
+    "evidence": [
+      {"file": "/home/latios/workspace/hermes-agent-host/tools/async_delegation.py", "line": 107, "symbol": "async_delegations schema", "finding": "completion, event, delivery state, attempts and claims are persisted in profile-local state.db"},
+      {"file": "/home/latios/workspace/hermes-agent-host/tools/async_delegation.py", "line": 314, "symbol": "restore_undelivered_completions", "finding": "undelivered completions are restored after process restart"}
+    ]
+  },
+  "parent_wakeup": {
+    "status": "PARTIAL",
+    "finding": "Native CLI and persistent gateway channels can inject a synthetic new turn. AOTA Profile Task is a separate hermes -z process and has no call into this path."
+  },
+  "desktop_event_replay": {
+    "status": "UNSUPPORTED",
+    "finding": "Desktop WebSocket reconnect has no event cursor/replay handshake; it can reload persisted session messages after the backend has processed a completion."
+  },
+  "cross_profile_delivery": {
+    "status": "UNSUPPORTED",
+    "finding": "Each named profile has its own state.db; native async_delegations and messages are profile-local."
+  },
+  "aota_native_integration": {
+    "status": "NOT_PRESENT",
+    "finding": "AOTA finalization writes a filesystem outbox and an adapter intended for WebUI SessionChannel/SSE, not Hermes process_registry completion_queue or gateway.wake."
+  }
+}

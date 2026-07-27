@@ -1,0 +1,10 @@
+{
+  "logical_path_parity": "PASS",
+  "managed_file_parity": "PASS",
+  "schema_version": 1,
+  "summary": {
+    "EXACT_MATCH": 258,
+    "PROJECTION_CONTENT_EXACT_MATCH": 465,
+    "SOURCE_ONLY": 64
+  }
+}

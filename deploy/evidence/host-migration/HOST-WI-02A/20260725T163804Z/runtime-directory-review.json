@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-02A",
+  "runtime_root": {"path": "/home/latios/.hermes/aota-runtime", "exists": true, "owner_group": "latios:latios", "mode": "700", "created_by_work_item": false},
+  "profile_task_root": {"path": "/home/latios/.hermes/aota-runtime/profile-tasks", "exists": true, "owner_group": "latios:latios", "mode": "700", "created_by_work_item": false},
+  "artifacts_preserved": true,
+  "legacy_task_records_cleaned": false,
+  "state_databases_deleted": false,
+  "symlink_alias_created": false,
+  "container_alias_used": false
+}

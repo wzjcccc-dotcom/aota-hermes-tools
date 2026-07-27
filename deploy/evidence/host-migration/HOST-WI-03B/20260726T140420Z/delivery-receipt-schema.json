@@ -1,0 +1,7 @@
+{
+  "success_fields": ["schema_version", "event_id_hash", "task_id", "parent_profile", "worker_profile", "terminal_status", "disposition", "attempt", "adapter_version"],
+  "success_disposition": "delivered",
+  "duplicate_disposition": "duplicate_suppressed",
+  "failure_fields": ["event_id_hash", "task_id", "disposition", "failure_class", "retryable", "attempt", "recorded_at"],
+  "raw_parent_session_id": false
+}

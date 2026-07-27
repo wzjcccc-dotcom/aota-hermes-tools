@@ -30,6 +30,7 @@ _OVERRIDE_KEYS = {
     "HERMES_MODEL", "HERMES_PROFILE", "HERMES_PROVIDER", "MODEL", "PROVIDER",
     "OLLAMA_MODEL", "OLLAMA_PROVIDER",
 }
+_DOCKER_ENV_PREFIXES = ("DOCKER_", "COMPOSE_")
 _TASK_ID_PREFIX = "pt_"
 
 
@@ -99,7 +100,7 @@ def _safe_path(value: object, field: str) -> Path:
     return Path(value).resolve(strict=False)
 
 
-def _validate_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
+def _validate_manifest(manifest: Mapping[str, Any], runner_inspector=None) -> dict[str, Any]:
     if manifest.get("schema_version") != 1:
         raise ValueError("manifest_schema_unsupported")
     for field in ("workspace_id", "project_id", "task_id", "start_id", "profile", "parent_profile", "work_item_id"):
@@ -119,6 +120,18 @@ def _validate_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         _safe_path(paths.get(field), "paths." + field)
     if not isinstance(worker.get("runner"), str) or not worker["runner"]:
         raise ValueError("binding_invalid:worker.runner")
+    runner_module = _load_sibling("_profile_task_runner")
+    inspect = runner_inspector or runner_module.inspect_runner
+    observed_runner = inspect(worker["runner"])
+    frozen_runner = manifest.get("runner_contract")
+    if frozen_runner is not None:
+        if not isinstance(frozen_runner, dict):
+            raise ValueError("binding_invalid:runner_contract")
+        for key in ("runner_path", "runner_realpath", "runner_identity_hash", "runner_contract_version"):
+            if frozen_runner.get(key) != observed_runner.get(key):
+                raise ValueError("runner_contract_mismatch:" + key)
+        if frozen_runner.get("host_mode") is not True:
+            raise ValueError("runner_contract_mismatch:host_mode")
     if not isinstance(worker.get("prompt_path"), str) or not worker["prompt_path"]:
         raise ValueError("binding_invalid:worker.prompt_path")
     if not isinstance(provider.get("name"), str) or not isinstance(provider.get("model"), str):
@@ -183,8 +196,13 @@ def _child_env(manifest: Mapping[str, Any], credentials: Mapping[str, str]) -> d
         "AOTA_WORKSPACE_REGISTRY_PATH", "AOTA_WEBUI_ATTACHMENT_ROOT", "AOTA_WEBUI_ATTACHMENT_REF_ROOT",
     }
     child = {key: value for key, value in os.environ.items() if key in allowed}
+    child["HOME"] = "/home/latios"
     child["HERMES_HOME"] = str(manifest["paths"]["global_hermes_home"])
-    child.update({key: value for key, value in credentials.items() if key not in _OVERRIDE_KEYS})
+    child.update({
+        key: value
+        for key, value in credentials.items()
+        if key not in _OVERRIDE_KEYS and not any(key.startswith(prefix) for prefix in _DOCKER_ENV_PREFIXES)
+    })
     binding = manifest["binding"]
     paths = manifest["paths"]
     markers = {
@@ -320,14 +338,16 @@ def _fallback(manifest: Mapping[str, Any], *, exit_code: int, stage: str, classi
         return False
 
 
-def run(manifest_path: str) -> int:
+def run(manifest_path: str, *, runner_inspector=None) -> int:
     path = Path(manifest_path).resolve(strict=False)
     inferred = path.name.removeprefix("launch.").removesuffix(".json") or "unknown"
     log = DurableLog(path.parent / f"worker.{inferred}.log")
     log.write("launcher entered", stage="manifest_load")
     manifest: dict[str, Any] | None = None
     try:
-        manifest = _validate_manifest(_load_json(path))
+        loaded_manifest = _load_json(path)
+        manifest = loaded_manifest
+        manifest = _validate_manifest(loaded_manifest, runner_inspector=runner_inspector)
         log.write("manifest loaded and binding shape validated", stage="binding_validation")
         _scope_binding(manifest)
         log.write("scope/spec/task binding and digest verified", stage="binding_validation")
@@ -341,10 +361,14 @@ def run(manifest_path: str) -> int:
         )
         child_env = _child_env(manifest, credentials.get("child_env", {}))
         log.write(f"provider={manifest['provider']['name']} auth_type={credentials['auth_type']} source={credentials['credential_source']} key_present={str(credentials['key_present']).lower()}", stage="credential_bootstrap")
-        runner = Path(manifest["worker"]["runner"]).resolve(strict=False)
-        if not runner.is_file() or not os.access(runner, os.X_OK):
-            raise RuntimeError("runner_unavailable")
-        log.write("runner exists and is executable", stage="runner_resolution")
+        runner = Path(manifest["worker"]["runner"])
+        runner_module = _load_sibling("_profile_task_runner")
+        runner_identity = (runner_inspector or runner_module.inspect_runner)(str(runner))
+        log.write(
+            "runner identity verified contract_version="
+            + str(runner_identity["runner_contract_version"]),
+            stage="runner_resolution",
+        )
         prompt_path = _safe_path(manifest["worker"]["prompt_path"], "worker.prompt_path")
         prompt = prompt_path.read_text(encoding="utf-8")
         argv = [str(runner), "-p", str(manifest["profile"]), "-z", prompt]

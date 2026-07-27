@@ -1,0 +1,10 @@
+{
+  "canonical_launcher_role": "loads HOME/HERMES_HOME/AOTA/private runtime contract",
+  "default_runner": "/home/latios/.local/bin/hermes-host",
+  "legacy_runner": "/usr/local/bin/hermes",
+  "legacy_runner_allowed": false,
+  "official_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "official_executable_role": "explicit trusted diagnostic override only",
+  "schema_version": 1,
+  "status": "PASS"
+}

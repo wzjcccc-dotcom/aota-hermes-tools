@@ -1,0 +1,12 @@
+{
+  "options": [
+    {"id":"OPTION_1","name":"Hermes backend internal function direct call","restores_original_parent_session":true,"automatic_model_resume":true,"cross_profile":false,"cross_process":false,"durable":false,"offline_safe":false,"requires_desktop_change":false,"requires_core_change":false,"recommended":"only behind backend adapter"},
+    {"id":"OPTION_2","name":"Authenticated localhost API to parent session","restores_original_parent_session":true,"automatic_model_resume":true,"cross_profile":"not proven without explicit profile route","cross_process":true,"durable":"caller-dependent","offline_safe":"with outbox","requires_desktop_change":false,"requires_core_change":false,"recommended":"transport fallback inside backend adapter"},
+    {"id":"OPTION_3","name":"Gateway command/event injection","restores_original_parent_session":true,"automatic_model_resume":true,"cross_profile":false,"cross_process":false,"durable":true,"offline_safe":true,"requires_desktop_change":false,"requires_core_change":false,"recommended":"native-only"},
+    {"id":"OPTION_4","name":"Filesystem outbox watcher to backend service","restores_original_parent_session":"when backend hook is implemented","automatic_model_resume":"yes after backend hook; current adapter no","cross_profile":"must be explicit","cross_process":true,"durable":true,"offline_safe":true,"requires_desktop_change":false,"requires_core_change":"small backend boundary","recommended":true},
+    {"id":"OPTION_5","name":"Session store append only","restores_original_parent_session":true,"automatic_model_resume":false,"cross_profile":"parent DB only","cross_process":true,"durable":true,"offline_safe":true,"requires_desktop_change":false,"requires_core_change":false,"recommended":"result visibility fallback only"},
+    {"id":"OPTION_6","name":"New task-main one-shot","restores_original_parent_session":false,"automatic_model_resume":true,"cross_profile":true,"cross_process":true,"durable":"caller-dependent","offline_safe":false,"requires_desktop_change":false,"requires_core_change":false,"recommended":false},
+    {"id":"OPTION_7","name":"Desktop UI notification plus human click","restores_original_parent_session":false,"automatic_model_resume":false,"cross_profile":true,"cross_process":true,"durable":"UI-dependent","offline_safe":false,"requires_desktop_change":true,"requires_core_change":false,"recommended":false}
+  ],
+  "selected": "OPTION_4 with OPTION_2 transport or OPTION_1 in the parent backend"
+}

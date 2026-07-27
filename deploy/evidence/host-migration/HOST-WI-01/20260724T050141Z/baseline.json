@@ -1,0 +1,13 @@
+{
+  "work_item": "HOST-WI-01",
+  "captured_at": "2026-07-24T05:01:41Z",
+  "host_wi_00_evidence": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-00/20260724T034240Z",
+  "docker_runtime_state": "OFFLINE_STANDBY",
+  "docker_agent_image": "nousresearch/hermes-agent:latest",
+  "docker_agent_image_id": "sha256:ad2c82eeee5295ef919b970839c84ad924b93fa89883a434c3f800c1479e8105",
+  "docker_agent_image_revision": "8a21df18acbe73c63d06747d0ab359288bf84276",
+  "docker_ports": {"8642": "not_listening_at_HOST_WI_01_start", "8787": "not_listening_at_HOST_WI_01_start"},
+  "canonical_home": "/home/latios/.hermes",
+  "canonical_baseline_note": "HOST-WI-01 baseline is post-HOST-WI-00 Docker stop; runtime/log/cache changes from that stop are not attributed to this work item.",
+  "git_status_before": [" M plugin/aota-tools/_followup_task_create.py", "?? deploy/evidence/host-migration/", "?? docs/aota-host-migration/", "?? scripts/capture-host-migration-docker-baseline.py"]
+}

@@ -1,0 +1,9 @@
+{
+  "git_diff_check": "PASS",
+  "host_runner_fixture": "PASS",
+  "launcher_hardening_regression": "PASS",
+  "py_compile": "PASS",
+  "pytest": "NOT_RUN",
+  "schema_version": 1,
+  "shell_closure_regression": "PASS"
+}

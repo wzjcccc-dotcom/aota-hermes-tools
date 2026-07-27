@@ -1,0 +1,34 @@
+{
+  "canonical_deploy_process": "BLOCKED_SYMLINK_PARENT_SAFETY",
+  "commit": "no",
+  "git_status_after": [
+    "## main...origin/main",
+    " M plugin/aota-tools/_followup_task_create.py",
+    "?? deploy/evidence/host-migration/",
+    "?? docs/aota-host-migration/",
+    "?? scripts/capture-host-migration-docker-baseline.py",
+    "?? scripts/capture-host-wi-02b.py"
+  ],
+  "git_status_before": [
+    "## main...origin/main",
+    " M plugin/aota-tools/_followup_task_create.py",
+    "?? deploy/evidence/host-migration/",
+    "?? docs/aota-host-migration/",
+    "?? scripts/capture-host-migration-docker-baseline.py",
+    "?? scripts/capture-host-wi-02b.py"
+  ],
+  "host_launcher_mutated": "no",
+  "manifest_self_check": "PASS",
+  "official_hermes_executable_mutated": "no",
+  "path_traversal_fixture": "PASS_EXISTING_FIXTURE",
+  "private_runtime_env_mutated": "no",
+  "profile_assembly_verification": "BLOCKED_SYMLINK_REJECTED_AND_UNMANAGED_PRESERVED",
+  "profile_state_databases_preserved": "yes_no_deploy",
+  "push": "no",
+  "runtime_artifacts_preserved": "yes_no_deploy",
+  "schema_version": 1,
+  "source_runtime_exact_parity": "FAIL_PREDEPLOY_EXPECTED_DRIFT",
+  "source_validation": "PASS",
+  "symlink_fixture": "PASS_EXISTING_FIXTURE",
+  "unmanaged_files_preserved": "yes"
+}

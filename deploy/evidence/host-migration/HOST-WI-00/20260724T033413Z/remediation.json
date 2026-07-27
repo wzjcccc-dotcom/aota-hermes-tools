@@ -1,0 +1,310 @@
+{
+  "cache_exclusion_fix": {
+    "excluded_before_read": true,
+    "excluded_path": "agent/prompt_builder/__pycache__/prompt_builder.cpython-312.pyc",
+    "file_deletion": false,
+    "permission_change": false,
+    "reason": "runtime_generated_python_cache"
+  },
+  "capture_result": "PASS",
+  "docker_stop_result": "NOT_ATTEMPTED",
+  "new_task_records_since_capture_start": 0,
+  "operator_authorization": {
+    "artifact_deletion": false,
+    "authorization_id": "HOST-WI-00-IGNORE-LEGACY-TASK-STATE-20260724",
+    "authorized": true,
+    "metadata_mutation": false,
+    "preserve_unchanged": true,
+    "process_termination": false,
+    "reason": "operator classified records as historical/intermediate artifacts"
+  },
+  "original_failure": "unreadable runtime-generated .pyc was included before exclusion",
+  "preservation_result": "PENDING",
+  "remediation_version": "HOST-WI-00-REMEDIATION-1",
+  "schema_version": 1,
+  "source_validation": "PASS",
+  "task_gate": {
+    "active_task_count": 27,
+    "effective_stop_gate": {
+      "active": 0,
+      "pass": true,
+      "pending": 0,
+      "running": 0
+    },
+    "new_task_paths": [],
+    "new_task_records_since_capture_start": 0,
+    "observed": {
+      "active_records": 27,
+      "pending_records": 24,
+      "running_records": 3
+    },
+    "operator_override": {
+      "artifact_deletion": false,
+      "authorization_id": "HOST-WI-00-IGNORE-LEGACY-TASK-STATE-20260724",
+      "authorized": true,
+      "metadata_mutation": false,
+      "preserve_unchanged": true,
+      "process_termination": false,
+      "reason": "operator classified records as historical/intermediate artifacts"
+    },
+    "pass": true,
+    "pending_task_count": 24,
+    "running_task_count": 3,
+    "status_counts": {
+      "cancelled": 1,
+      "done": 79,
+      "draft": 17,
+      "failed": 25,
+      "frozen": 1,
+      "needs_input": 24,
+      "running": 3,
+      "timeout": 1
+    },
+    "tasks": [
+      {
+        "completion_receipt": "completion.pt_20260719T025905_c7aa80d0.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T025905_c7aa80d0/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T02:59:23Z",
+        "status": "running",
+        "task_id": "pt_20260719T025905_c7aa80d0",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T035813_8b7c5588.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T035813_8b7c5588/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T03:59:04Z",
+        "status": "running",
+        "task_id": "pt_20260719T035813_8b7c5588",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T075006_9d8ed346.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T075006_9d8ed346/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T07:50:20Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T075006_9d8ed346",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T080457_9fb2723e.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T080457_9fb2723e/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T08:05:08Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T080457_9fb2723e",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T091613_26eb58d6.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T091613_26eb58d6/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T09:16:21Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T091613_26eb58d6",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T092148_35a9d1f3.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T092148_35a9d1f3/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T09:22:03Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T092148_35a9d1f3",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T093102_49b28019.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T093102_49b28019/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T09:31:10Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T093102_49b28019",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T093315_2637aabc.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T093315_2637aabc/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T09:33:35Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T093315_2637aabc",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T100318_3e4e70fa.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T100318_3e4e70fa/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T10:03:28Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T100318_3e4e70fa",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T150901_07971fff.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T150901_07971fff/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T15:10:41Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T150901_07971fff",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T152018_0c3b1fdf.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T152018_0c3b1fdf/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T15:21:37Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T152018_0c3b1fdf",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T230246_5cf6c048.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T230246_5cf6c048/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T23:05:36Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T230246_5cf6c048",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260721T110518_5c4ba0b3.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260721T110518_5c4ba0b3/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-21T11:06:58Z",
+        "status": "needs_input",
+        "task_id": "pt_20260721T110518_5c4ba0b3",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260721T215754_36ae49c3.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260721T215754_36ae49c3/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-21T22:00:38Z",
+        "status": "needs_input",
+        "task_id": "pt_20260721T215754_36ae49c3",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260721T232108_ad918639.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260721T232108_ad918639/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-21T23:22:07Z",
+        "status": "needs_input",
+        "task_id": "pt_20260721T232108_ad918639",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260722T093233_3f03a6b6.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260722T093233_3f03a6b6/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-22T09:34:16Z",
+        "status": "needs_input",
+        "task_id": "pt_20260722T093233_3f03a6b6",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260722T094153_5b6a1b13.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260722T094153_5b6a1b13/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-22T09:49:59Z",
+        "status": "needs_input",
+        "task_id": "pt_20260722T094153_5b6a1b13",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260722T110908_4908f007.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260722T110908_4908f007/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-22T11:10:54Z",
+        "status": "needs_input",
+        "task_id": "pt_20260722T110908_4908f007",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260722T142752_8053aea5.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260722T142752_8053aea5/meta.json",
+        "profile": "architect",
+        "started_at": "2026-07-22T14:28:00Z",
+        "status": "needs_input",
+        "task_id": "pt_20260722T142752_8053aea5",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": null,
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260709T080920_0d13ef54/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-09T08:10:45Z",
+        "status": "running",
+        "task_id": "pt_20260709T080920_0d13ef54",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260710T035600_a416093c.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260710T035600_a416093c/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-10T03:56:00Z",
+        "status": "needs_input",
+        "task_id": "pt_20260710T035600_a416093c",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260711T141849_3879be09.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260711T141849_3879be09/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-11T14:20:33Z",
+        "status": "needs_input",
+        "task_id": "pt_20260711T141849_3879be09",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260711T232105_9ab506e1.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260711T232105_9ab506e1/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-11T23:21:55Z",
+        "status": "needs_input",
+        "task_id": "pt_20260711T232105_9ab506e1",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260712T015450_604128e8.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260712T015450_604128e8/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-12T01:55:17Z",
+        "status": "needs_input",
+        "task_id": "pt_20260712T015450_604128e8",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260712T020704_fcbe17a9.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260712T020704_fcbe17a9/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-12T02:07:16Z",
+        "status": "needs_input",
+        "task_id": "pt_20260712T020704_fcbe17a9",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260712T120601_f1db5ae4.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260712T120601_f1db5ae4/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-12T12:08:08Z",
+        "status": "needs_input",
+        "task_id": "pt_20260712T120601_f1db5ae4",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260712T123131_0d9e40f1.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260712T123131_0d9e40f1/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-12T12:34:49Z",
+        "status": "needs_input",
+        "task_id": "pt_20260712T123131_0d9e40f1",
+        "workspace": "aota-runtime"
+      }
+    ]
+  },
+  "verify_result": "PENDING"
+}

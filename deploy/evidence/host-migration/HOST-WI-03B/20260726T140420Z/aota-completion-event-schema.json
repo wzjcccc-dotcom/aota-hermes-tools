@@ -1,0 +1,10 @@
+{
+  "schema_version": 2,
+  "event_type": "aota_profile_task_terminal",
+  "legacy_kind_retained": "aota_task_terminal",
+  "allowed_terminal_status": ["done", "failed", "needs_input", "cancelled", "timed_out", "scope_violation"],
+  "required_identity": ["task_id", "start_id", "parent_profile", "parent_session_ref"],
+  "required_pointers": ["result_pointer", "handoff_pointer"],
+  "safe_summary_bounded": true,
+  "raw_worker_output_included": false
+}

@@ -1,0 +1,7 @@
+{
+  "desktop_restart_persistence": "NOT_RUN",
+  "host_service_restart_persistence": "NOT_RUN",
+  "remote_reconnect": "NOT_RUN",
+  "session_resume": "NOT_RUN",
+  "reason": "provider authentication and remote service readiness are prerequisites"
+}

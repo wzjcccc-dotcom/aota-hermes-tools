@@ -1,0 +1,9 @@
+{
+  "registration": "GatewayRunner.start",
+  "shutdown": "GatewayRunner.stop cancellation plus adapter.stop",
+  "startup_blocking": false,
+  "supervised": true,
+  "disabled_behavior": "backend starts normally and outbox is not consumed",
+  "busy_loop": false,
+  "whole_hermes_home_scan": false
+}

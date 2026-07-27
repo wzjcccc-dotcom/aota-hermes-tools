@@ -1,0 +1,9 @@
+{
+  "decision": "MINIMAL_BACKEND_ADAPTER",
+  "transport": "AOTA filesystem outbox",
+  "consumer": "Hermes in-process supervised watcher",
+  "native_entrypoint": "gateway.wake.deliver_wake",
+  "frontend_change": false,
+  "async_delegations_write": false,
+  "direct_parent_db_append": false
+}

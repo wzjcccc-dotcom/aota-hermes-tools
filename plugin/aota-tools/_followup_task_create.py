@@ -46,6 +46,8 @@ from ._task_spec_common import (
     build_meta,
     atomic_write,
     write_json,
+    get_task_dir,
+    load_meta,
     validate_task_reference,
     create_exclusive_task_dir,
     WorkspaceError,

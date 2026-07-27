@@ -1,0 +1,13 @@
+{
+  "classification": "FTS_SCHEMA_MISMATCH",
+  "core_database": "UNPROVEN",
+  "core_database_corruption": "UNPROVEN",
+  "fts_compatibility_failure": "no",
+  "fts_failure": "ASSESSED",
+  "fts_index_inconsistency": "UNPROVEN",
+  "fts_schema_mismatch": "yes",
+  "fts_shadow_table_damage": "UNPROVEN",
+  "migration_recovery_required": "UNPROVEN",
+  "reason": "formal global DB schema parsing fails at messages_fts; core-table reads are not independently reachable in this runtime, so CASE_C is not yet provable without controlled recovery or a schema-safe forensic method",
+  "verifier_false_positive": "no"
+}

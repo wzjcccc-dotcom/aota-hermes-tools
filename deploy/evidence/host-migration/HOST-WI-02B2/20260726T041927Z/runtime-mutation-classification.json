@@ -1,0 +1,12 @@
+{
+  "deployer_state_db_target_observation": "no_state.db_path_in_deployment_receipt_or_managed_plan",
+  "expected_runtime_mutation": "yes",
+  "global_hash_changed_after_previous_cli_smoke": true,
+  "one_shot_attempted_by_previous_work_item": true,
+  "reason": "global state.db schema is malformed; hash change is not alone treated as failure, but integrity failure remains a hard failure",
+  "runtime_mutation_is_healthy": false,
+  "schema_version": 1,
+  "state_db_removed_by_deployer": "no_evidence",
+  "state_db_replaced_by_deployer": "no_evidence",
+  "state_db_targeted_by_deployer": "no"
+}

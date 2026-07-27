@@ -1,0 +1,19 @@
+{
+  "argv_builder": "build_worker_command; literal array; no shell",
+  "default_runner": "/home/latios/.local/bin/hermes-host",
+  "entrypoint": "aota_profile_task_start",
+  "environment_override": "AOTA_HERMES_RUNNER",
+  "environment_override_present": false,
+  "flow": [
+    "task spec -> frozen execution contract -> _profile_task_common.resolve_runner",
+    "-> _profile_task_runner.resolve_runner -> runner contract -> launch manifest",
+    "-> _profile_task_launcher.run -> subprocess.Popen(argv, shell=False)"
+  ],
+  "freeze_preserves_absolute_identity": true,
+  "old_frozen_tasks_rewritten": false,
+  "old_runner_source": "legacy frozen/runtime artifact and Docker-era /usr/local/bin/hermes wrapper",
+  "path_fallback_allowed": false,
+  "restart_re_resolves_runner": false,
+  "schema_version": 1,
+  "status": "PASS"
+}

@@ -1,0 +1,14 @@
+{
+  "chain": [
+    {"step": 1, "component": "parent session", "file": "/home/latios/workspace/hermes-agent-host/tools/delegate_tool.py", "symbol": "delegate_task", "input": "background delegation request", "output": "delegation handle plus captured origin/parent routing fields", "persistence": "none yet", "transport": "current session context", "failure": "stateless channels fall back or use raw-session self-post", "reconnect": "not applicable at dispatch"},
+    {"step": 2, "component": "child execution", "file": "/home/latios/workspace/hermes-agent-host/tools/async_delegation.py", "symbol": "dispatch_async_delegation", "input": "session_key, origin_session_id, parent_session_id, runner", "output": "isolated child task", "persistence": "async_delegations row state=running", "transport": "daemon executor", "failure": "owner recovery classifies abandoned work as unknown", "reconnect": "row remains queryable"},
+    {"step": 3, "component": "completion", "file": "/home/latios/workspace/hermes-agent-host/tools/async_delegation.py", "symbol": "_finalize/_persist_completion", "input": "child terminal result", "output": "sanitized async_delegation event", "persistence": "result_json and event_json, delivery_state=pending", "transport": "process_registry.completion_queue", "failure": "failed delivery is retried then dropped after bounded attempts", "reconnect": "restore_undelivered_completions requeues"},
+    {"step": 4, "component": "gateway/CLI consumer", "file": "/home/latios/workspace/hermes-agent-host/gateway/run.py", "symbol": "_async_delegation_watcher/_deliver_completion_notification", "input": "queued completion", "output": "claimed completion and synthetic notification turn", "persistence": "claim/ack in async_delegations", "transport": "adapter.handle_message or API self-POST", "failure": "missing/ended parent fails closed; delivery claim released for retry on transient failure", "reconnect": "backend restart restores pending rows"},
+    {"step": 5, "component": "Desktop", "file": "/home/latios/workspace/hermes-agent-host/apps/shared/src/json-rpc-gateway.ts", "symbol": "JsonRpcGatewayClient", "input": "WebSocket events/messages", "output": "renderer store updates", "persistence": "no client replay ledger", "transport": "WebSocket/JSON-RPC", "failure": "socket close rejects pending RPCs", "reconnect": "reconnects transport but sends no event cursor"}
+  ],
+  "important_semantics": [
+    "Native delivery is a new synthetic turn; it does not splice text into a historical active context.",
+    "The resulting assistant response is persisted as a message in the target parent session when delivery succeeds.",
+    "The chain is native Hermes delegate/subagent behavior, not the AOTA Profile Task worker chain."
+  ]
+}

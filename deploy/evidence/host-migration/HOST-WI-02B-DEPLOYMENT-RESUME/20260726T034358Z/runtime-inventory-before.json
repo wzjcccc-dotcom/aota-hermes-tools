@@ -1,0 +1,6 @@
+{
+  "baseline_source": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-02B/20260726T012826Z/runtime-inventory.json",
+  "canonical_runtime_root": "/home/latios/.hermes",
+  "schema_version": 1,
+  "state_db_content_read": false
+}

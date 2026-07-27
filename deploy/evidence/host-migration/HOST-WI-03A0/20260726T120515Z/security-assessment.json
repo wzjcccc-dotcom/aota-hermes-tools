@@ -1,0 +1,23 @@
+{
+  "native": {
+    "parent_ownership": "verified by gateway session resolution and compression-lineage checks before injection",
+    "profile_boundary": "profile-local state.db and target session checks",
+    "arbitrary_session_injection": "mitigated by target resolution, raw-session binding for API self-post, and adapter ownership",
+    "duplicate_delivery": "durable claim/ack and bounded retry; not exactly-once",
+    "deleted_or_closed_parent": "fail closed; terminal/ended non-compression targets are dropped",
+    "stale_child": "owner recovery classifies abandoned running delegation as unknown",
+    "failure_timeout_cancel": "terminal statuses are persisted and delivery can be retried/dropped",
+    "raw_output_leakage": "native event fields are structured; AOTA outbox explicitly excludes raw logs/secrets/full reports"
+  },
+  "aota_boundary_requirements": [
+    "trusted origin_session_id with strict validation",
+    "explicit profile/parent ownership check",
+    "schema validation for terminal event",
+    "bounded sanitized summary only",
+    "stable idempotency key event_id",
+    "at-least-once retry with observable terminal drop",
+    "no direct raw worker output injection",
+    "cross-profile route must be explicit rather than inferred"
+  ],
+  "finding": "The existing AOTA outbox satisfies sanitization and stable event identity at the producer boundary, but its current WebUI delivery boundary is not proven for official Desktop."
+}

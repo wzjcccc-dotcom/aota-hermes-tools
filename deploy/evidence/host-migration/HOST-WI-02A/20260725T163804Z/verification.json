@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-02A",
+  "source_validation": "PASS",
+  "official_hermes_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "official_hermes_sha256_before": "20b6090fb45261e897c446a2021746be67e66caa1c548523b91482cdf00af81f",
+  "official_hermes_sha256_after": "20b6090fb45261e897c446a2021746be67e66caa1c548523b91482cdf00af81f",
+  "official_hermes_mutated": false,
+  "canonical_config_sha256_before": "96b28228eaa8533f1cbceb46e0b0edc068cfdc5b96250313eaf8e33f9e8a35c5",
+  "canonical_config_sha256_after": "96b28228eaa8533f1cbceb46e0b0edc068cfdc5b96250313eaf8e33f9e8a35c5",
+  "canonical_config_mutated": false,
+  "desktop_backend_status": "No hermes dashboard processes running",
+  "secret_exposed": false,
+  "commit": false,
+  "push": false
+}

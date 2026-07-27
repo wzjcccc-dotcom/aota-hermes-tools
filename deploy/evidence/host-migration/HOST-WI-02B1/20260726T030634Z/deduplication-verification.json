@@ -1,0 +1,9 @@
+{
+  "deduplicated_write_count": 465,
+  "logical_managed_path_count": 708,
+  "physical_global_plugin_target_count": 1,
+  "physical_target_count": 243,
+  "physical_target_deduplication": "PASS",
+  "schema_version": 1,
+  "symlink_projection_count": 5
+}

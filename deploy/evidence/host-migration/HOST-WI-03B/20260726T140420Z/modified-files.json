@@ -1,0 +1,15 @@
+{
+  "aota_files": [
+    "plugin/aota-tools/_delivery_outbox.py",
+    "plugin/aota-tools/_profile_task_start.py",
+    "plugin/aota-tools/_profile_task_finalize.py",
+    "scripts/verify-host-wi-03b-parent-turn-adapter.py",
+    "docs/aota-host-migration/HOST-WI-03B.md"
+  ],
+  "hermes_files": [
+    "gateway/aota_parent_wake.py",
+    "gateway/run.py"
+  ],
+  "desktop_files_modified": false,
+  "legacy_overlay_files_modified": false
+}

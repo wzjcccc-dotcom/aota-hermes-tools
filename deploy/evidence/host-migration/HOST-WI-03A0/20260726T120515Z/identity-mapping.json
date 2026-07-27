@@ -1,0 +1,17 @@
+{
+  "mapping": [
+    {"aota_field": "task_id", "hermes_field": "delegation_id/child task identity", "compatibility": "ADAPTER_REQUIRED", "finding": "AOTA pt_* identity is not a native async_delegations delegation_id"},
+    {"aota_field": "source_session_id", "hermes_field": "origin_session_id", "compatibility": "ADAPTER_REQUIRED", "finding": "AOTA can carry a trusted origin ID, but no native delivery call consumes it"},
+    {"aota_field": "parent_session_id", "hermes_field": "parent_session_id", "compatibility": "INSUFFICIENT_EVIDENCE", "finding": "AOTA metadata has origin/session concepts; direct Hermes parent ownership is not established"},
+    {"aota_field": "task-main profile", "hermes_field": "profile-local HERMES_HOME/state.db", "compatibility": "INCOMPATIBLE", "finding": "task-main and worker named profiles use separate databases"},
+    {"aota_field": "worker profile", "hermes_field": "child profile/session", "compatibility": "ADAPTER_REQUIRED", "finding": "AOTA worker is a separate one-shot process, not native child session lineage"},
+    {"aota_field": "child_session_id", "hermes_field": "child session id", "compatibility": "INSUFFICIENT_EVIDENCE", "finding": "AOTA process_session_id is a runner/process registry identity, not proven Hermes child session ID"},
+    {"aota_field": "result artifact/completion receipt", "hermes_field": "result_json/event_json/messages", "compatibility": "ADAPTER_REQUIRED", "finding": "AOTA durable result is filesystem-backed and must be transformed at a trusted boundary"},
+    {"aota_field": "outbox event_id", "hermes_field": "completion delivery identity", "compatibility": "ADAPTER_REQUIRED", "finding": "stable AOTA event id supports dedup but is not native Hermes delivery receipt"}
+  ],
+  "native_identity": {
+    "present": ["parent_session_id", "origin_session_id", "session_key", "delegation_id"],
+    "root_session_id": "not found in native async delivery schema",
+    "child_session_id": "implicit child/session identity, not a dedicated async_delegations column"
+  }
+}

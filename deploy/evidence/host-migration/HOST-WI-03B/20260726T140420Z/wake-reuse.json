@@ -1,0 +1,8 @@
+{
+  "entrypoint": "gateway.wake.deliver_wake",
+  "reused": true,
+  "runner_injection_copied": false,
+  "normal_message_pipeline_preserved": true,
+  "prompt_build_preserved": true,
+  "stream_path_preserved": true
+}

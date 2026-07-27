@@ -1,0 +1,8 @@
+{
+  "backup_exists": false,
+  "backup_path": "/home/latios/workspace/aota-hermes-tools/.deploy-backups/workspaces.json.pre-binding-20260714T124026Z",
+  "backup_self_check": "PASS",
+  "database_targeted": false,
+  "legacy_task_targeted": false,
+  "schema_version": 1
+}

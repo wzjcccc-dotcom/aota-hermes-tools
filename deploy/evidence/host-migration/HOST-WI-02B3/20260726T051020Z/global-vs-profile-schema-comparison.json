@@ -1,0 +1,17 @@
+{
+  "extra_tables": "not inferred",
+  "fts_schema_delta": "global uses legacy inline FTS shape; current source supports legacy compatibility plus opt-in v23 external layout",
+  "global_schema_version": 23,
+  "migration_delta": "profile versions match expected 19/23 split; global table marker is 23",
+  "missing_tables": "global schema object list readable; core table access fails with malformed btree",
+  "profile_schema_versions": [
+    19,
+    23,
+    19,
+    23,
+    19,
+    23
+  ],
+  "schema_version_delta": "global matches expected table version; profile set is {19,23}",
+  "trigger_delta": "global trigger names enumerated; FTS access fails"
+}

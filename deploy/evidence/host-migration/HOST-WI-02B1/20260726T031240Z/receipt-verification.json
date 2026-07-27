@@ -1,0 +1,13 @@
+{
+  "logical_projection_receipts": "PASS",
+  "physical_write_owner_count": 243,
+  "receipt_fields": [
+    "logical_runtime_path",
+    "resolved_physical_target",
+    "write_required",
+    "write_owner",
+    "deduplicated_from",
+    "projection_verification_required"
+  ],
+  "schema_version": 1
+}

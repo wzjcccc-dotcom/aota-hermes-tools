@@ -1,0 +1,13 @@
+{
+  "checks": [
+    {"check": "source baseline", "status": "PASS", "method": "read-only source inspection at pinned Hermes commit"},
+    {"check": "native async delegation schema and lifecycle", "status": "PASS", "method": "read-only inspection of async_delegation.py and gateway/run.py"},
+    {"check": "wake capability flags", "status": "PASS", "method": "read-only inspection of gateway/wake.py, session_context.py and adapters"},
+    {"check": "Desktop reconnect/replay", "status": "PASS_WITH_GAP", "method": "read-only inspection of JSON-RPC, gateway events, SSH lifecycle; no event cursor found"},
+    {"check": "AOTA completion chain", "status": "PASS", "method": "read-only inspection of start, launcher, finalizer, status and delivery outbox/adapter"},
+    {"check": "cross-profile state schema", "status": "PASS", "method": "read-only sqlite schema inspection for canonical and named profile DBs"},
+    {"check": "live smoke", "status": "NOT_RUN", "method": "explicitly prohibited for this reconnaissance"},
+    {"check": "mutation guard", "status": "PASS", "method": "no source/runtime/overlay/database mutation, no Docker/worker/delegate invocation"}
+  ],
+  "result": "PASS_RECONNAISSANCE_WITH_DECISION"
+}

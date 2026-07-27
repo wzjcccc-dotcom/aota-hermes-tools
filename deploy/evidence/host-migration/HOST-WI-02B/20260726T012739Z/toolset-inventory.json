@@ -1,0 +1,6 @@
+{
+  "parity": "PASS_CANONICAL_COUNT",
+  "schema_version": 1,
+  "source": "/home/latios/workspace/aota-hermes-tools/deploy/aota-lifecycle-inventory.yaml",
+  "toolset_count": 28
+}

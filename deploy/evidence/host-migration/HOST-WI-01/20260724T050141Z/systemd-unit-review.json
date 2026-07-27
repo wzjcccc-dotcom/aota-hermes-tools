@@ -1,0 +1,8 @@
+{
+  "systemd_unit": "not created",
+  "systemd_service": "NOT_RUN",
+  "systemd_enabled": "no",
+  "reason": "localhost chat smoke/provider gate and user-bus access are incomplete",
+  "unit_path_reserved": "/home/latios/.config/systemd/user/hermes-host-vanilla.service",
+  "systemd_analyze_verify": "NOT_RUN"
+}

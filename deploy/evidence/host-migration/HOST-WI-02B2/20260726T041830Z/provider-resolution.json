@@ -1,0 +1,59 @@
+{
+  "auth_file_present": true,
+  "auth_file_used_by_provider": false,
+  "base_url_class": "host_proxy_http",
+  "configuration_sources": [
+    {
+      "path": "plugins/model-providers/opencode-zen/__init__.py",
+      "source": "bundled_provider_plugin",
+      "status": "used"
+    },
+    {
+      "entry": "zen-deepseek-free",
+      "path": "/home/latios/.hermes/config.yaml",
+      "source": "canonical_config_model_alias",
+      "status": "used"
+    },
+    {
+      "path": "/home/latios/.hermes/.env",
+      "source": "canonical_hermes_env",
+      "status": "used_by_credential_resolution"
+    },
+    {
+      "path": "/home/latios/.config/hermes-host/runtime.env",
+      "source": "host_launcher_runtime_env",
+      "status": "launcher_loaded_then_official_cli_loaded_canonical_env"
+    }
+  ],
+  "credential_values_redacted": true,
+  "key_presence_by_source": {
+    "OPENCODE_ZEN_API_KEY": {
+      "canonical_hermes_env": "present",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "OPENCODE_ZEN_BASE_URL": {
+      "canonical_hermes_env": "present",
+      "runtime_env": "missing",
+      "value_recorded": false
+    }
+  },
+  "launcher_env_loaded": true,
+  "missing_keys": [],
+  "model": "deepseek-v4-flash-free",
+  "official_cli_env_loaded": true,
+  "optional_keys": [
+    "OPENCODE_ZEN_BASE_URL"
+  ],
+  "present_keys": [
+    "OPENCODE_ZEN_API_KEY",
+    "OPENCODE_ZEN_BASE_URL"
+  ],
+  "provider": "opencode-zen",
+  "provider_default_base_url_class": "public_https_opencode",
+  "proxy_present": true,
+  "required_keys": [
+    "OPENCODE_ZEN_API_KEY"
+  ],
+  "schema_version": 1
+}

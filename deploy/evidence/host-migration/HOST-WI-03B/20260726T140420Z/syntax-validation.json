@@ -1,0 +1,6 @@
+{
+  "command": "python3 -m py_compile",
+  "result": "PASS",
+  "files": ["_delivery_outbox.py", "_profile_task_start.py", "_profile_task_finalize.py", "aota_parent_wake.py", "run.py", "verify-host-wi-03b-parent-turn-adapter.py"],
+  "pytest": false
+}

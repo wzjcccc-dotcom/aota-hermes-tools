@@ -1,0 +1,20 @@
+{
+  "aota_worker_process": "standalone profile-task launcher and hermes -p <worker-profile> -z child",
+  "parent_process": "persistent Hermes GatewayRunner/Desktop backend",
+  "same_process_required_for_native_function": true,
+  "cross_process_api_present": "YES: authenticated localhost/in-pod /v1/chat/completions self-post with X-Hermes-Session-Id",
+  "cross_process_queue_present": "YES for AOTA filesystem outbox; YES for native state.db plus process-local Queue, but no AOTA producer integration",
+  "cross_process_session_resolution": "native gateway resolves parent_session_id and compression lineage; API self-post resolves raw session id in the target API server scope",
+  "cross_process_authentication": "API_SERVER_KEY is required for raw-session continuation; current AOTA outbox adapter has no Hermes API authentication contract",
+  "cross_process_retry": "native claim/release/stale-claim and self-post bounded retries exist; AOTA pending outbox retries only at its deferred WebUI boundary",
+  "cross_process_offline_behavior": "AOTA completion is durably retained in outbox; parent wake is not currently drained by official Desktop backend",
+  "filesystem_outbox": "plugin/aota-tools/_delivery_outbox.py:264-330 writes pending event atomically; delivered mark is atomic rename",
+  "native_wake_transport": "gateway/wake.py:97-184",
+  "negative_findings": [
+    "no AOTA call to tools.async_delegation",
+    "no AOTA call to gateway.wake",
+    "no current public completion endpoint accepting AOTA event_id/result pointer",
+    "no cross-process session ownership handshake for AOTA event"
+  ],
+  "recommended_boundary": "trusted backend watcher/adapter consumes only sanitized AOTA outbox events, validates parent profile/session ownership, then invokes gateway.wake in the parent process or a profile-aware authenticated session endpoint"
+}

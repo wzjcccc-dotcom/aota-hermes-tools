@@ -1,0 +1,7 @@
+{
+  "work_item": "HOST-WI-03A1",
+  "timestamp": "20260726T131742Z",
+  "status": "PASS_MINIMAL_BACKEND_ADAPTER_REQUIRED",
+  "evidence_root": "deploy/evidence/host-migration/HOST-WI-03A1/20260726T131742Z",
+  "result": "deploy/evidence/host-migration/HOST-WI-03A1/20260726T131742Z/RESULT.md"
+}

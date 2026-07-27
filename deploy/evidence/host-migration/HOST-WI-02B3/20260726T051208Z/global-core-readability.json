@@ -1,0 +1,1033 @@
+{
+  "hermes_python": {
+    "core_counts": {
+      "calls": {
+        "error_message_sanitized": "no such table: calls",
+        "error_type": "OperationalError",
+        "status": "FAIL"
+      },
+      "events": {
+        "error_message_sanitized": "no such table: events",
+        "error_type": "OperationalError",
+        "status": "FAIL"
+      },
+      "gateway_routing": {
+        "count": 0,
+        "status": "PASS"
+      },
+      "messages": {
+        "error_message_sanitized": "database disk image is malformed",
+        "error_type": "DatabaseError",
+        "status": "FAIL"
+      },
+      "session_model_usage": {
+        "count": 569,
+        "status": "PASS"
+      },
+      "sessions": {
+        "error_message_sanitized": "database disk image is malformed",
+        "error_type": "DatabaseError",
+        "status": "FAIL"
+      },
+      "state_meta": {
+        "count": 3,
+        "status": "PASS"
+      },
+      "tools": {
+        "error_message_sanitized": "no such table: tools",
+        "error_type": "OperationalError",
+        "status": "FAIL"
+      },
+      "turns": {
+        "error_message_sanitized": "no such table: turns",
+        "error_type": "OperationalError",
+        "status": "FAIL"
+      }
+    },
+    "core_data_loss_indicator": "CORE_READ_FAILURE",
+    "core_schema_readable": "PASS",
+    "core_tables_readable": "FAIL",
+    "database_path": "/home/latios/.hermes/state.db",
+    "errors": [],
+    "fts_access_matrix": [
+      {
+        "constructor": "FAIL",
+        "constructor_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts",
+          "error_type": "DatabaseError"
+        },
+        "count": "FAIL",
+        "count_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts",
+          "error_type": "DatabaseError"
+        },
+        "fts_table": "messages_fts",
+        "match_query": "FAIL",
+        "match_query_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts",
+          "error_type": "DatabaseError"
+        },
+        "runtime": "/home/latios/.venvs/hermes-agent-host/bin/python"
+      },
+      {
+        "constructor": "FAIL",
+        "constructor_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+          "error_type": "DatabaseError"
+        },
+        "count": "FAIL",
+        "count_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+          "error_type": "DatabaseError"
+        },
+        "fts_table": "messages_fts_trigram",
+        "match_query": "FAIL",
+        "match_query_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+          "error_type": "DatabaseError"
+        },
+        "runtime": "/home/latios/.venvs/hermes-agent-host/bin/python"
+      }
+    ],
+    "fts_schema": [
+      {
+        "column_list": [
+          "content"
+        ],
+        "content_rowid": null,
+        "content_table": null,
+        "prefix_options": [],
+        "schema_sql_hash": "bfe672ecdefc4c7f460128c45480cf6415c3f10f6da7b463f04b1665ae0007a6",
+        "shadow_table_count": 10,
+        "table_name": "messages_fts",
+        "tokenizer": "default",
+        "trigger_count": 6,
+        "virtual_table_module": "fts5"
+      },
+      {
+        "column_list": [
+          "content"
+        ],
+        "content_rowid": null,
+        "content_table": null,
+        "prefix_options": [],
+        "schema_sql_hash": "bff4d5a48fa8a5f669b5fb50c81e118be47872b5e5909592e8b5d1d62a98fbf2",
+        "shadow_table_count": 5,
+        "table_name": "messages_fts_trigram",
+        "tokenizer": "trigram",
+        "trigger_count": 3,
+        "virtual_table_module": "fts5"
+      }
+    ],
+    "integrity_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    },
+    "messages_table_readable": "FAIL",
+    "open": "PASS",
+    "pragma_application_id": 0,
+    "pragma_schema_version": 68,
+    "pragma_user_version": 0,
+    "quick_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    },
+    "read_only_uri": true,
+    "schema_objects": [
+      {
+        "name": "async_delegations",
+        "sql_hash": "eca14e44bf55550f7744ca27e8cde96ffe36f633a82ebbcde0ea76509f31997a",
+        "type": "table"
+      },
+      {
+        "name": "compression_locks",
+        "sql_hash": "6802d8cfc1ea0ae77b50f336bf27798f548bb7887d4b31ed11722fc9522b9f99",
+        "type": "table"
+      },
+      {
+        "name": "delivery_obligations",
+        "sql_hash": "e48ec85ec91539670a23d742ff063d0da0e28842130c8943740826fd16dc09d7",
+        "type": "table"
+      },
+      {
+        "name": "gateway_routing",
+        "sql_hash": "b828dee3886b25938ef25c7bc79ceadc42c586fc441a00d200f92fbb109263be",
+        "type": "table"
+      },
+      {
+        "name": "idx_async_delegations_delivery",
+        "sql_hash": "2fc20b645c1c935156dfbcfe60281fa0da5198b76679e4bfc4a7bada43e2155a",
+        "type": "index"
+      },
+      {
+        "name": "idx_compression_locks_expires",
+        "sql_hash": "695eaee315e1661f251a6673ddd620507a5d730c48925b86acda64469f3e281c",
+        "type": "index"
+      },
+      {
+        "name": "idx_messages_active_null",
+        "sql_hash": "370df6e39e1d03a6570d0c05894336dbd00daf99f2bdd1552773c390fc309e09",
+        "type": "index"
+      },
+      {
+        "name": "idx_messages_platform_msg_id",
+        "sql_hash": "fb010ac58133ae81d9a30e0e7ebdc2075a90b14339abe775a0bb422d11ab7b0a",
+        "type": "index"
+      },
+      {
+        "name": "idx_messages_session",
+        "sql_hash": "c0c549078b6009a2529475ffa212f72a7b0198267b6f7edd1b6772531e15a738",
+        "type": "index"
+      },
+      {
+        "name": "idx_messages_session_active",
+        "sql_hash": "10fd5ff7d34a817c4b7869dd4cb0548a3e058fc81f08710d906b855fa1afdad6",
+        "type": "index"
+      },
+      {
+        "name": "idx_session_model_usage_model",
+        "sql_hash": "7e528c9d32eefa8f7859a205ef2e8f0d9ea42f25decfb5a535d91af4f386b3a1",
+        "type": "index"
+      },
+      {
+        "name": "idx_session_model_usage_session",
+        "sql_hash": "371b485c5f08427b1d99c93f307f3a52e91d097e1bca8702816a55455482ca60",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_gateway_peer",
+        "sql_hash": "eed77850d2d878b58b351dc31a8e6432a2e6e5e7dcb946ac20aa59517689267e",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_handoff_state",
+        "sql_hash": "39b49982efb110b551418c6dd88524f371b74de6109e225f35d29b33c4b7c6d3",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_parent",
+        "sql_hash": "1f40e4e583323594fa5ef2541684e6a67d3a2733ebc577b40d1a434017d6dcf3",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_session_key",
+        "sql_hash": "38fb7154bcf33d32f70ae97d7da11f4002fb75dec034af7fc502fb6b35ed5974",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_source",
+        "sql_hash": "b4de3d62588e9d4a4a9a3bdcc75a33c9ed9fdc6606fa6e26d01e9f48b540d956",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_source_id",
+        "sql_hash": "a3e3d60733351cc824a4546ca257a05b30d2b345e68aca7faaa728cb7768d319",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_started",
+        "sql_hash": "f360c4a7f743586c85a7571b634a30d4e1d3c8fd4da93eb54d9f67fe0ab2f30c",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_title_unique",
+        "sql_hash": "d75d8780be7e382a2192c87b35b2783c22fc74d887378ea540956b79b06a846a",
+        "type": "index"
+      },
+      {
+        "name": "messages",
+        "sql_hash": "91f2b230d1a8418770fd9d6f0d94efb05fbb2e8783f0cb53c3b788039e39817b",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts",
+        "sql_hash": "bfe672ecdefc4c7f460128c45480cf6415c3f10f6da7b463f04b1665ae0007a6",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_config",
+        "sql_hash": "3cc4ead7fb49f1f702aa4216d7ca04f44fae1d5e55016b160224d59dca10baa0",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_content",
+        "sql_hash": "8558a7e16748968d53fd73e624a65911fea2dd553a6bc9216677f8f5a0dc4d4c",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_data",
+        "sql_hash": "ba1aeecddfed1e829bb0a2d3f6a3502d92880cf4f6578c51a28168ca553d3080",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_delete",
+        "sql_hash": "45931ac31821f1d09656f745528735a1ecd42bd49a15b3b4d8c08f0626c679ed",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_docsize",
+        "sql_hash": "656e7cc830cf2fd20b43ff1a24da88d9ef49b918d662b6245630850fd3b59aa3",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_idx",
+        "sql_hash": "833b422acd8ec56b59932fb71427adabab9a99b92b51ffb438778876661282c9",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_insert",
+        "sql_hash": "c541a1af5b0c91e1f2c6926d1a05dd26c172063ff492c66fb3170ecff7a7f3e0",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_trigram",
+        "sql_hash": "bff4d5a48fa8a5f669b5fb50c81e118be47872b5e5909592e8b5d1d62a98fbf2",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_config",
+        "sql_hash": "8951ea02a0cc92214e975e93ada53bb387c09212867058534e5324ebe6190f50",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_content",
+        "sql_hash": "2cc30e9901835af66c8c28a5b6cda476fd3c2fa106e1144bc31c157aa14bb414",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_data",
+        "sql_hash": "4dad8b58fd8dd38a8f42fd0992aedc1b508e612d7f1186a3b588a1d041fa5640",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_delete",
+        "sql_hash": "9096e76f44862a0ebe694899141578b8375e9e8761ad665ffd0a91d7f6d2f0da",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_trigram_docsize",
+        "sql_hash": "ebd01179364f026740e1f04a234a247b89f59711e1c2371e913d01659944c0af",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_idx",
+        "sql_hash": "83e75826bde8d72fdd37b7a33410a40bafc2a8039173fd3fcc4d2fb8e715dc56",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_insert",
+        "sql_hash": "aaccde463f8b10916035142d603f114afd593e05aad8bcebe457b42795a93644",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_trigram_update",
+        "sql_hash": "a8e5c7818362b3ebc6cd665be6592da02046b31fb5258103d44d0f036eb97b87",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_update",
+        "sql_hash": "752c8a86d36f156c70ec86ef8fe5ec91e0c805083a029e794715dd2e0f9fa91f",
+        "type": "trigger"
+      },
+      {
+        "name": "schema_version",
+        "sql_hash": "df18bab70f910e36ede5114a58b8c02ae41e67fc8e559e7837aa4685a43245fb",
+        "type": "table"
+      },
+      {
+        "name": "session_model_usage",
+        "sql_hash": "fce53b854861325404a9e082f659515698740186ce29df077a5ebacbaf9fcb04",
+        "type": "table"
+      },
+      {
+        "name": "sessions",
+        "sql_hash": "fe9c24505179b51925e3be6b48cc9451e267491818ac7373401d088a8a517e7e",
+        "type": "table"
+      },
+      {
+        "name": "sqlite_autoindex_async_delegations_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_compression_locks_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_delivery_obligations_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_gateway_routing_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_session_model_usage_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_sessions_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_state_meta_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_sequence",
+        "sql_hash": "4cb1eaf14467f226196148cb5688569660cb290d414bae4c1c450b149b62befd",
+        "type": "table"
+      },
+      {
+        "name": "state_meta",
+        "sql_hash": "1ca0f7b7df9cd216aaa2fa2b2dbacae343c5614905a446966bb233576ed51e08",
+        "type": "table"
+      }
+    ],
+    "schema_version_table": 23,
+    "sessions_table_readable": "FAIL",
+    "shadow_assessment": [
+      {
+        "expected_shadow_tables": [
+          "messages_fts_config",
+          "messages_fts_content",
+          "messages_fts_data",
+          "messages_fts_docsize",
+          "messages_fts_idx"
+        ],
+        "fts_table": "messages_fts",
+        "missing_shadow_tables": [],
+        "present_shadow_tables": [
+          "messages_fts_config",
+          "messages_fts_content",
+          "messages_fts_data",
+          "messages_fts_docsize",
+          "messages_fts_idx"
+        ],
+        "shadow_table_readability": {
+          "messages_fts_config": {
+            "count": 1,
+            "status": "PASS"
+          },
+          "messages_fts_content": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_data": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_docsize": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_idx": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          }
+        },
+        "unexpected_shadow_tables": []
+      },
+      {
+        "expected_shadow_tables": [
+          "messages_fts_trigram_config",
+          "messages_fts_trigram_content",
+          "messages_fts_trigram_data",
+          "messages_fts_trigram_docsize",
+          "messages_fts_trigram_idx"
+        ],
+        "fts_table": "messages_fts_trigram",
+        "missing_shadow_tables": [],
+        "present_shadow_tables": [
+          "messages_fts_trigram_config",
+          "messages_fts_trigram_content",
+          "messages_fts_trigram_data",
+          "messages_fts_trigram_docsize",
+          "messages_fts_trigram_idx"
+        ],
+        "shadow_table_readability": {
+          "messages_fts_trigram_config": {
+            "count": 1,
+            "status": "PASS"
+          },
+          "messages_fts_trigram_content": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_trigram_data": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_trigram_docsize": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_trigram_idx": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          }
+        },
+        "unexpected_shadow_tables": []
+      }
+    ],
+    "table_list_readable": "PASS",
+    "triggers": [
+      {
+        "name": "messages_fts_delete",
+        "sql_hash": "45931ac31821f1d09656f745528735a1ecd42bd49a15b3b4d8c08f0626c679ed"
+      },
+      {
+        "name": "messages_fts_insert",
+        "sql_hash": "c541a1af5b0c91e1f2c6926d1a05dd26c172063ff492c66fb3170ecff7a7f3e0"
+      },
+      {
+        "name": "messages_fts_trigram_delete",
+        "sql_hash": "9096e76f44862a0ebe694899141578b8375e9e8761ad665ffd0a91d7f6d2f0da"
+      },
+      {
+        "name": "messages_fts_trigram_insert",
+        "sql_hash": "aaccde463f8b10916035142d603f114afd593e05aad8bcebe457b42795a93644"
+      },
+      {
+        "name": "messages_fts_trigram_update",
+        "sql_hash": "a8e5c7818362b3ebc6cd665be6592da02046b31fb5258103d44d0f036eb97b87"
+      },
+      {
+        "name": "messages_fts_update",
+        "sql_hash": "752c8a86d36f156c70ec86ef8fe5ec91e0c805083a029e794715dd2e0f9fa91f"
+      }
+    ]
+  },
+  "system_python": {
+    "core_counts": {
+      "calls": {
+        "error_message_sanitized": "no such table: calls",
+        "error_type": "OperationalError",
+        "status": "FAIL"
+      },
+      "events": {
+        "error_message_sanitized": "no such table: events",
+        "error_type": "OperationalError",
+        "status": "FAIL"
+      },
+      "gateway_routing": {
+        "count": 0,
+        "status": "PASS"
+      },
+      "messages": {
+        "error_message_sanitized": "database disk image is malformed",
+        "error_type": "DatabaseError",
+        "status": "FAIL"
+      },
+      "session_model_usage": {
+        "count": 569,
+        "status": "PASS"
+      },
+      "sessions": {
+        "error_message_sanitized": "database disk image is malformed",
+        "error_type": "DatabaseError",
+        "status": "FAIL"
+      },
+      "state_meta": {
+        "count": 3,
+        "status": "PASS"
+      },
+      "tools": {
+        "error_message_sanitized": "no such table: tools",
+        "error_type": "OperationalError",
+        "status": "FAIL"
+      },
+      "turns": {
+        "error_message_sanitized": "no such table: turns",
+        "error_type": "OperationalError",
+        "status": "FAIL"
+      }
+    },
+    "core_data_loss_indicator": "CORE_READ_FAILURE",
+    "core_schema_readable": "PASS",
+    "core_tables_readable": "FAIL",
+    "database_path": "/home/latios/.hermes/state.db",
+    "errors": [],
+    "fts_access_matrix": [
+      {
+        "constructor": "FAIL",
+        "constructor_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts",
+          "error_type": "DatabaseError"
+        },
+        "count": "FAIL",
+        "count_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts",
+          "error_type": "DatabaseError"
+        },
+        "fts_table": "messages_fts",
+        "match_query": "FAIL",
+        "match_query_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts",
+          "error_type": "DatabaseError"
+        },
+        "runtime": "/usr/bin/python3"
+      },
+      {
+        "constructor": "FAIL",
+        "constructor_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+          "error_type": "DatabaseError"
+        },
+        "count": "FAIL",
+        "count_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+          "error_type": "DatabaseError"
+        },
+        "fts_table": "messages_fts_trigram",
+        "match_query": "FAIL",
+        "match_query_error": {
+          "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+          "error_type": "DatabaseError"
+        },
+        "runtime": "/usr/bin/python3"
+      }
+    ],
+    "fts_schema": [
+      {
+        "column_list": [
+          "content"
+        ],
+        "content_rowid": null,
+        "content_table": null,
+        "prefix_options": [],
+        "schema_sql_hash": "bfe672ecdefc4c7f460128c45480cf6415c3f10f6da7b463f04b1665ae0007a6",
+        "shadow_table_count": 10,
+        "table_name": "messages_fts",
+        "tokenizer": "default",
+        "trigger_count": 6,
+        "virtual_table_module": "fts5"
+      },
+      {
+        "column_list": [
+          "content"
+        ],
+        "content_rowid": null,
+        "content_table": null,
+        "prefix_options": [],
+        "schema_sql_hash": "bff4d5a48fa8a5f669b5fb50c81e118be47872b5e5909592e8b5d1d62a98fbf2",
+        "shadow_table_count": 5,
+        "table_name": "messages_fts_trigram",
+        "tokenizer": "trigram",
+        "trigger_count": 3,
+        "virtual_table_module": "fts5"
+      }
+    ],
+    "integrity_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    },
+    "messages_table_readable": "FAIL",
+    "open": "PASS",
+    "pragma_application_id": 0,
+    "pragma_schema_version": 68,
+    "pragma_user_version": 0,
+    "quick_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    },
+    "read_only_uri": true,
+    "schema_objects": [
+      {
+        "name": "async_delegations",
+        "sql_hash": "eca14e44bf55550f7744ca27e8cde96ffe36f633a82ebbcde0ea76509f31997a",
+        "type": "table"
+      },
+      {
+        "name": "compression_locks",
+        "sql_hash": "6802d8cfc1ea0ae77b50f336bf27798f548bb7887d4b31ed11722fc9522b9f99",
+        "type": "table"
+      },
+      {
+        "name": "delivery_obligations",
+        "sql_hash": "e48ec85ec91539670a23d742ff063d0da0e28842130c8943740826fd16dc09d7",
+        "type": "table"
+      },
+      {
+        "name": "gateway_routing",
+        "sql_hash": "b828dee3886b25938ef25c7bc79ceadc42c586fc441a00d200f92fbb109263be",
+        "type": "table"
+      },
+      {
+        "name": "idx_async_delegations_delivery",
+        "sql_hash": "2fc20b645c1c935156dfbcfe60281fa0da5198b76679e4bfc4a7bada43e2155a",
+        "type": "index"
+      },
+      {
+        "name": "idx_compression_locks_expires",
+        "sql_hash": "695eaee315e1661f251a6673ddd620507a5d730c48925b86acda64469f3e281c",
+        "type": "index"
+      },
+      {
+        "name": "idx_messages_active_null",
+        "sql_hash": "370df6e39e1d03a6570d0c05894336dbd00daf99f2bdd1552773c390fc309e09",
+        "type": "index"
+      },
+      {
+        "name": "idx_messages_platform_msg_id",
+        "sql_hash": "fb010ac58133ae81d9a30e0e7ebdc2075a90b14339abe775a0bb422d11ab7b0a",
+        "type": "index"
+      },
+      {
+        "name": "idx_messages_session",
+        "sql_hash": "c0c549078b6009a2529475ffa212f72a7b0198267b6f7edd1b6772531e15a738",
+        "type": "index"
+      },
+      {
+        "name": "idx_messages_session_active",
+        "sql_hash": "10fd5ff7d34a817c4b7869dd4cb0548a3e058fc81f08710d906b855fa1afdad6",
+        "type": "index"
+      },
+      {
+        "name": "idx_session_model_usage_model",
+        "sql_hash": "7e528c9d32eefa8f7859a205ef2e8f0d9ea42f25decfb5a535d91af4f386b3a1",
+        "type": "index"
+      },
+      {
+        "name": "idx_session_model_usage_session",
+        "sql_hash": "371b485c5f08427b1d99c93f307f3a52e91d097e1bca8702816a55455482ca60",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_gateway_peer",
+        "sql_hash": "eed77850d2d878b58b351dc31a8e6432a2e6e5e7dcb946ac20aa59517689267e",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_handoff_state",
+        "sql_hash": "39b49982efb110b551418c6dd88524f371b74de6109e225f35d29b33c4b7c6d3",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_parent",
+        "sql_hash": "1f40e4e583323594fa5ef2541684e6a67d3a2733ebc577b40d1a434017d6dcf3",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_session_key",
+        "sql_hash": "38fb7154bcf33d32f70ae97d7da11f4002fb75dec034af7fc502fb6b35ed5974",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_source",
+        "sql_hash": "b4de3d62588e9d4a4a9a3bdcc75a33c9ed9fdc6606fa6e26d01e9f48b540d956",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_source_id",
+        "sql_hash": "a3e3d60733351cc824a4546ca257a05b30d2b345e68aca7faaa728cb7768d319",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_started",
+        "sql_hash": "f360c4a7f743586c85a7571b634a30d4e1d3c8fd4da93eb54d9f67fe0ab2f30c",
+        "type": "index"
+      },
+      {
+        "name": "idx_sessions_title_unique",
+        "sql_hash": "d75d8780be7e382a2192c87b35b2783c22fc74d887378ea540956b79b06a846a",
+        "type": "index"
+      },
+      {
+        "name": "messages",
+        "sql_hash": "91f2b230d1a8418770fd9d6f0d94efb05fbb2e8783f0cb53c3b788039e39817b",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts",
+        "sql_hash": "bfe672ecdefc4c7f460128c45480cf6415c3f10f6da7b463f04b1665ae0007a6",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_config",
+        "sql_hash": "3cc4ead7fb49f1f702aa4216d7ca04f44fae1d5e55016b160224d59dca10baa0",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_content",
+        "sql_hash": "8558a7e16748968d53fd73e624a65911fea2dd553a6bc9216677f8f5a0dc4d4c",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_data",
+        "sql_hash": "ba1aeecddfed1e829bb0a2d3f6a3502d92880cf4f6578c51a28168ca553d3080",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_delete",
+        "sql_hash": "45931ac31821f1d09656f745528735a1ecd42bd49a15b3b4d8c08f0626c679ed",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_docsize",
+        "sql_hash": "656e7cc830cf2fd20b43ff1a24da88d9ef49b918d662b6245630850fd3b59aa3",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_idx",
+        "sql_hash": "833b422acd8ec56b59932fb71427adabab9a99b92b51ffb438778876661282c9",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_insert",
+        "sql_hash": "c541a1af5b0c91e1f2c6926d1a05dd26c172063ff492c66fb3170ecff7a7f3e0",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_trigram",
+        "sql_hash": "bff4d5a48fa8a5f669b5fb50c81e118be47872b5e5909592e8b5d1d62a98fbf2",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_config",
+        "sql_hash": "8951ea02a0cc92214e975e93ada53bb387c09212867058534e5324ebe6190f50",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_content",
+        "sql_hash": "2cc30e9901835af66c8c28a5b6cda476fd3c2fa106e1144bc31c157aa14bb414",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_data",
+        "sql_hash": "4dad8b58fd8dd38a8f42fd0992aedc1b508e612d7f1186a3b588a1d041fa5640",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_delete",
+        "sql_hash": "9096e76f44862a0ebe694899141578b8375e9e8761ad665ffd0a91d7f6d2f0da",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_trigram_docsize",
+        "sql_hash": "ebd01179364f026740e1f04a234a247b89f59711e1c2371e913d01659944c0af",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_idx",
+        "sql_hash": "83e75826bde8d72fdd37b7a33410a40bafc2a8039173fd3fcc4d2fb8e715dc56",
+        "type": "table"
+      },
+      {
+        "name": "messages_fts_trigram_insert",
+        "sql_hash": "aaccde463f8b10916035142d603f114afd593e05aad8bcebe457b42795a93644",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_trigram_update",
+        "sql_hash": "a8e5c7818362b3ebc6cd665be6592da02046b31fb5258103d44d0f036eb97b87",
+        "type": "trigger"
+      },
+      {
+        "name": "messages_fts_update",
+        "sql_hash": "752c8a86d36f156c70ec86ef8fe5ec91e0c805083a029e794715dd2e0f9fa91f",
+        "type": "trigger"
+      },
+      {
+        "name": "schema_version",
+        "sql_hash": "df18bab70f910e36ede5114a58b8c02ae41e67fc8e559e7837aa4685a43245fb",
+        "type": "table"
+      },
+      {
+        "name": "session_model_usage",
+        "sql_hash": "fce53b854861325404a9e082f659515698740186ce29df077a5ebacbaf9fcb04",
+        "type": "table"
+      },
+      {
+        "name": "sessions",
+        "sql_hash": "fe9c24505179b51925e3be6b48cc9451e267491818ac7373401d088a8a517e7e",
+        "type": "table"
+      },
+      {
+        "name": "sqlite_autoindex_async_delegations_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_compression_locks_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_delivery_obligations_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_gateway_routing_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_session_model_usage_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_sessions_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_autoindex_state_meta_1",
+        "sql_hash": null,
+        "type": "index"
+      },
+      {
+        "name": "sqlite_sequence",
+        "sql_hash": "4cb1eaf14467f226196148cb5688569660cb290d414bae4c1c450b149b62befd",
+        "type": "table"
+      },
+      {
+        "name": "state_meta",
+        "sql_hash": "1ca0f7b7df9cd216aaa2fa2b2dbacae343c5614905a446966bb233576ed51e08",
+        "type": "table"
+      }
+    ],
+    "schema_version_table": 23,
+    "sessions_table_readable": "FAIL",
+    "shadow_assessment": [
+      {
+        "expected_shadow_tables": [
+          "messages_fts_config",
+          "messages_fts_content",
+          "messages_fts_data",
+          "messages_fts_docsize",
+          "messages_fts_idx"
+        ],
+        "fts_table": "messages_fts",
+        "missing_shadow_tables": [],
+        "present_shadow_tables": [
+          "messages_fts_config",
+          "messages_fts_content",
+          "messages_fts_data",
+          "messages_fts_docsize",
+          "messages_fts_idx"
+        ],
+        "shadow_table_readability": {
+          "messages_fts_config": {
+            "count": 1,
+            "status": "PASS"
+          },
+          "messages_fts_content": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_data": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_docsize": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_idx": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          }
+        },
+        "unexpected_shadow_tables": []
+      },
+      {
+        "expected_shadow_tables": [
+          "messages_fts_trigram_config",
+          "messages_fts_trigram_content",
+          "messages_fts_trigram_data",
+          "messages_fts_trigram_docsize",
+          "messages_fts_trigram_idx"
+        ],
+        "fts_table": "messages_fts_trigram",
+        "missing_shadow_tables": [],
+        "present_shadow_tables": [
+          "messages_fts_trigram_config",
+          "messages_fts_trigram_content",
+          "messages_fts_trigram_data",
+          "messages_fts_trigram_docsize",
+          "messages_fts_trigram_idx"
+        ],
+        "shadow_table_readability": {
+          "messages_fts_trigram_config": {
+            "count": 1,
+            "status": "PASS"
+          },
+          "messages_fts_trigram_content": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_trigram_data": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_trigram_docsize": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          },
+          "messages_fts_trigram_idx": {
+            "error_message_sanitized": "database disk image is malformed",
+            "error_type": "DatabaseError",
+            "status": "FAIL"
+          }
+        },
+        "unexpected_shadow_tables": []
+      }
+    ],
+    "table_list_readable": "PASS",
+    "triggers": [
+      {
+        "name": "messages_fts_delete",
+        "sql_hash": "45931ac31821f1d09656f745528735a1ecd42bd49a15b3b4d8c08f0626c679ed"
+      },
+      {
+        "name": "messages_fts_insert",
+        "sql_hash": "c541a1af5b0c91e1f2c6926d1a05dd26c172063ff492c66fb3170ecff7a7f3e0"
+      },
+      {
+        "name": "messages_fts_trigram_delete",
+        "sql_hash": "9096e76f44862a0ebe694899141578b8375e9e8761ad665ffd0a91d7f6d2f0da"
+      },
+      {
+        "name": "messages_fts_trigram_insert",
+        "sql_hash": "aaccde463f8b10916035142d603f114afd593e05aad8bcebe457b42795a93644"
+      },
+      {
+        "name": "messages_fts_trigram_update",
+        "sql_hash": "a8e5c7818362b3ebc6cd665be6592da02046b31fb5258103d44d0f036eb97b87"
+      },
+      {
+        "name": "messages_fts_update",
+        "sql_hash": "752c8a86d36f156c70ec86ef8fe5ec91e0c805083a029e794715dd2e0f9fa91f"
+      }
+    ]
+  },
+  "system_sqlite_cli": {}
+}

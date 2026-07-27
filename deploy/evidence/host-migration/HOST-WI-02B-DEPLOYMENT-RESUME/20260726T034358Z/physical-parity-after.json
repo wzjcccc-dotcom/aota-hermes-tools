@@ -1,0 +1,6 @@
+{
+  "physical_target_parity": "PASS",
+  "schema_version": 1,
+  "sha256_verification": "PASS",
+  "verify_output": "DEPLOY_VERIFY_PASS"
+}

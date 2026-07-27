@@ -1,0 +1,13 @@
+{
+  "semantics": [
+    {"kind": "UI_ONLY_NOTIFICATION", "status": "PARTIAL", "finding": "AOTA outbox/adapter defines a sanitized event, but current Desktop boundary is not integrated"},
+    {"kind": "SESSION_MESSAGE_APPEND", "status": "SUPPORTED_NATIVE_ONLY", "finding": "Hermes native delivery creates a synthetic new turn whose response is persisted in the target session; AOTA does not append"},
+    {"kind": "LIVE_SESSION_EVENT", "status": "SUPPORTED_NATIVE_WHILE_CONNECTED", "finding": "gateway/CLI watchers deliver native completion; Desktop receives normal gateway stream while connected"},
+    {"kind": "AUTOMATIC_MODEL_RESUME", "status": "PARTIAL_NATIVE_ONLY", "finding": "native synthetic turn can run normal session handling; AOTA Profile Task is not wired into it"},
+    {"kind": "DURABLE_OFFLINE_REPLAY", "status": "PARTIAL", "finding": "native backend restores pending completion rows; Desktop client has no event replay cursor; AOTA outbox remains pending but reconnect drain is deferred"},
+    {"kind": "CROSS_PROFILE_PARENT_DELIVERY", "status": "UNSUPPORTED", "finding": "no cross-profile state.db route or native ownership proof"}
+  ],
+  "native_delivery_guarantee": "at_least_once",
+  "native_duplicate_risk": "yes around crash/ambiguous adapter acceptance; durable claims reduce competing-consumer duplication but do not provide exactly-once end-to-end",
+  "aota_outbox_guarantee": "per-event pending-to-delivered atomic rename; write and delivery are best-effort; actual WebUI integration/reconnect is deferred by P11-L.1B"
+}

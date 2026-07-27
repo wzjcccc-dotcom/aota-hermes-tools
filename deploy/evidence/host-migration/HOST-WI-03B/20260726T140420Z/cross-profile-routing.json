@@ -1,0 +1,8 @@
+{
+  "profile_resolution": "parent_profile -> served profile runtime -> profile-local SessionDB",
+  "session_resolution": "exact frozen parent_session_ref",
+  "ownership_check": "row profile_name and non-ended session must match",
+  "unserved_profile": "PROFILE_RUNTIME_UNAVAILABLE retryable/fail-closed",
+  "cross_profile_database_append": false,
+  "second_gateway_runtime": false
+}

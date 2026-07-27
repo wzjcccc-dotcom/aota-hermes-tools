@@ -1,0 +1,51 @@
+{
+  "aota_forge": {
+    "ahead_count": "0",
+    "behind_count": "0",
+    "branch": "main",
+    "commit": "b7a5a5de3a5907bb8c5b80b428c722d80e862993",
+    "is_git_checkout": true,
+    "remote_v": "origin\thttps://github.com/wzjcccc-dotcom/aota-hermes-tools.git (fetch)\norigin\thttps://github.com/wzjcccc-dotcom/aota-hermes-tools.git (push)",
+    "root": "/home/latios/workspace/aota-hermes-tools",
+    "status_short_branch": "## main...origin/main\n M deploy/profile-runtime-assembly.yaml\n M plugin/aota-tools/_followup_task_create.py\n M scripts/aota_forge_plan_package.py\n M scripts/profile_runtime_assembly.py\n?? deploy/evidence/host-migration/\n?? docs/aota-host-migration/\n?? scripts/_host_symlink_projection.py\n?? scripts/capture-host-migration-docker-baseline.py\n?? scripts/capture-host-wi-02b-deployment-resume.py\n?? scripts/capture-host-wi-02b.py\n?? scripts/capture-host-wi-02b1.py\n?? scripts/review-host-wi-02b1.py\n?? scripts/verify-host-symlink-projection.py\n?? scripts/verify-host-wi-02b2.py",
+    "upstream": "origin/main"
+  },
+  "branch_switch_fetch_pull_merge_reset": "not attempted",
+  "canonical_launcher": {
+    "exists": true,
+    "path": "/home/latios/.local/bin/hermes-host",
+    "sha256": "46cc6c2b7b954d5ffb8ba904e13d9ae01ede30d0e453345fa2672cefc2c1bc2a",
+    "size_bytes": 801
+  },
+  "captured_at_utc": "20260726T042622Z",
+  "git_mutation": "not attempted",
+  "hermes_source": {
+    "ahead_count": "0",
+    "behind_count": "0",
+    "branch": "main",
+    "commit": "689b51bef68f9ec95b638121bb9c7fefa3703fb2",
+    "is_git_checkout": true,
+    "remote_v": "origin\thttps://github.com/NousResearch/hermes-agent.git (fetch) [blob:none]\norigin\thttps://github.com/NousResearch/hermes-agent.git (push)",
+    "root": "/home/latios/workspace/hermes-agent-host",
+    "status_short_branch": "## main...origin/main",
+    "upstream": "origin/main"
+  },
+  "network_mutation": "not attempted",
+  "official_executable": {
+    "exists": true,
+    "path": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+    "sha256": "20b6090fb45261e897c446a2021746be67e66caa1c548523b91482cdf00af81f",
+    "size_bytes": 329
+  },
+  "overlays": {
+    "ahead_count": "",
+    "behind_count": "",
+    "branch": "",
+    "commit": "",
+    "is_git_checkout": false,
+    "remote_v": "",
+    "root": "/home/latios/workspace/hermes-overrides",
+    "status_short_branch": "",
+    "upstream": ""
+  }
+}

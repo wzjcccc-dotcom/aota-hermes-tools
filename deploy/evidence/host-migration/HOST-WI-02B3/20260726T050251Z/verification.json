@@ -1,0 +1,25 @@
+{
+  "DB_MUTATED": "no",
+  "MESSAGE_CONTENT_EXPOSED": "no",
+  "RUNTIME_QUIESCENT": "yes",
+  "SESSION_CONTENT_EXPOSED": "no",
+  "SHM_MUTATED": "no",
+  "SOURCE_VALIDATION": "FAIL",
+  "WAL_MUTATED": "no",
+  "runtime_fixture_status": {
+    "hermes_python": {
+      "FTS5_CREATE": "PASS",
+      "FTS5_INSERT": "PASS",
+      "FTS5_QUERY": "PASS",
+      "TRIGRAM_CREATE": "PASS",
+      "TRIGRAM_QUERY": "PASS"
+    },
+    "system_python": {
+      "FTS5_CREATE": "PASS",
+      "FTS5_INSERT": "PASS",
+      "FTS5_QUERY": "PASS",
+      "TRIGRAM_CREATE": "PASS",
+      "TRIGRAM_QUERY": "PASS"
+    }
+  }
+}

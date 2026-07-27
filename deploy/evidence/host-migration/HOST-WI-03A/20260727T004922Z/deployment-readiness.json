@@ -1,0 +1,7 @@
+{
+  "activation_targets_started": false,
+  "docker_started": false,
+  "known_false_positive": "scripts/capture-host-migration-docker-baseline.py:871",
+  "readiness": "PASS_WITH_KNOWN_FALSE_POSITIVE_ALLOWLIST",
+  "schema_version": 1
+}

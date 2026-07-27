@@ -1,0 +1,12 @@
+{
+  "coder_profile_toolset_selected": true,
+  "debugger_profile_toolset_selected": true,
+  "parent_toolset_inherited": false,
+  "profile_config_authority": "named profile config, not parent session tool list",
+  "reviewer_read_only_preserved": true,
+  "schema_version": 1,
+  "status": "PASS",
+  "task_main_dispatch_toolset_preserved": true,
+  "task_main_terminal_granted": false,
+  "worker_toolset_source": "WORKER_PROFILE"
+}

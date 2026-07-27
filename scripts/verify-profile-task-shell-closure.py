@@ -109,7 +109,7 @@ def _fixture(root: Path, *, prompt: str, timeout: int = 0, credential: bool = Tr
 
 def _run_case(prompt: str, **kwargs) -> tuple[dict, Path, int]:
     launcher = _load("_profile_task_launcher")
-    with tempfile.TemporaryDirectory(prefix="aota-shell-closure-") as raw:
+    with tempfile.TemporaryDirectory(prefix="aota-shell-closure-", dir="/home/latios") as raw:
         root = Path(raw)
         manifest, task_dir = _fixture(root, prompt=prompt, **kwargs)
         manifest_path = task_dir / f"launch.{manifest['task_id']}.json"
@@ -117,7 +117,13 @@ def _run_case(prompt: str, **kwargs) -> tuple[dict, Path, int]:
         old = {key: os.environ.get(key) for key in ("AOTA_PROFILE_TASK_ROOT", "AOTA_RUNTIME_ROOT", "HERMES_HOME")}
         os.environ.update({"AOTA_PROFILE_TASK_ROOT": str(root / "tasks"), "AOTA_RUNTIME_ROOT": str(root / "runtime"), "HERMES_HOME": str(root / ".hermes")})
         try:
-            rc = launcher.run(str(manifest_path))
+            runner_module = _load("_profile_task_runner")
+            rc = launcher.run(
+                str(manifest_path),
+                runner_inspector=lambda path: runner_module.inspect_runner(
+                    path, allowed_override_paths=[str(manifest["worker"]["runner"])]
+                ),
+            )
         finally:
             for key, value in old.items():
                 if value is None:
@@ -130,6 +136,9 @@ def _run_case(prompt: str, **kwargs) -> tuple[dict, Path, int]:
         snapshot = Path(tempfile.mkdtemp(prefix="aota-shell-evidence-"))
         (snapshot / "receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
         (snapshot / "prompt.txt").write_text((task_dir / "argv-prompt.txt").read_text(encoding="utf-8") if (task_dir / "argv-prompt.txt").exists() else "", encoding="utf-8")
+        log_path = task_dir / f"worker.{manifest['task_id']}.log"
+        if log_path.exists():
+            (snapshot / "worker.log").write_text(log_path.read_text(encoding="utf-8"), encoding="utf-8")
         return receipt, snapshot, rc
 
 

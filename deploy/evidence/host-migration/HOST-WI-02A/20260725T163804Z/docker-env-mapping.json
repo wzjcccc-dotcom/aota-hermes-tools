@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-02A",
+  "secret_values_recorded": false,
+  "mappings": [
+    {"key": "HERMES_HOME", "present": true, "source": "docker-compose.yml", "destination": "/home/latios/.hermes", "redacted": true},
+    {"key": "API_SERVER_ENABLED", "present": true, "source": "docker-compose.yml", "destination": "not_migrated_desktop_ssh", "redacted": true},
+    {"key": "API_SERVER_HOST", "present": true, "source": "docker-compose.yml", "destination": "not_migrated_desktop_ssh", "redacted": true},
+    {"key": "API_SERVER_PORT", "present": true, "source": "docker-compose.yml", "destination": "not_migrated_desktop_ssh", "redacted": true},
+    {"key": "API_SERVER_KEY", "present": true, "source": "docker-compose.yml/.env", "destination": "not_migrated_desktop_ssh", "redacted": true},
+    {"key": "OPENAI_API_KEY", "present": true, "source": "docker-compose.yml/.env", "destination": "existing_HERMES_HOME_env_authority", "redacted": true},
+    {"key": "OPENAI_API_BASE_URL", "present": true, "source": "docker-compose.yml/.env", "destination": "existing_HERMES_HOME_env_authority", "redacted": true},
+    {"key": "AMF_BASE_URL", "present": true, "source": "docker-compose.yml", "destination": "http://127.0.0.1:8791", "redacted": true},
+    {"key": "AOTA_TRUSTED_PRINCIPAL", "present": true, "source": "docker-compose.yml/.env", "destination": "private_runtime_env", "redacted": true},
+    {"key": "AOTA_TRUSTED_AUTHORITIES", "present": true, "source": "docker-compose.yml/.env", "destination": "private_runtime_env", "redacted": true},
+    {"key": "AOTA_TRUSTED_WORKSPACE_ID", "present": true, "source": "docker-compose.yml/.env", "destination": "private_runtime_env", "redacted": true},
+    {"key": "AOTA_CODEGRAPH_EXECUTABLE", "present": true, "source": "docker-compose.yml + Host CodeGraph config", "destination": "Host managed CodeGraph executable", "redacted": true},
+    {"key": "AOTA_CODEGRAPH_RUNTIME_ROOT", "present": true, "source": "docker-compose.yml + Host CodeGraph config", "destination": "Host managed CodeGraph runtime", "redacted": true},
+    {"key": "AOTA_RUNTIME_ROOT", "present": true, "source": "docker-compose.yml", "destination": "/home/latios/.hermes/aota-runtime", "redacted": true},
+    {"key": "AOTA_PROFILE_TASK_ROOT", "present": true, "source": "docker-compose.yml", "destination": "/home/latios/.hermes/aota-runtime/profile-tasks", "redacted": true},
+    {"key": "AOTA_WEBUI_ATTACHMENT_ROOT", "present": true, "source": "docker-compose.yml", "destination": "not_migrated_webui_specific", "redacted": true},
+    {"key": "AOTA_WEBUI_ATTACHMENT_REF_ROOT", "present": true, "source": "docker-compose.yml", "destination": "not_migrated_webui_specific", "redacted": true},
+    {"key": "AOTA_CANONICAL_WORKSPACE_ROOT", "present": true, "source": "docker-compose.yml", "destination": "/home/latios/workspace", "redacted": true},
+    {"key": "AOTA_WORKSPACE_REGISTRY_PATH", "present": true, "source": "docker-compose.yml", "destination": "/home/latios/workspace/.aota/workspaces.json", "redacted": true}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "module": "gateway/aota_parent_wake.py",
+  "pending_root": "outbox/<workspace_id>/pending",
+  "processing_root": "outbox/<workspace_id>/processing",
+  "delivered_root": "outbox/<workspace_id>/delivered",
+  "failed_root": "outbox/<workspace_id>/failed",
+  "receipt_root": "outbox/<workspace_id>/delivery-receipts",
+  "payload_limit_bytes": 65536,
+  "poll_seconds_floor": 1.0,
+  "native_wake": "gateway.wake.deliver_wake"
+}

@@ -1,0 +1,9 @@
+{
+  "final": "NEEDS_CONTROLLED_GLOBAL_DATABASE_RECOVERY",
+  "latest_evidence_root": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-02B3/20260726T051208Z",
+  "closure_evidence_root": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-02B3/20260726T051208Z",
+  "closure_work_item": "HOST-WI-02B3",
+  "previous_deployment_resume_evidence_root": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-02B-DEPLOYMENT-RESUME/20260726T034358Z",
+  "schema_version": 1,
+  "work_item": "HOST-WI-02B"
+}

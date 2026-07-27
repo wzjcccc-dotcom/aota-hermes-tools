@@ -15,6 +15,8 @@ from typing import Any
 
 import yaml
 
+import _host_symlink_projection as projection
+
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSEMBLY = ROOT / "deploy" / "profile-runtime-assembly.yaml"
@@ -28,6 +30,22 @@ def load_assembly() -> dict[str, Any]:
     profiles = data.get("profiles")
     if not isinstance(profiles, dict) or set(profiles) != PROFILES:
         raise ValueError("profile runtime assembly must declare exactly the canonical profiles")
+    runner = data.get("profile_task_runner")
+    expected_runner = {
+        "contract_version": 2,
+        "default_runner": "/home/latios/.local/bin/hermes-host",
+        "official_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+        "forbidden_runner": "/usr/local/bin/hermes",
+        "docker_runner_forbidden": True,
+        "path_fallback_allowed": False,
+        "shell_execution_allowed": False,
+        "worker_toolset_source": "WORKER_PROFILE",
+        "parent_toolset_inherited": False,
+        "deployment_ownership": "host_migration_launcher",
+    }
+    if runner != expected_runner:
+        raise ValueError("profile task runner contract is not canonical")
+    projection.load_projection_contract(data)
     return data
 
 
@@ -293,13 +311,19 @@ def projection_errors(runtime_root: Path) -> list[str]:
         data = load_assembly()
     except Exception:
         return errors
-    runtime_root = runtime_root.resolve(strict=False)
+    runtime_root = Path(runtime_root)
     global_plugin = runtime_root / "plugins" / "aota-tools"
     if global_plugin.is_dir() and path_escapes(global_plugin, runtime_root):
         errors.append("runtime:global-plugin-escape")
     for profile, spec in data["profiles"].items():
         profile_root = runtime_root / "profiles" / profile
         local_plugin = profile_root / "plugins" / "aota-tools"
+        declared_projection = next((item for item in projection.load_projection_contract(data) if item["profile"] == profile), None)
+        if declared_projection is not None and local_plugin.is_symlink():
+            assessment = projection.validate_projection(runtime_root, declared_projection)
+            if not assessment["valid"]:
+                errors.append(f"runtime:{profile}:symlink-projection:{assessment['reason']}")
+            continue
         if not local_plugin.is_dir() or path_escapes(local_plugin, runtime_root):
             errors.append(f"runtime:{profile}:plugin-projection")
         for source in sorted((ROOT / "plugin" / "aota-tools").glob("*.py")):

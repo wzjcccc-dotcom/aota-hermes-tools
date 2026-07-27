@@ -1,0 +1,55 @@
+{
+  "contract_schema_version": 1,
+  "exact_profile_allowlist": true,
+  "exact_target_required": true,
+  "manifest_driven": true,
+  "projections": [
+    {
+      "logical_path": "profiles/task-main/plugins/aota-tools",
+      "profile": "task-main",
+      "projection_id": "profile_plugin_global_projection:task-main",
+      "target_path": "plugins/aota-tools",
+      "type": "profile_plugin_global_projection",
+      "verify_logical_path": true,
+      "write_mode": "canonical_target_only"
+    },
+    {
+      "logical_path": "profiles/architect/plugins/aota-tools",
+      "profile": "architect",
+      "projection_id": "profile_plugin_global_projection:architect",
+      "target_path": "plugins/aota-tools",
+      "type": "profile_plugin_global_projection",
+      "verify_logical_path": true,
+      "write_mode": "canonical_target_only"
+    },
+    {
+      "logical_path": "profiles/coder/plugins/aota-tools",
+      "profile": "coder",
+      "projection_id": "profile_plugin_global_projection:coder",
+      "target_path": "plugins/aota-tools",
+      "type": "profile_plugin_global_projection",
+      "verify_logical_path": true,
+      "write_mode": "canonical_target_only"
+    },
+    {
+      "logical_path": "profiles/debugger/plugins/aota-tools",
+      "profile": "debugger",
+      "projection_id": "profile_plugin_global_projection:debugger",
+      "target_path": "plugins/aota-tools",
+      "type": "profile_plugin_global_projection",
+      "verify_logical_path": true,
+      "write_mode": "canonical_target_only"
+    },
+    {
+      "logical_path": "profiles/reviewer/plugins/aota-tools",
+      "profile": "reviewer",
+      "projection_id": "profile_plugin_global_projection:reviewer",
+      "target_path": "plugins/aota-tools",
+      "type": "profile_plugin_global_projection",
+      "verify_logical_path": true,
+      "write_mode": "canonical_target_only"
+    }
+  ],
+  "schema_version": 1,
+  "source": "deploy/profile-runtime-assembly.yaml"
+}

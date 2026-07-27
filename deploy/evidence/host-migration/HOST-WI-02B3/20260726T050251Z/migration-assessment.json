@@ -1,0 +1,42 @@
+{
+  "automatic_desktop_migration": "SessionDB initialization may reconcile schema; v23 FTS storage optimization is explicit/opt-in",
+  "automatic_fts_rebuild_path": "source has _rebuild_fts_indexes when trigger repair is detected",
+  "expected_schema_version": 23,
+  "fts_migration_versions": [
+    10,
+    11
+  ],
+  "global_schema_version": 68,
+  "migration_execution": "NOT_RUN",
+  "migration_idempotent_claim": "declarative column adds are guarded; FTS optimize is resumable",
+  "migration_sequence_documented": true,
+  "profile_schema_versions": [
+    37,
+    49,
+    37,
+    49,
+    37,
+    51
+  ],
+  "source_validation": {
+    "fts_storage_version": 1,
+    "required_tokens": {
+      "backup": true,
+      "fts5": true,
+      "integrity_check": true,
+      "messages_fts": true,
+      "messages_fts_trigram": true,
+      "migration": true,
+      "quick_check": false,
+      "rebuild": true,
+      "recovery": true,
+      "schema_version": true,
+      "shadow": true,
+      "tokenize": true,
+      "trigram": true
+    },
+    "schema_version": 23,
+    "source_root": "/home/latios/workspace/hermes-agent-host",
+    "status": "FAIL"
+  }
+}

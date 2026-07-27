@@ -39,13 +39,16 @@ from typing import Any, Optional
 AOTA_RUNTIME_ROOT = os.environ.get("AOTA_RUNTIME_ROOT", "/aota-runtime")
 OUTBOX_ROOT = Path(AOTA_RUNTIME_ROOT) / "outbox"
 
-EVENT_KIND = "aota_task_terminal"
-SCHEMA_VERSION = 1
+EVENT_KIND = "aota_task_terminal"  # legacy WebUI discriminator
+EVENT_TYPE = "aota_profile_task_terminal"
+SCHEMA_VERSION = 2
+
+ALLOWED_TERMINAL_STATUS = frozenset(
+    {"done", "failed", "needs_input", "cancelled", "timed_out", "scope_violation"}
+)
 
 # Terminal statuses that produce an outbox event
-_PRODUCIBLE_STATUSES = frozenset(
-    {"done", "failed", "needs_input", "cancelled", "timeout", "scope_violation"}
-)
+_PRODUCIBLE_STATUSES = ALLOWED_TERMINAL_STATUS | {"timeout"}
 
 # Maximum length for a sanitised summary (characters)
 _MAX_SUMMARY_LENGTH = 400
@@ -149,6 +152,10 @@ def build_terminal_event(
     origin_session_id: Optional[str] = None,
     needs_input_reason: Optional[str] = None,
     completed_at: Optional[str] = None,
+    parent_profile: Optional[str] = None,
+    parent_session_ref: Optional[str] = None,
+    result_pointer: Optional[str] = None,
+    handoff_pointer: Optional[str] = None,
 ) -> dict[str, Any]:
     """Build a sanitised outbox event payload for a terminal Profile Task.
 
@@ -184,10 +191,16 @@ def build_terminal_event(
             "%Y-%m-%dT%H:%M:%SZ"
         )
     )
+    normalized_status = "timed_out" if terminal_status == "timeout" else terminal_status
     event_id = build_event_id(task_id, start_id)
+    parent_profile = (parent_profile or "").strip()
+    parent_session_ref = (parent_session_ref or origin_session_id or "").strip()
+    idempotency_key = ":".join(
+        (EVENT_TYPE, task_id, start_id, parent_profile, parent_session_ref)
+    )
     summary = _build_sanitized_summary(
         profile=profile,
-        terminal_status=terminal_status,
+        terminal_status=normalized_status,
         needs_input_reason=needs_input_reason,
         handoff_id=handoff_id,
     )
@@ -195,14 +208,24 @@ def build_terminal_event(
     event: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "event_id": event_id,
+        "event_type": EVENT_TYPE,
+        "idempotency_key": idempotency_key,
         "kind": EVENT_KIND,
         "task_id": task_id,
         "start_id": start_id,
         "profile": profile,
-        "terminal_status": terminal_status,
+        "worker_profile": profile,
+        "parent_profile": parent_profile,
+        "parent_session_ref": parent_session_ref,
+        "terminal_status": normalized_status,
+        "result_pointer": result_pointer or "",
+        "handoff_pointer": handoff_pointer or "",
+        "safe_summary": summary,
         "summary": summary,
         "completed_at": now,
         "created_at": now,
+        "source_component": "aota_profile_task_finalizer",
+        "source_trust_class": "trusted_finalizer",
     }
 
     # handoff_id – optional, present when a durable handoff was created
@@ -210,13 +233,15 @@ def build_terminal_event(
         event["handoff_id"] = handoff_id
 
     # origin_session_id – required for delivery targeting
-    deliverable = bool(origin_session_id)
-    if origin_session_id:
-        event["origin_session_id"] = origin_session_id
+    deliverable = bool(parent_session_ref)
+    if parent_session_ref:
+        # Compatibility alias for the existing WebUI bridge.  The backend
+        # adapter treats parent_session_ref as the canonical field.
+        event["origin_session_id"] = parent_session_ref
     event["deliverable"] = deliverable
 
     # needs_input_reason – only present for needs_input status
-    if terminal_status == "needs_input" and needs_input_reason:
+    if normalized_status == "needs_input" and needs_input_reason:
         # Bounded in length (already truncated in summary)
         event["needs_input_reason"] = needs_input_reason[:2000]
 
@@ -271,6 +296,10 @@ def write_outbox_event(
     origin_session_id: Optional[str] = None,
     needs_input_reason: Optional[str] = None,
     completed_at: Optional[str] = None,
+    parent_profile: Optional[str] = None,
+    parent_session_ref: Optional[str] = None,
+    result_pointer: Optional[str] = None,
+    handoff_pointer: Optional[str] = None,
 ) -> Optional[str]:
     """Build and atomically write a pending outbox event for a terminal task.
 
@@ -302,6 +331,10 @@ def write_outbox_event(
         origin_session_id=origin_session_id,
         needs_input_reason=needs_input_reason,
         completed_at=completed_at,
+        parent_profile=parent_profile,
+        parent_session_ref=parent_session_ref,
+        result_pointer=result_pointer,
+        handoff_pointer=handoff_pointer,
     )
     event_id: str = event["event_id"]
 

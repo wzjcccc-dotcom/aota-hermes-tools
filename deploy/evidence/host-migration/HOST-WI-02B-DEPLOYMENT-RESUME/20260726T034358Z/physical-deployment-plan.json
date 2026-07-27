@@ -1,0 +1,18 @@
+{
+  "classification_after": {
+    "EXACT_MATCH": 258,
+    "PROJECTION_CONTENT_EXACT_MATCH": 465,
+    "SOURCE_ONLY": 64
+  },
+  "classification_before": {
+    "CONTENT_MISMATCH": 10,
+    "EXACT_MATCH": 713,
+    "UNMANAGED_PRESERVED": 1
+  },
+  "generic_gc_used": "no",
+  "physical_target_count": 243,
+  "schema_version": 1,
+  "type_mismatch_count": 0,
+  "unsafe_runtime_path_count": 0,
+  "wildcard_used": "no"
+}

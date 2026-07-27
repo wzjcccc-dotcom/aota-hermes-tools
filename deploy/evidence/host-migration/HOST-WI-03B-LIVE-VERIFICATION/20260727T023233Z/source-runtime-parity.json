@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "aota_runtime_plugin_parity": "PASS",
+  "hermes_runtime_mode": "editable_install_loads_canonical_source",
+  "adapter_import": "PASS",
+  "adapter_source_sha256": "f753142a50d26411b8eb8d7be23072dd8b76af50dbaf7afa1ca550ca13bd7c8e",
+  "gateway_run_source_sha256": "3dcede4bacd7c8084ec69a0c9813620f301eae8134c8b5e0baf5e6a65646d30e",
+  "exact_copied_hermes_runtime_hash_parity": "NOT_APPLICABLE_EDITABLE_SOURCE"
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "deployment": "PASS",
+  "canonical_deployer": "scripts/aota_forge_plan_package.py",
+  "receipt": "/home/latios/workspace/aota-hermes-tools/.deploy-receipts/aota-forge-plan/20260727T022959Z/deployment.json",
+  "backup": "/home/latios/workspace/aota-hermes-tools/.deploy-backups/20260727T022957Z",
+  "managed_entries": 730,
+  "compose_changed": false,
+  "restart_executed_by_deployer": false,
+  "live_smoke_executed_by_deployer": false,
+  "known_secret_scan_exception": "scripts/capture-host-migration-docker-baseline.py:871"
+}

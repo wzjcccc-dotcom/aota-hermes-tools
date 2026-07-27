@@ -1,0 +1,14 @@
+{
+  "commit": false,
+  "evidence_relative_path": "20260726T041927Z",
+  "final": "FAIL_STATE_DATABASE_INTEGRITY",
+  "global_state_db_integrity": "FAIL",
+  "latest_evidence_root": "deploy/evidence/host-migration/HOST-WI-02B2/20260726T041927Z",
+  "profile_state_db_integrity": "PASS",
+  "provider_configuration_resolution": "PASS",
+  "provider_connectivity": "NOT_CLOSED_AUTH_GATE",
+  "push": false,
+  "runtime_preservation": "FAIL_GLOBAL_STATE_DB_INTEGRITY",
+  "schema_version": 1,
+  "work_item": "HOST-WI-02B2"
+}

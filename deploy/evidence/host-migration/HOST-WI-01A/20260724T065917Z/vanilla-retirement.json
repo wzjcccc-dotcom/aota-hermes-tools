@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-01A",
+  "vanilla_home": "/home/latios/.local/state/aota-host-migration/HOST-WI-01/vanilla-hermes-home",
+  "vanilla_home_realpath": "/home/latios/.local/state/aota-host-migration/HOST-WI-01/vanilla-hermes-home",
+  "realpath_safety": "PASS",
+  "parent_path_excluded": "/home/latios/.local/state/aota-host-migration/HOST-WI-01",
+  "file_count_before": 552,
+  "directory_count_before": 191,
+  "total_bytes_before": 10622959,
+  "owner_before": "latios",
+  "group_before": "latios",
+  "mode_before": "700",
+  "vanilla_process_count_before": 1,
+  "vanilla_process_before": {
+    "pid": 2362661,
+    "stop_method": "SIGTERM",
+    "selection_basis": "Hermes command line and exact HERMES_HOME both identified the vanilla path"
+  },
+  "vanilla_process_count_after": 0,
+  "vanilla_systemd_reference_count": 0,
+  "vanilla_wrapper": "/home/latios/.local/bin/hermes-host-vanilla",
+  "vanilla_wrapper_before": "absent",
+  "vanilla_wrapper_removed": "not_present",
+  "operator_decision": "Retire the stopped Vanilla isolation test runtime as requested by HOST-WI-01A",
+  "deletion_timestamp": "2026-07-24T06:59:17Z",
+  "deletion_method_scope": "exact path only; no wildcard and HOST-WI-01 parent was excluded",
+  "vanilla_home_removed": true,
+  "vanilla_home_exists_after": false,
+  "host_wi_01_parent_exists_after": true
+}

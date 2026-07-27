@@ -1,0 +1,17 @@
+{
+  "columns": ["transport", "background_execution", "async_delivery", "parent_wakeup", "offline_persistence", "reconnect_replay", "cross_profile_delivery", "supports_async_delivery_flag"],
+  "rows": [
+    {"transport": "Desktop SSH backend", "background_execution": "backend-dependent", "async_delivery": "indirect via remote gateway", "parent_wakeup": "remote backend can process native wake", "offline_persistence": "yes if remote backend remains/live state.db", "reconnect_replay": "session-state reload, no event cursor", "cross_profile_delivery": "no evidence", "supports_async_delivery_flag": "not a gateway adapter"},
+    {"transport": "Desktop local backend", "background_execution": "yes through Hermes backend", "async_delivery": "indirect via gateway", "parent_wakeup": "native gateway path only", "offline_persistence": "yes in profile state.db", "reconnect_replay": "no direct event replay", "cross_profile_delivery": "no", "supports_async_delivery_flag": "not a Desktop setting"},
+    {"transport": "CLI interactive", "background_execution": "yes", "async_delivery": "yes", "parent_wakeup": "yes, queue drain creates new turn", "offline_persistence": "yes", "reconnect_replay": "process restart restore only", "cross_profile_delivery": "no", "supports_async_delivery_flag": "true"},
+    {"transport": "CLI one-shot / hermes -z", "background_execution": "bounded process", "async_delivery": "no", "parent_wakeup": "no", "offline_persistence": "task/result dependent", "reconnect_replay": "no", "cross_profile_delivery": "no", "supports_async_delivery_flag": "false"},
+    {"transport": "API server", "background_execution": "yes for native delegate", "async_delivery": "special self-POST only", "parent_wakeup": "possible with raw X-Hermes-Session-Id", "offline_persistence": "yes in target profile DB", "reconnect_replay": "client polling/session reload, no event cursor", "cross_profile_delivery": "no", "supports_async_delivery_flag": "false"},
+    {"transport": "legacy WebUI", "background_execution": "AOTA outbox/adapter design", "async_delivery": "partial/design-complete", "parent_wakeup": "requires old WebUI boundary", "offline_persistence": "AOTA pending outbox files", "reconnect_replay": "deferred", "cross_profile_delivery": "not demonstrated", "supports_async_delivery_flag": "not Hermes-native"},
+    {"transport": "AOTA Profile Task runner", "background_execution": "yes, separate hermes -z subprocess", "async_delivery": "AOTA filesystem outbox only", "parent_wakeup": "not connected to Hermes Desktop", "offline_persistence": "receipt/meta/handoff/outbox", "reconnect_replay": "adapter drain on reconnect is not integrated/proven", "cross_profile_delivery": "no", "supports_async_delivery_flag": "false by one-shot semantics"}
+  ],
+  "evidence": [
+    {"file": "/home/latios/workspace/hermes-agent-host/gateway/session_context.py", "line": 354, "finding": "async_delivery_supported distinguishes persistent channels from one-shot/stateless channels"},
+    {"file": "/home/latios/workspace/hermes-agent-host/gateway/platforms/api_server.py", "line": 1176, "finding": "API server declares supports_async_delivery=false"},
+    {"file": "/home/latios/workspace/hermes-agent-host/gateway/platforms/base.py", "line": 2387, "finding": "persistent channel default supports_async_delivery=true"}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "backup_manifest_available": false,
+  "database_restored": false,
+  "legacy_artifacts_modified": false,
+  "rollback_executed": false,
+  "rollback_manifest": "/home/latios/workspace/aota-hermes-tools/.deploy-backups/workspaces.json.pre-binding-20260714T124026Z/backup-manifest.json",
+  "schema_version": 1,
+  "status": "PASS_VERIFIED_AVAILABLE"
+}

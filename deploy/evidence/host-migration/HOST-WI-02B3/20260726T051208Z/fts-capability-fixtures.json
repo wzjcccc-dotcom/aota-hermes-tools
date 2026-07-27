@@ -1,0 +1,21 @@
+{
+  "hermes_python": {
+    "FTS5_CREATE": "PASS",
+    "FTS5_INSERT": "PASS",
+    "FTS5_QUERY": "PASS",
+    "TRIGRAM_CREATE": "PASS",
+    "TRIGRAM_QUERY": "PASS"
+  },
+  "system_python": {
+    "FTS5_CREATE": "PASS",
+    "FTS5_INSERT": "PASS",
+    "FTS5_QUERY": "PASS",
+    "TRIGRAM_CREATE": "PASS",
+    "TRIGRAM_QUERY": "PASS"
+  },
+  "system_sqlite_cli": {
+    "FTS5_CREATE_INSERT_QUERY": "PASS",
+    "TRIGRAM_CREATE_QUERY": "PASS",
+    "TRIGRAM_TOKENIZER_UNSUPPORTED": false
+  }
+}

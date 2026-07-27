@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-01A",
+  "verification_status": "PASS_WITH_OPERATOR_DESKTOP_PATH_CONFIRMATION_REQUIRED",
+  "canonical_runtime": {
+    "home": "/home/latios",
+    "hermes_home": "/home/latios/.hermes",
+    "executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+    "version": "v0.19.0 (2026.7.20)",
+    "one_shot": "CANONICAL_HOST_RUNTIME_OK"
+  },
+  "vanilla_runtime": {
+    "process_count": 0,
+    "systemd_reference_count": 0,
+    "wrapper_present": false,
+    "home_exists": false
+  },
+  "active_reference_search": {
+    "scopes": [
+      "/home/latios/.config",
+      "/home/latios/.local/bin",
+      "/home/latios/workspace/aota-hermes-tools/deploy",
+      "/home/latios/workspace/aota-hermes-tools/scripts",
+      "/home/latios/.config/systemd/user"
+    ],
+    "active_process_service_wrapper_setting_references": 0,
+    "historical_evidence_references_retained": true
+  },
+  "preserved": {
+    "canonical_hermes_home": true,
+    "host_wi_00_artifacts": true,
+    "host_wi_01_parent_and_other_artifacts": true,
+    "docker_containers_images_volumes_network": "not modified",
+    "hermes_overrides": "not modified",
+    "aota_profiles_skills_plugins_runtime_artifacts": "not modified",
+    "unrelated_dirty_file": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_followup_task_create.py"
+  },
+  "aota_runtime_mutated": false,
+  "commit": false,
+  "push": false,
+  "next_work_item": "HOST-WI-01B",
+  "next_work_item_started": false
+}

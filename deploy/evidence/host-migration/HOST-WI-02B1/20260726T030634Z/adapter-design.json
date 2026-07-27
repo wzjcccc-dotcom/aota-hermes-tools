@@ -1,0 +1,32 @@
+{
+  "allowed_projection_type": "profile_plugin_global_projection",
+  "allowed_write_mode": "canonical_target_only",
+  "containment": [
+    "Path.resolve(strict=True)",
+    "Path.relative_to",
+    "os.path.samefile"
+  ],
+  "formal_deploy_executed": false,
+  "module": "scripts/_host_symlink_projection.py",
+  "rejected": [
+    "undeclared",
+    "dangling",
+    "chain",
+    "circular",
+    "outside_runtime",
+    "target_mismatch",
+    "target_root_symlink",
+    "runtime_root_symlink",
+    "wildcard",
+    "path_traversal"
+  ],
+  "schema_version": 1,
+  "toctou_revalidation_stages": [
+    "planning",
+    "before_backup",
+    "before_write",
+    "after_write",
+    "before_rollback",
+    "after_rollback"
+  ]
+}

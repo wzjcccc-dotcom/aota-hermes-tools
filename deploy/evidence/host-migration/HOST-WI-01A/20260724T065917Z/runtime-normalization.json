@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-01A",
+  "captured_at": "2026-07-24T06:59:17Z",
+  "host_hermes_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "host_hermes_version": "v0.19.0 (2026.7.20)",
+  "host_source_root": "/home/latios/workspace/hermes-agent-host",
+  "host_source_revision": "8a21df18acbe73c63d06747d0ab359288bf84276",
+  "canonical_environment": {
+    "HOME": "/home/latios",
+    "HERMES_HOME": "/home/latios/.hermes",
+    "PATH_PREFIX": "/home/latios/.venvs/hermes-agent-host/bin:/home/latios/.local/bin:/usr/bin:/bin"
+  },
+  "canonical_config_mutated": "no",
+  "secret_exposed": false,
+  "profiles": {
+    "count": 6,
+    "names": ["architect", "coder", "debugger", "project-steward", "reviewer", "task-main"],
+    "default_profile_present": true
+  },
+  "desktop_ssh": {
+    "connection_mode": "SSH",
+    "host": "100.123.10.71",
+    "user": "latios",
+    "port": 22,
+    "expected_hermes_path": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+    "observed_host_backend": "host venv Hermes serve process; SSH token path is under /home/latios/.hermes",
+    "desktop_settings_readable_from_host": false,
+    "operator_confirmation": "NEEDS_OPERATOR_DESKTOP_PATH_CONFIRMATION"
+  },
+  "docker_runtime": {
+    "state": "OFFLINE_STANDBY",
+    "hermes_agent": "Exited (0)",
+    "hermes_webui": "Exited (1)",
+    "ports_8642_8787_listening": false
+  }
+}

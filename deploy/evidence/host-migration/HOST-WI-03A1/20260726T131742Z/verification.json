@@ -1,0 +1,24 @@
+{
+  "verification": "PASS",
+  "checks": {
+    "all_required_evidence_files_present": true,
+    "json_parse_check": "performed after write",
+    "result_format_written": true,
+    "source_mutated": false,
+    "plugin_mutated": false,
+    "runtime_mutated": false,
+    "database_mutated": false,
+    "profile_task_started": false,
+    "delegate_task_started": false,
+    "synthetic_turn_executed": false,
+    "live_smoke_executed": false,
+    "desktop_restarted": false,
+    "docker_started": false,
+    "legacy_overlay_applied": false,
+    "codegraph_mutation": false,
+    "amf_mutation": false,
+    "commit": false,
+    "push": false
+  },
+  "verification_scope": "read-only source/evidence validation; no pytest, no runtime smoke"
+}

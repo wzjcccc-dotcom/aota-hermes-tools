@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "feature_flag": "AOTA_PARENT_WAKE_ENABLED",
+  "configured_value": "true",
+  "configuration_path": "/home/latios/.config/hermes-host/runtime.env",
+  "configuration_mode": "0600",
+  "outbox_root": "/home/latios/.hermes/aota-runtime/outbox/aota-runtime",
+  "runtime_watcher_started": "NOT_PROVEN"
+}

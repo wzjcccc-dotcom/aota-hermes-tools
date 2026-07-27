@@ -1,0 +1,9 @@
+{
+  "work_item": "HOST-WI-02C0",
+  "captured_at_utc": "20260726T042942Z",
+  "evidence_root": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-02C0/20260726T042942Z",
+  "result": "PASS_RECONCILIATION_WITH_ARCHITECTURE_DECISIONS_REQUIRED",
+  "source_commit": "689b51bef68f9ec95b638121bb9c7fefa3703fb2",
+  "overlay_source_file_count": 14,
+  "latest_pointer": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-02C0/latest.json"
+}

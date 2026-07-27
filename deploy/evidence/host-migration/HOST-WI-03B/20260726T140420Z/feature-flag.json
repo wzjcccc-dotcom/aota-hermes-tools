@@ -1,0 +1,9 @@
+{
+  "name": "AOTA_PARENT_WAKE_ENABLED",
+  "default": "disabled",
+  "enabled_in_source_validation": false,
+  "runtime_enablement": false,
+  "poll_seconds_default": 2.0,
+  "stale_claim_timeout_default": 300.0,
+  "max_attempts_default": 5
+}

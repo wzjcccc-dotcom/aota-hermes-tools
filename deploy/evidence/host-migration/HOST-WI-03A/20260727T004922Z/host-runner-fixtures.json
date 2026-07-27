@@ -1,0 +1,8 @@
+{
+  "fixture_count": 15,
+  "fixture_result": "PASS",
+  "formal_profile_task_started": false,
+  "schema_version": 1,
+  "verify_output_tail": "\",\n    \"no_path_fallback\",\n    \"frozen_runner_identity\",\n    \"argv_array_no_shell\",\n    \"controlled_host_environment\",\n    \"worker_toolset_source_worker_profile\",\n    \"task_main_tools_not_inherited\",\n    \"reviewer_read_only\",\n    \"schema_v2_outbox_compatibility\",\n    \"parent_identity_preserved\",\n    \"finalizer_chain_unchanged\"\n  ],\n  \"database_mutated\": false,\n  \"docker_started\": false,\n  \"fixture_count\": 15,\n  \"formal_profile_task_started\": false,\n  \"status\": \"PASS\",\n  \"worker_started\": false\n}",
+  "worker_started": false
+}

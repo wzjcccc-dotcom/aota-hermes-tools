@@ -1,0 +1,9 @@
+{
+  "delivery_semantics": "at-least-once",
+  "claim": "pending -> processing atomic rename",
+  "stale_claim_recovery": true,
+  "max_attempts_default": 5,
+  "duplicate_disposition": "duplicate_suppressed",
+  "event_id_random_only": false,
+  "receipt_event_id": "sha256 hash only"
+}

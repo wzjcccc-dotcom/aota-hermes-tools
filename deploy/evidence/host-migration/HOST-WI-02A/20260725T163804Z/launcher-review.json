@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-02A",
+  "launcher": "/home/latios/.local/bin/hermes-host",
+  "mode": "700",
+  "owner_group": "latios:latios",
+  "syntax": "PASS",
+  "shellcheck": "NOT_INSTALLED",
+  "official_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "argv_preserved": true,
+  "uses_exec": true,
+  "uses_eval": false,
+  "command_line_secrets": false,
+  "launcher_secret_values": false
+}

@@ -1,0 +1,30 @@
+{
+  "fixture_output_tail": "FAIL_FIXTURE_PASS undeclared_symlink\nFAIL_FIXTURE_PASS dangling_symlink\nFAIL_FIXTURE_PASS symlink_chain\nFAIL_FIXTURE_PASS circular_symlink\nFAIL_FIXTURE_PASS outside_runtime\nFAIL_FIXTURE_PASS source_workspace_target\nFAIL_FIXTURE_PASS profile_to_profile\nFAIL_FIXTURE_PASS parent_directory\nFAIL_FIXTURE_PASS file_target\nFAIL_FIXTURE_PASS global_root_symlink\nFAIL_FIXTURE_PASS runtime_root_symlink\nFAIL_FIXTURE_PASS dotdot_escape\n{\n  \"fail\": [\n    \"manifest_duplicate_projection\",\n    \"manifest_unknown_profile\",\n    \"manifest_target_mismatch\",\n    \"backup_path_symlink_escape\",\n    \"physical_target_collision\",\n    \"unicode_case_separator_ambiguity\",\n    \"rollback_path_symlink_escape\"\n  ],\n  \"fail_count\": 7,\n  \"pass\": [\n    \"five_declared_symlinks_valid\",\n    \"exact_match\",\n    \"content_mismatch\",\n    \"logical_duplicate_deduplication\",\n    \"backup_once\",\n    \"rollback_once\",\n    \"projection_after_deploy\",\n    \"projection_after_rollback\",\n    \"logical_projection_receipts\"\n  ],\n  \"pass_count\": 9,\n  \"schema_version\": 1\n}\nHOST_SYMLINK_PROJECTION_FIXTURE_PASS",
+  "new_projection_fixture": "PASS",
+  "schema_version": 1,
+  "summary": {
+    "fail": [
+      "manifest_duplicate_projection",
+      "manifest_unknown_profile",
+      "manifest_target_mismatch",
+      "backup_path_symlink_escape",
+      "physical_target_collision",
+      "unicode_case_separator_ambiguity",
+      "rollback_path_symlink_escape"
+    ],
+    "fail_count": 7,
+    "pass": [
+      "five_declared_symlinks_valid",
+      "exact_match",
+      "content_mismatch",
+      "logical_duplicate_deduplication",
+      "backup_once",
+      "rollback_once",
+      "projection_after_deploy",
+      "projection_after_rollback",
+      "logical_projection_receipts"
+    ],
+    "pass_count": 9,
+    "schema_version": 1
+  }
+}

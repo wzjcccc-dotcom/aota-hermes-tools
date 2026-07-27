@@ -1,0 +1,10 @@
+{
+  "outbox_root_owner_checked": true,
+  "world_writable_root_rejected": true,
+  "event_regular_file_required": true,
+  "event_symlink_rejected": true,
+  "source_component_checked": true,
+  "source_trust_class_checked": true,
+  "task_contract_rechecked": true,
+  "raw_session_id_in_receipt": false
+}

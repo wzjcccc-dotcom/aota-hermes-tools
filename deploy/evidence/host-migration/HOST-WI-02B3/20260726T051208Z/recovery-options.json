@@ -1,0 +1,62 @@
+{
+  "execution": "NOT_RUN",
+  "options": [
+    {
+      "name": "Verifier fix only",
+      "option_id": "A",
+      "reason": "CASE_A not established",
+      "recommended": false
+    },
+    {
+      "backup_required": true,
+      "core_data_mutation": false,
+      "fts_only": true,
+      "name": "Official FTS rebuild",
+      "official_hermes_logic": true,
+      "option_id": "B",
+      "reason": "Source supports it for FTS index corruption, but core btree corruption is also confirmed",
+      "recommended": false,
+      "requires_desktop_offline": true,
+      "rollback_available": true
+    },
+    {
+      "backup_required": true,
+      "core_data_mutation": false,
+      "fts_only": true,
+      "name": "Drop/recreate FTS schema and triggers",
+      "official_hermes_logic": true,
+      "option_id": "C",
+      "reason": "Source recovery path exists but is explicitly prohibited in B3 and insufficiently scoped for confirmed core corruption",
+      "recommended": false,
+      "requires_desktop_offline": true,
+      "rollback_available": true
+    },
+    {
+      "backup_required": true,
+      "name": "Restore Hermes-generated backup",
+      "official_hermes_logic": true,
+      "option_id": "D",
+      "reason": "Only if controlled backup is known good",
+      "recommended": false,
+      "requires_desktop_offline": true,
+      "rollback_available": true
+    },
+    {
+      "backup_required": true,
+      "name": "SQLite backup API then controlled repair",
+      "official_hermes_logic": true,
+      "option_id": "E",
+      "reason": "Required first step for HOST-WI-02B3R: preserve original DB/WAL/SHM, self-check snapshot, rehearse on copy, then select official repair or restore",
+      "recommended": true,
+      "requires_desktop_offline": true,
+      "rollback_available": true
+    },
+    {
+      "name": "Full recovery",
+      "option_id": "F",
+      "reason": "Not justified before a consistent snapshot and copy rehearsal",
+      "recommended": false
+    }
+  ],
+  "recommended_option": "E"
+}

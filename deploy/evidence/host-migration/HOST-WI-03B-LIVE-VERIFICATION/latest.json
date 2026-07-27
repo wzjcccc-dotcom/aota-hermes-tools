@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-03B-LIVE-VERIFICATION",
+  "timestamp": "20260727T023233Z",
+  "final": "FAIL_PARENT_WAKE_LIVE_NOT_PROVEN",
+  "evidence_root": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-03B-LIVE-VERIFICATION/20260727T023233Z",
+  "result": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-03B-LIVE-VERIFICATION/20260727T023233Z/RESULT.md"
+}

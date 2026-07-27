@@ -1,0 +1,15 @@
+{
+  "work_item": "HOST-WI-02B3",
+  "final": "NEEDS_CONTROLLED_GLOBAL_DATABASE_RECOVERY",
+  "latest_evidence_root": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-02B3/20260726T051208Z",
+  "closure_evidence_root": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-02B3/20260726T051208Z",
+  "closure_work_item": "HOST-WI-02B3",
+  "global_state_db": "/home/latios/.hermes/state.db",
+  "source_validation": "PASS",
+  "runtime_quiescent": "yes",
+  "global_core_database_corruption": "CONFIRMED",
+  "profile_state_db_integrity": "PASS",
+  "db_mutated": "no",
+  "schema_version": 1,
+  "next_work_item": "HOST-WI-02B3R"
+}

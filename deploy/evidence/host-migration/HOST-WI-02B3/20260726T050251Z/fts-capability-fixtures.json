@@ -1,0 +1,16 @@
+{
+  "hermes_python": {
+    "FTS5_CREATE": "PASS",
+    "FTS5_INSERT": "PASS",
+    "FTS5_QUERY": "PASS",
+    "TRIGRAM_CREATE": "PASS",
+    "TRIGRAM_QUERY": "PASS"
+  },
+  "system_python": {
+    "FTS5_CREATE": "PASS",
+    "FTS5_INSERT": "PASS",
+    "FTS5_QUERY": "PASS",
+    "TRIGRAM_CREATE": "PASS",
+    "TRIGRAM_QUERY": "PASS"
+  }
+}

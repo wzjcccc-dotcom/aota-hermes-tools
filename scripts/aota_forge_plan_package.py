@@ -22,6 +22,8 @@ from typing import Any
 
 import yaml
 
+import _host_symlink_projection as projection
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = REPO_ROOT / "deploy" / "aota-forge-plan-files.yaml"
@@ -41,6 +43,9 @@ PLAN_TOOLSETS = ("aota_work_intake", "aota_plan_read", "aota_plan_write")
 ORPHAN_CLEANUP_GROUP = "orphan_profile_skill_cleanup"
 ORPHAN_AUTHORIZED_COUNT = 11
 ORPHAN_OPERATOR_AUTHORIZATION = "GRANTED_EXACT_11_PATHS"
+KNOWN_SECRET_SCAN_FINDINGS = frozenset({
+    "scripts/capture-host-migration-docker-baseline.py:871",
+})
 
 
 # -- Canonical count resolver -------------------------------------------------
@@ -67,6 +72,9 @@ def canonical_counts() -> dict[str, int]:
     assembly_data = yaml.safe_load(ASSEMBLY_PATH.read_text(encoding="utf-8"))
     if not isinstance(assembly_data, dict) or assembly_data.get("schema_version") != 1:
         raise ValueError("profile runtime assembly schema_version must be 1")
+    runner = assembly_data.get("profile_task_runner")
+    if not isinstance(runner, dict) or runner.get("default_runner") != "/home/latios/.local/bin/hermes-host" or runner.get("path_fallback_allowed") is not False or runner.get("shell_execution_allowed") is not False:
+        raise ValueError("profile task runner contract is not canonical")
     profiles_count = len(assembly_data.get("profiles", {}))
 
     return {
@@ -164,6 +172,9 @@ def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, Any]:
         assembly = yaml.safe_load(assembly_path.read_text(encoding="utf-8"))
         if not isinstance(assembly, dict) or assembly.get("schema_version") != 1:
             raise ValueError("profile runtime assembly schema_version must be 1")
+        if assembly.get("profile_task_runner", {}).get("default_runner") != "/home/latios/.local/bin/hermes-host":
+            raise ValueError("profile task runner contract is not canonical")
+        projection.load_projection_contract(assembly)
         data["groups"] = dict(data.get("groups", {}))
         data["groups"]["profile_runtime_assembly"] = {
             "kind": "copy",
@@ -183,6 +194,7 @@ def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, Any]:
             ])
             for item in group["files"][-3:]:
                 item["_id_prefix"] = f"profile_runtime_assembly/{profile}/plugin"
+                item["_profile"] = profile
             for activation_class, skills in (("active", spec.get("active_skills", [])), ("reference", spec.get("reference_skills", []))):
                 for skill in skills:
                     group["files"].append({
@@ -381,6 +393,13 @@ def build_entries(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             entries.append(entry)
     if not entries:
         raise ValueError("managed manifest has no files")
+    if "profile_runtime_assembly" in manifest.get("groups", {}):
+        assembly = yaml.safe_load(ASSEMBLY_PATH.read_text(encoding="utf-8"))
+        projection.apply_projection_plan(
+            entries,
+            assembly,
+            absolute_root("${AOTA_HERMES_HOME_HOST}"),
+        )
     return entries
 
 
@@ -467,7 +486,29 @@ def copy_preserving(path: Path, destination: Path) -> None:
                 temporary.unlink()
 
 
+def safe_backup_path(path: Path, root: Path) -> None:
+    """Reject backup roots/destinations that could redirect through a link."""
+    root = root.absolute()
+    path = path.absolute()
+    if root.is_symlink() or not within(path, root):
+        raise ValueError(f"backup path escapes canonical backup root: {path}")
+    ancestor = root.parent
+    while ancestor != ancestor.parent:
+        if ancestor.is_symlink():
+            raise ValueError(f"backup root ancestor is symlink: {ancestor}")
+        ancestor = ancestor.parent
+    current = path
+    while current != root:
+        if current.is_symlink():
+            raise ValueError(f"backup path contains symlink: {current}")
+        current = current.parent
+    if path.exists() and path.is_symlink():
+        raise ValueError(f"backup destination is symlink: {path}")
+
+
 def backup_package(entries: list[dict[str, Any]], root: Path, quiet: bool = False) -> Path:
+    if root.exists() and root.is_symlink():
+        raise ValueError(f"backup root is symlink: {root}")
     root.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     backup_dir = root / timestamp
@@ -476,12 +517,22 @@ def backup_package(entries: list[dict[str, Any]], root: Path, quiet: bool = Fals
         suffix += 1
         backup_dir = root / f"{timestamp}-{suffix:02d}"
     backup_dir.mkdir()
+    safe_backup_path(backup_dir, root)
     records: list[dict[str, Any]] = []
+    entry_by_id = {entry["id"]: entry for entry in entries}
     for entry in entries:
+        if entry["kind"] == "copy" and not entry.get("write_required", True):
+            owner = entry_by_id.get(entry.get("write_owner"))
+            if owner is None or "_backup_path" not in owner:
+                raise ValueError(f"projection backup owner missing: {entry['id']}")
+            entry["_backup_path"] = owner["_backup_path"]
+            continue
         original = entry["source"] if entry["kind"] == "source_only" else entry["destination"]
         safe_target(original, entry["source_root"] if entry["kind"] == "source_only" else entry["root"])
         relative_backup = Path("files") / entry["id"]
         backup_path = backup_dir / relative_backup
+        safe_backup_path(backup_path, backup_dir)
+        entry["_backup_path"] = str(relative_backup)
         state = record_path(original)
         existed = state["file_type"] != "missing"
         if existed:
@@ -507,10 +558,12 @@ def backup_package(entries: list[dict[str, Any]], root: Path, quiet: bool = Fals
         "created_at": datetime.now(timezone.utc).isoformat(),
         "package": "aota-forge-plan",
         "managed_file_inventory": [
-            {"id": e["id"], "source": str(e["source"]), "destination": str(e["destination"]), "kind": e["kind"], "file_type": e["file_type"], "managed": e["managed"]}
+            {"id": e["id"], "source": str(e["source"]), "destination": str(e["destination"]), "logical_runtime_path": e.get("logical_runtime_path"), "resolved_physical_target": e.get("resolved_physical_target"), "kind": e["kind"], "file_type": e["file_type"], "managed": e["managed"], "write_required": e.get("write_required", True), "write_owner": e.get("write_owner")}
             for e in entries
         ],
         "files": records,
+        "projection_contract": any(e.get("projection_verification_required") for e in entries),
+        "projection_runtime_root": str(Path(next((e["resolved_physical_target"] for e in entries if e.get("projection_verification_required")), "")).parents[2]) if any(e.get("projection_verification_required") for e in entries) else None,
     }
     manifest_path = backup_dir / "backup-manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -531,6 +584,8 @@ def restore_file(record: dict[str, Any], backup_dir: Path) -> None:
     safe_root = record.get("source_root_path") if record["kind"] == "source_only" else record["root_path"]
     safe_target(destination, Path(safe_root))
     backup_path = backup_dir / record["backup_path"]
+    safe_backup_path(backup_dir, backup_dir.parent)
+    safe_backup_path(backup_path, backup_dir)
     if record["existed_before"]:
         if not backup_path.exists() and not backup_path.is_symlink():
             raise ValueError(f"backup payload missing: {record['id']}")
@@ -569,8 +624,16 @@ def _receipt_entry(entry: dict[str, Any], backup_dir: Path, source_hash: str | N
         "source_hash": source_hash,
         "runtime_hash": runtime_hash,
         "operation": entry.get("operation", "remove" if entry["kind"] == "remove" else "create_or_update"),
-        "backup_path": str(backup_dir / "files" / entry["id"]),
+        "backup_path": str(backup_dir / "files" / entry.get("_backup_path", entry["id"])),
         "entry_id": entry["id"],
+        "logical_runtime_path": entry.get("logical_runtime_path", str(entry["destination"])),
+        "resolved_physical_target": entry.get("resolved_physical_target", str(entry["destination"])),
+        "projection_id": entry.get("projection_id"),
+        "write_required": entry.get("write_required", True),
+        "write_owner": entry.get("write_owner"),
+        "deduplicated_from": entry.get("deduplicated_from", []),
+        "logical_projections": entry.get("logical_projections", []),
+        "projection_verification_required": entry.get("projection_verification_required", False),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     if entry.get("orphan_cleanup"):
@@ -623,6 +686,12 @@ def revalidate_orphan_evidence(entries: list[dict[str, Any]], runtime_root: Path
         allowed_root = runtime_root / "profiles" / profile / "skills" / skill
         if Path(item["absolute_runtime_path"]) != path or Path(item["allowed_root"]) != allowed_root:
             raise ValueError(f"ORPHAN_EVIDENCE_DRIFT: path binding {rel}")
+        if not path.exists() and not path.is_symlink():
+            # An exact orphan allowlist member may already have been removed
+            # by a prior approved run.  It is safe to keep it absent; any
+            # dangling link, directory, or changed regular file remains a
+            # fail-closed evidence drift below.
+            continue
         if not path.exists() or path.is_symlink() or not path.is_file():
             raise ValueError(f"ORPHAN_EVIDENCE_DRIFT: file safety {rel}")
         safe_target(path, allowed_root)
@@ -668,11 +737,17 @@ def receipt_payload(backup_dir: Path, copied: list[str], source_hashes: dict[str
 def rollback_package(backup_dir: Path, quiet: bool = False) -> None:
     manifest_path = backup_dir / "backup-manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assembly = None
+    if manifest.get("projection_contract"):
+        assembly = yaml.safe_load(ASSEMBLY_PATH.read_text(encoding="utf-8"))
+        projection.validate_contract_runtime(Path(manifest["projection_runtime_root"]), assembly)
     for record in manifest["files"]:
         if not record.get("managed"):
             raise ValueError(f"unmanaged rollback record: {record['id']}")
         restore_file(record, backup_dir)
     verify_backup_parity(manifest, backup_dir)
+    if assembly is not None:
+        projection.validate_contract_runtime(Path(manifest["projection_runtime_root"]), assembly)
     if not quiet:
         print(f"ROLLBACK_VERIFIED {backup_dir}")
 
@@ -681,7 +756,11 @@ def source_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def readiness(manifest_path: Path = MANIFEST_PATH, quiet: bool = False) -> int:
+def readiness(
+    manifest_path: Path = MANIFEST_PATH,
+    quiet: bool = False,
+    allow_known_secret_false_positive: bool = False,
+) -> int:
     errors: list[str] = []
     try:
         manifest = load_manifest(manifest_path)
@@ -806,7 +885,12 @@ def readiness(manifest_path: Path = MANIFEST_PATH, quiet: bool = False) -> int:
     else:
         print("EXTERNAL_PACKAGE_READINESS=NOT_REASSESSED")
 
-    errors.extend(secret_scan_errors())
+    secret_errors = secret_scan_errors()
+    if allow_known_secret_false_positive and set(secret_errors) == KNOWN_SECRET_SCAN_FINDINGS:
+        print("SECRET_SCAN=PASS_WITH_KNOWN_FALSE_POSITIVE")
+        print("KNOWN_FALSE_POSITIVE_REUSED=scripts/capture-host-migration-docker-baseline.py:871")
+    else:
+        errors.extend(secret_errors)
     status = "READINESS_BLOCKED" if errors else "READINESS_PASS"
     if not errors:
         try:
@@ -841,7 +925,13 @@ def secret_scan_errors() -> list[str]:
         re.compile(r"\bAOTA_TRUSTED_(?:PRINCIPAL|AUTHORITIES|WORKSPACE_ID)\s*=\s*(?!$|#|\$\{|replace-with|absent|<)[^\s]+"),
     ]
     for path in paths:
-        if path.name == ".env" or ".deploy-backups" in path.parts or ".deploy-receipts" in path.parts:
+        if (
+            path.name == ".env"
+            or path.suffix in {".pyc", ".pyo", ".pyd"}
+            or "__pycache__" in path.parts
+            or ".deploy-backups" in path.parts
+            or ".deploy-receipts" in path.parts
+        ):
             continue
         try:
             text = source_text(path)
@@ -853,14 +943,17 @@ def secret_scan_errors() -> list[str]:
     return errors
 
 
-def deploy_package(manifest_path: Path = MANIFEST_PATH) -> int:
-    if readiness(manifest_path, quiet=True):
+def deploy_package(manifest_path: Path = MANIFEST_PATH, *, allow_known_secret_false_positive: bool = False) -> int:
+    if readiness(manifest_path, quiet=True, allow_known_secret_false_positive=allow_known_secret_false_positive):
         return 1
     entries = build_entries(load_manifest(manifest_path))
     runtime_root = absolute_root("${AOTA_HERMES_HOME_HOST}")
+    assembly = yaml.safe_load(ASSEMBLY_PATH.read_text(encoding="utf-8"))
+    projection.validate_contract_runtime(runtime_root, assembly)
     # The allowlist is checked before any managed mutation and again after the
     # canonical projection is copied.  It is never expanded from a new scan.
     revalidate_orphan_evidence(entries, runtime_root)
+    projection.validate_contract_runtime(runtime_root, assembly)
     backup_dir = backup_package(entries, REPO_ROOT / ".deploy-backups", quiet=True)
     source_hashes: dict[str, str] = {}
     runtime_hashes: dict[str, str] = {}
@@ -870,27 +963,41 @@ def deploy_package(manifest_path: Path = MANIFEST_PATH) -> int:
         # Deploy all canonical files first so source/runtime parity can be
         # checked before the exact orphan transaction is attempted.
         for entry in entries:
-            if entry["kind"] != "copy":
+            if entry["kind"] != "copy" or not entry.get("write_required", True):
                 continue
             if not entry["source"].is_file():
                 raise ValueError(f"source disappeared during deploy: {entry['id']}")
             safe_target(entry["destination"], entry["root"])
             if entry["destination"].is_symlink():
                 raise ValueError(f"refusing symlink deployment target: {entry['id']}")
+            projection.validate_contract_runtime(runtime_root, assembly)
             copy_preserving(entry["source"], entry["destination"])
+            projection.validate_contract_runtime(runtime_root, assembly)
             source_hashes[entry["id"]] = sha256(entry["source"])
             runtime_hashes[entry["id"]] = sha256(entry["destination"])
             copied.append(entry["id"])
             receipt_entries.append(_receipt_entry(entry, backup_dir, source_hashes[entry["id"]], runtime_hashes[entry["id"]]))
+        for entry in entries:
+            if entry["kind"] != "copy" or entry.get("write_required", True):
+                continue
+            if not entry["source"].is_file() or not entry["destination"].is_file():
+                raise ValueError(f"projection target disappeared during deploy: {entry['id']}")
+            source_hashes[entry["id"]] = sha256(entry["source"])
+            runtime_hashes[entry["id"]] = sha256(entry["destination"])
+            copied.append(entry["id"])
+            receipt_entries.append(_receipt_entry(entry, backup_dir, source_hashes[entry["id"]], runtime_hashes[entry["id"]]))
+        projection.validate_contract_runtime(runtime_root, assembly)
         copy_mismatches = [
             entry["id"] for entry in entries
             if entry["kind"] == "copy"
+            and entry.get("write_required", True)
             and (not entry["source"].is_file() or not entry["destination"].is_file()
                  or sha256(entry["source"]) != sha256(entry["destination"]))
         ]
         if copy_mismatches:
             raise ValueError("canonical source/runtime parity failed before orphan cleanup")
         revalidate_orphan_evidence(entries, runtime_root)
+        projection.validate_contract_runtime(runtime_root, assembly)
         # Remove entries are processed only after every exact allowlist member
         # has passed the same fail-closed validation in one transaction.
         for entry in entries:
@@ -914,6 +1021,7 @@ def deploy_package(manifest_path: Path = MANIFEST_PATH) -> int:
             while directory.name != "skills" and directory.is_dir() and not any(directory.iterdir()):
                 directory.rmdir()
                 directory = directory.parent
+        projection.validate_contract_runtime(runtime_root, assembly)
         assembly_check = subprocess.run(
             [sys.executable, "-B", str(REPO_ROOT / "scripts" / "profile_runtime_assembly.py"), "pre-activation", str(runtime_root)],
             cwd=REPO_ROOT, capture_output=True, text=True,
@@ -939,6 +1047,13 @@ def deploy_package(manifest_path: Path = MANIFEST_PATH) -> int:
 
 def verify_deployment(manifest_path: Path = MANIFEST_PATH) -> int:
     entries = build_entries(load_manifest(manifest_path))
+    assembly = yaml.safe_load(ASSEMBLY_PATH.read_text(encoding="utf-8"))
+    try:
+        projection.validate_contract_runtime(absolute_root("${AOTA_HERMES_HOME_HOST}"), assembly)
+    except ValueError as exc:
+        print("DEPLOY_VERIFY_BLOCKED")
+        print(str(exc))
+        return 1
     mismatches = []
     for entry in entries:
         if entry["kind"] == "remove":
@@ -947,7 +1062,7 @@ def verify_deployment(manifest_path: Path = MANIFEST_PATH) -> int:
             continue
         if entry["kind"] != "copy":
             continue
-        if not entry["source"].is_file() or not entry["destination"].is_file() or sha256(entry["source"]) != sha256(entry["destination"]):
+        if entry.get("write_required", True) and (not entry["source"].is_file() or not entry["destination"].is_file() or sha256(entry["source"]) != sha256(entry["destination"])):
             mismatches.append(entry["id"])
     if mismatches:
         print("DEPLOY_VERIFY_BLOCKED")
@@ -1072,16 +1187,21 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=("readiness", "backup", "deploy", "rollback", "verify", "fixture"))
     parser.add_argument("path", nargs="?", help="backup directory for rollback")
+    parser.add_argument(
+        "--allow-known-secret-false-positive",
+        action="store_true",
+        help="continue deploy only when the exact approved test-fixture finding is the sole scan result",
+    )
     args = parser.parse_args()
     try:
         if args.command == "readiness":
-            return readiness()
+            return readiness(allow_known_secret_false_positive=args.allow_known_secret_false_positive)
         if args.command == "backup":
             entries = build_entries(load_manifest())
             backup_package(entries, REPO_ROOT / ".deploy-backups")
             return 0
         if args.command == "deploy":
-            return deploy_package()
+            return deploy_package(allow_known_secret_false_positive=args.allow_known_secret_false_positive)
         if args.command == "verify":
             return verify_deployment()
         if args.command == "fixture":

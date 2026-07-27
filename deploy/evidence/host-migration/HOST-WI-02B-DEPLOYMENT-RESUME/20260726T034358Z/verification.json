@@ -1,0 +1,27 @@
+{
+  "canonical_host_deployment": "PASS",
+  "cli_smoke": "FAIL",
+  "commit": "no",
+  "deploy_verify": "PASS",
+  "git_status": [
+    "## main...origin/main",
+    " M deploy/profile-runtime-assembly.yaml",
+    " M plugin/aota-tools/_followup_task_create.py",
+    " M scripts/aota_forge_plan_package.py",
+    " M scripts/profile_runtime_assembly.py",
+    "?? deploy/evidence/host-migration/",
+    "?? docs/aota-host-migration/",
+    "?? scripts/_host_symlink_projection.py",
+    "?? scripts/capture-host-migration-docker-baseline.py",
+    "?? scripts/capture-host-wi-02b-deployment-resume.py",
+    "?? scripts/capture-host-wi-02b.py",
+    "?? scripts/capture-host-wi-02b1.py",
+    "?? scripts/review-host-wi-02b1.py",
+    "?? scripts/verify-host-symlink-projection.py"
+  ],
+  "profile_assembly_pre_activation": "PASS",
+  "projection_parity": "PASS",
+  "push": "no",
+  "runtime_preservation": "FAIL_GLOBAL_STATE_DATABASE_CHANGED_DURING_CLI_SMOKE",
+  "schema_version": 1
+}

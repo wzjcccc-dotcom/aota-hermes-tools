@@ -1,0 +1,10 @@
+{
+  "backup_and_rollback_symlink_escape": "rejected",
+  "manifest_exact_allowlist": "PASS",
+  "no_generic_gc": "PASS",
+  "no_wildcard_contract": "PASS",
+  "path_prefix_bug": "absent_pathlib_relative_to_used",
+  "schema_version": 1,
+  "source_checkout_write": "rejected_by_runtime_containment",
+  "toctou_limitation": "revalidation is fail-closed but cannot eliminate external concurrent filesystem mutation between checks"
+}

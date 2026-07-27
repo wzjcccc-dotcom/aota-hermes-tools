@@ -1,0 +1,122 @@
+{
+  "hermes_python": {
+    "fts_schema": [
+      {
+        "column_list": [
+          "content"
+        ],
+        "content_rowid": null,
+        "content_table": null,
+        "prefix_options": [],
+        "schema_sql_hash": "bfe672ecdefc4c7f460128c45480cf6415c3f10f6da7b463f04b1665ae0007a6",
+        "shadow_table_count": 10,
+        "table_name": "messages_fts",
+        "tokenizer": "default",
+        "trigger_count": 6,
+        "virtual_table_module": "fts5"
+      },
+      {
+        "column_list": [
+          "content"
+        ],
+        "content_rowid": null,
+        "content_table": null,
+        "prefix_options": [],
+        "schema_sql_hash": "bff4d5a48fa8a5f669b5fb50c81e118be47872b5e5909592e8b5d1d62a98fbf2",
+        "shadow_table_count": 5,
+        "table_name": "messages_fts_trigram",
+        "tokenizer": "trigram",
+        "trigger_count": 3,
+        "virtual_table_module": "fts5"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "messages_fts_delete",
+        "sql_hash": "45931ac31821f1d09656f745528735a1ecd42bd49a15b3b4d8c08f0626c679ed"
+      },
+      {
+        "name": "messages_fts_insert",
+        "sql_hash": "c541a1af5b0c91e1f2c6926d1a05dd26c172063ff492c66fb3170ecff7a7f3e0"
+      },
+      {
+        "name": "messages_fts_trigram_delete",
+        "sql_hash": "9096e76f44862a0ebe694899141578b8375e9e8761ad665ffd0a91d7f6d2f0da"
+      },
+      {
+        "name": "messages_fts_trigram_insert",
+        "sql_hash": "aaccde463f8b10916035142d603f114afd593e05aad8bcebe457b42795a93644"
+      },
+      {
+        "name": "messages_fts_trigram_update",
+        "sql_hash": "a8e5c7818362b3ebc6cd665be6592da02046b31fb5258103d44d0f036eb97b87"
+      },
+      {
+        "name": "messages_fts_update",
+        "sql_hash": "752c8a86d36f156c70ec86ef8fe5ec91e0c805083a029e794715dd2e0f9fa91f"
+      }
+    ]
+  },
+  "system_python": {
+    "fts_schema": [
+      {
+        "column_list": [
+          "content"
+        ],
+        "content_rowid": null,
+        "content_table": null,
+        "prefix_options": [],
+        "schema_sql_hash": "bfe672ecdefc4c7f460128c45480cf6415c3f10f6da7b463f04b1665ae0007a6",
+        "shadow_table_count": 10,
+        "table_name": "messages_fts",
+        "tokenizer": "default",
+        "trigger_count": 6,
+        "virtual_table_module": "fts5"
+      },
+      {
+        "column_list": [
+          "content"
+        ],
+        "content_rowid": null,
+        "content_table": null,
+        "prefix_options": [],
+        "schema_sql_hash": "bff4d5a48fa8a5f669b5fb50c81e118be47872b5e5909592e8b5d1d62a98fbf2",
+        "shadow_table_count": 5,
+        "table_name": "messages_fts_trigram",
+        "tokenizer": "trigram",
+        "trigger_count": 3,
+        "virtual_table_module": "fts5"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "messages_fts_delete",
+        "sql_hash": "45931ac31821f1d09656f745528735a1ecd42bd49a15b3b4d8c08f0626c679ed"
+      },
+      {
+        "name": "messages_fts_insert",
+        "sql_hash": "c541a1af5b0c91e1f2c6926d1a05dd26c172063ff492c66fb3170ecff7a7f3e0"
+      },
+      {
+        "name": "messages_fts_trigram_delete",
+        "sql_hash": "9096e76f44862a0ebe694899141578b8375e9e8761ad665ffd0a91d7f6d2f0da"
+      },
+      {
+        "name": "messages_fts_trigram_insert",
+        "sql_hash": "aaccde463f8b10916035142d603f114afd593e05aad8bcebe457b42795a93644"
+      },
+      {
+        "name": "messages_fts_trigram_update",
+        "sql_hash": "a8e5c7818362b3ebc6cd665be6592da02046b31fb5258103d44d0f036eb97b87"
+      },
+      {
+        "name": "messages_fts_update",
+        "sql_hash": "752c8a86d36f156c70ec86ef8fe5ec91e0c805083a029e794715dd2e0f9fa91f"
+      }
+    ]
+  },
+  "system_sqlite_cli": {
+    "fts_schema": [],
+    "triggers": []
+  }
+}

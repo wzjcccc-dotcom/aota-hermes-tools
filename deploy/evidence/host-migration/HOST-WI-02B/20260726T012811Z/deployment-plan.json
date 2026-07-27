@@ -1,0 +1,15 @@
+{
+  "canonical_deployer": "/home/latios/workspace/aota-hermes-tools/scripts/deploy.sh",
+  "canonical_runtime_root": "/home/latios/.hermes",
+  "canonical_source_root": "/home/latios/workspace/aota-hermes-tools",
+  "container_path_used": "no",
+  "deploy_mode": "blocked_preflight_no_mutation",
+  "deploy_required": "yes",
+  "generic_gc_used": "no",
+  "host_deploy_adapter_created": "no",
+  "host_target_resolution": "PASS_AOTA_HERMES_HOME_HOST",
+  "reason": "Existing runtime has five profile-local plugin symlink roots; canonical deployer does not fail closed on symlinked parent roots and cannot safely produce physical local projections.",
+  "schema_version": 1,
+  "wildcard_used": "no",
+  "work_item": "HOST-WI-02B"
+}

@@ -1,0 +1,13 @@
+{
+  "desktop_remote_connection": "NOT_RUN_OPERATOR_CHECKPOINT_NOT_REACHED",
+  "desktop_chat": "NOT_RUN",
+  "desktop_streaming": "NOT_RUN",
+  "desktop_session_create": "NOT_RUN",
+  "desktop_session_resume": "NOT_RUN",
+  "desktop_restart_persistence": "NOT_RUN",
+  "desktop_terminal": "NOT_RUN",
+  "desktop_attachment": "NOT_RUN",
+  "desktop_subagent_watch": "NOT_RUN",
+  "parent_result_delivery": "NOT_RUN",
+  "note": "Codex never operated or simulated Windows Hermes Desktop."
+}

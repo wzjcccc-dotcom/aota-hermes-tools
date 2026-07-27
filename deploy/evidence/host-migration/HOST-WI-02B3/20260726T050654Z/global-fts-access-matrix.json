@@ -1,0 +1,83 @@
+{
+  "hermes_python": [
+    {
+      "constructor": "FAIL",
+      "constructor_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts",
+        "error_type": "DatabaseError"
+      },
+      "count": "FAIL",
+      "count_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts",
+        "error_type": "DatabaseError"
+      },
+      "fts_table": "messages_fts",
+      "match_query": "FAIL",
+      "match_query_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts",
+        "error_type": "DatabaseError"
+      },
+      "runtime": "/home/latios/.venvs/hermes-agent-host/bin/python"
+    },
+    {
+      "constructor": "FAIL",
+      "constructor_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+        "error_type": "DatabaseError"
+      },
+      "count": "FAIL",
+      "count_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+        "error_type": "DatabaseError"
+      },
+      "fts_table": "messages_fts_trigram",
+      "match_query": "FAIL",
+      "match_query_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+        "error_type": "DatabaseError"
+      },
+      "runtime": "/home/latios/.venvs/hermes-agent-host/bin/python"
+    }
+  ],
+  "system_python": [
+    {
+      "constructor": "FAIL",
+      "constructor_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts",
+        "error_type": "DatabaseError"
+      },
+      "count": "FAIL",
+      "count_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts",
+        "error_type": "DatabaseError"
+      },
+      "fts_table": "messages_fts",
+      "match_query": "FAIL",
+      "match_query_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts",
+        "error_type": "DatabaseError"
+      },
+      "runtime": "/usr/bin/python3"
+    },
+    {
+      "constructor": "FAIL",
+      "constructor_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+        "error_type": "DatabaseError"
+      },
+      "count": "FAIL",
+      "count_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+        "error_type": "DatabaseError"
+      },
+      "fts_table": "messages_fts_trigram",
+      "match_query": "FAIL",
+      "match_query_error": {
+        "error_message_sanitized": "vtable constructor failed: messages_fts_trigram",
+        "error_type": "DatabaseError"
+      },
+      "runtime": "/usr/bin/python3"
+    }
+  ],
+  "system_sqlite_cli": []
+}

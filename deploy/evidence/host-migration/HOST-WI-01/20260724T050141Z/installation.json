@@ -1,0 +1,13 @@
+{
+  "install_method": "official source checkout + uv editable install",
+  "source_root": "/home/latios/workspace/hermes-agent-host",
+  "venv_root": "/home/latios/.venvs/hermes-agent-host",
+  "hermes_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "hermes_version": "0.19.0 (2026.7.20)",
+  "python_version": "3.12.3",
+  "uv_version": "0.11.32",
+  "extras": ["web", "pty"],
+  "source_commit": "8a21df18acbe73c63d06747d0ab359288bf84276",
+  "source_worktree": "clean detached HEAD",
+  "lockfile_state": "source checkout has no uv.lock at pinned commit"
+}

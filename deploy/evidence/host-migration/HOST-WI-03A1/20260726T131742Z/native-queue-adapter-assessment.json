@@ -1,0 +1,18 @@
+{
+  "queue_type": "SQLite async_delegations table plus process-local completion_queue",
+  "required_native_fields": ["delegation_id", "origin_session", "state", "timestamps", "event_json", "result_json", "delivery_state", "claim fields"],
+  "foreign_key_or_session_relationship": "logical parent/origin session fields; no SQL foreign key that establishes AOTA ownership",
+  "requires_native_delegation_record": "true for watcher claim/restore/ack",
+  "requires_child_run_record": "native lifecycle implies one; AOTA task is not native child run",
+  "requires_origin_channel": "true for push delivery routing",
+  "requires_live_owner": "true for safe target ownership; restart restore still requires positive proof",
+  "queue_watcher_auto_claim": "true only for correctly formed native event in the current profile/process",
+  "security_rejection_risks": ["missing parent_session_id", "wrong session_key", "foreign profile", "ended parent", "unowned restored event"],
+  "safe_to_insert_synthetic_aota_row": false,
+  "fake_delegation_lifecycle_required": true,
+  "native_queue_adapter_feasible": "NO_FOR_CURRENT_AOTA_CONTRACT",
+  "native_queue_adapter_requires_fake_delegation": true,
+  "native_queue_adapter_risk": "HIGH; row insertion alone would bypass native dispatch identity, child ownership, profile scope and route validation",
+  "upgrade_compatibility": "poor; async_delegations schema is internal and may evolve",
+  "recommendation": "do not write AOTA completions directly into async_delegations; use AOTA outbox as source and a trusted backend adapter"
+}

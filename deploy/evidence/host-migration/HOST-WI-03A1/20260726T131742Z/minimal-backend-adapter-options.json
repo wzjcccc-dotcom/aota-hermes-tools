@@ -1,0 +1,60 @@
+{
+  "options": [
+    {
+      "option": "authenticated_parent_backend_hook",
+      "feasible": "YES_WITH_SMALL_ADAPTER",
+      "required_source": ["AOTA outbox consumer", "parent-profile/session validator", "gateway.wake integration"],
+      "new_module_or_patch": "small backend adapter module; no Desktop frontend patch",
+      "whole_file_replacement": false,
+      "authentication": "backend-trusted source plus API_SERVER_KEY when using self-post",
+      "parent_ownership": "mandatory state.db lookup and compression-lineage validation",
+      "profile_routing": "explicit parent_profile; route parent DB/runtime before wake",
+      "idempotency": "AOTA event_id plus backend delivery ledger/claim",
+      "offline_persistence": "existing AOTA pending outbox",
+      "retry": "pending outbox plus bounded backend retry",
+      "duplicate_handling": "claim before wake and durable delivered disposition; at-least-once",
+      "desktop_changes": false,
+      "plugin_changes": "small schema/producer alignment if parent_profile/result_pointer must be carried",
+      "maintenance_cost": "medium",
+      "security_risk": "manageable only with strict validation"
+    },
+    {
+      "option": "filesystem_outbox_watcher_only",
+      "feasible": "PARTIAL_UI_NOTIFICATION_ONLY",
+      "required_source": ["current _delivery_adapter", "official backend/WebUI boundary"],
+      "new_module_or_patch": "finish deferred boundary",
+      "whole_file_replacement": false,
+      "authentication": "current adapter trusts bounded outbox but lacks Hermes backend auth",
+      "parent_ownership": "origin_session_id equality only",
+      "profile_routing": "absent",
+      "idempotency": "event_id and pending-to-delivered rename",
+      "offline_persistence": true,
+      "retry": "pending file retry",
+      "duplicate_handling": "at-least-once; consumer dedup deferred",
+      "desktop_changes": "not for UI-only event if boundary exists; automatic model resume not proven",
+      "plugin_changes": false,
+      "maintenance_cost": "medium",
+      "security_risk": "medium"
+    },
+    {
+      "option": "direct_native_queue_insert",
+      "feasible": "NO",
+      "required_source": ["native async_delegation schema and lifecycle"],
+      "new_module_or_patch": "would require fake native lifecycle",
+      "whole_file_replacement": false,
+      "authentication": "not supplied by INSERT",
+      "parent_ownership": "not safely supplied by INSERT",
+      "profile_routing": "missing",
+      "idempotency": "native claim only after fabricating identity",
+      "offline_persistence": "SQLite yes, semantics unsafe",
+      "retry": "would inherit native retry ambiguously",
+      "duplicate_handling": "high risk",
+      "desktop_changes": false,
+      "plugin_changes": true,
+      "maintenance_cost": "high",
+      "security_risk": "high"
+    }
+  ],
+  "recommended": "authenticated_parent_backend_hook",
+  "boundary_principle": "AOTA outbox remains durable source of truth; adapter consumes sanitized event only and never trusts arbitrary filesystem writer without provenance validation"
+}

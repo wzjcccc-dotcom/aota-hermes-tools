@@ -1,0 +1,8 @@
+{
+  "evidence_root": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-03A/20260727T005041Z",
+  "final": "PASS_HOST_NATIVE_PROFILE_TASK_RUNNER_ACTIVATION_WITH_LIMITATIONS",
+  "result": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/host-migration/HOST-WI-03A/20260727T005041Z/RESULT.md",
+  "schema_version": 1,
+  "timestamp": "20260727T005041Z",
+  "work_item": "HOST-WI-03A"
+}

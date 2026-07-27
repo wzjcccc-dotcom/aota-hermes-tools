@@ -1,0 +1,78 @@
+{
+  "credential_values_redacted": true,
+  "direct_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "keys": {
+    "HERMES_HOME": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "present",
+      "value_recorded": false
+    },
+    "HOME": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "present",
+      "value_recorded": false
+    },
+    "HTTPS_PROXY": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "HTTP_PROXY": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "NO_PROXY": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "OPENAI_API_BASE_URL": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "OPENAI_API_KEY": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "OPENAI_BASE_URL": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "OPENCODE_API_KEY": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "OPENCODE_BASE_URL": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "OPENCODE_ZEN_API_KEY": {
+      "canonical_hermes_env": "present",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "OPENCODE_ZEN_BASE_URL": {
+      "canonical_hermes_env": "present",
+      "runtime_env": "missing",
+      "value_recorded": false
+    },
+    "PATH": {
+      "canonical_hermes_env": "missing",
+      "runtime_env": "present",
+      "value_recorded": false
+    }
+  },
+  "launcher": "/home/latios/.local/bin/hermes-host",
+  "launcher_runtime_env": "/home/latios/.config/hermes-host/runtime.env",
+  "schema_version": 1,
+  "source_behavior": {
+    "launcher": "sets HOME, sources runtime.env, execs official executable",
+    "official_cli": "loads HERMES_HOME/.env through hermes_cli.env_loader/config"
+  }
+}

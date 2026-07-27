@@ -1,0 +1,13 @@
+{
+  "aota_profile_task_root": "/home/latios/.hermes/aota-runtime/profile-tasks",
+  "aota_runtime_available": "NOT_VERIFIED",
+  "aota_runtime_info": "NOT_STARTED",
+  "aota_runtime_root": "/home/latios/.hermes/aota-runtime",
+  "desktop_reconnect": "NOT_STARTED",
+  "gateway_status": "NOT_STARTED",
+  "operator_checkpoint": "required",
+  "profile_visibility": "NOT_STARTED",
+  "provider_smoke": "NOT_STARTED",
+  "schema_version": 1,
+  "tool_visibility": "NOT_STARTED"
+}

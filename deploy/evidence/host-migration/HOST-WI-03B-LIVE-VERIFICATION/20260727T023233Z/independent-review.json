@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "reviewer": "NOT_EXECUTED",
+  "reason": "Orca orchestration unavailable: orca-ide AppImage cannot mount because FUSE is unavailable",
+  "review_scope_substituted": false
+}

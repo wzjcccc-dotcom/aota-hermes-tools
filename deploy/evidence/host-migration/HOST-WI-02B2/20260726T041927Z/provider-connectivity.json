@@ -1,0 +1,20 @@
+{
+  "auth_test": "NOT_RUN_USER_APPROVAL_REQUIRED",
+  "configured_endpoint": {
+    "base_url_class": "host_proxy_http",
+    "unauthenticated_models_http_status": 401
+  },
+  "credential_values_redacted": true,
+  "model": "deepseek-v4-flash-free",
+  "model_availability_test": "NOT_RUN_USER_APPROVAL_REQUIRED",
+  "one_shot": "NOT_RUN_CURRENT_CLOSURE_DB_INTEGRITY_BLOCKER",
+  "provider": "opencode-zen",
+  "public_provider_endpoint": {
+    "dns": "PASS",
+    "tcp": "PASS",
+    "tls": "PASS",
+    "unauthenticated_http_status": 200
+  },
+  "retry_count_current_work_item": 0,
+  "schema_version": 1
+}

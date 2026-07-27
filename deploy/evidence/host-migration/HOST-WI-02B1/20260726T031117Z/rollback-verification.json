@@ -1,0 +1,7 @@
+{
+  "canonical_target_restore_once": true,
+  "fixture": "PASS",
+  "projection_revalidated_after_rollback": true,
+  "rollback_deduplication": "PASS",
+  "schema_version": 1
+}

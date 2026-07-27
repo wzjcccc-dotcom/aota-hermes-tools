@@ -1,0 +1,12 @@
+{
+  "work_item": "HOST-WI-01",
+  "evidence_timestamp": "20260724T050141Z",
+  "final": "NEEDS_OPERATOR_PROVIDER_AUTH",
+  "host_serve_local": "PASS",
+  "local_websocket": "PASS",
+  "local_session_create": "PASS",
+  "host_remote_readiness": "NOT_RUN",
+  "desktop_validation": "NOT_RUN",
+  "provider_ready": "no",
+  "source_commit": "8a21df18acbe73c63d06747d0ab359288bf84276"
+}

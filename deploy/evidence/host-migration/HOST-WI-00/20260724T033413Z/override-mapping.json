@@ -1,0 +1,786 @@
+{
+  "exclusions": [
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "agent/api_server/__pycache__/aota_delegate_runtime_route.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "agent/api_server/__pycache__/api_server.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "agent/prompt_builder/__pycache__/prompt_builder.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "api/__pycache__/aota_agent_runs.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "api/__pycache__/aota_delegate_runs.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "api/__pycache__/aota_delegate_runtime_client.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "api/background_process/__pycache__/background_process.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "api/process_event_utils/__pycache__/process_event_utils.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "api/routes/__pycache__/routes.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "api/streaming/__pycache__/streaming.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "tools/delegate_tool/__pycache__/aota_delegate_receipt.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "tools/delegate_tool/__pycache__/aota_delegate_runtime.cpython-312.pyc"
+    },
+    {
+      "file_class": "runtime_cache_file",
+      "reason": "runtime_generated_python_cache",
+      "relative_path": "tools/delegate_tool/__pycache__/delegate_tool.cpython-312.pyc"
+    }
+  ],
+  "file_count": 56,
+  "files": [
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "73314d44c95fc481fcf761f08e944476777601679a5d87157de362b6baf635fe",
+      "source_relative_path": ".aota/project.yaml"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "dddcf46d0bf4182ce44e58ac84fffedc91d7539c3e9b8f13cc8f6aa752d51e52",
+      "source_relative_path": ".backups/20260711T093706Z/docker-compose.yml"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "19ab80f02b49595e4b869e064b88b85e49159cba2428e1793898acd783762175",
+      "source_relative_path": ".backups/20260711T093706Z/index.html"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "139b901dcdebf9151b878ff346c3dd17cd766d1dd45650ae2c5cc6e2d8490c0e",
+      "source_relative_path": ".backups/20260711T093706Z/routes.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "64dbb0b1df7257756c5135cc8ac3d969f9bc297ac3db10aa7e1d651587269b99",
+      "source_relative_path": ".backups/20260711T093706Z/settings.json"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "23a09ae16cc55c51c02166ad971dcd0a4b98fdf062ec8c2600fe6d94fa3a84d5",
+      "source_relative_path": ".backups/20260711T114455Z/delegate_tool.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "9cc8319e5afd4bdee5811191861a794f008a3cf003b9799b56928e7ba6af944a",
+      "source_relative_path": ".backups/20260711T114455Z/docker-compose.yml"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "eeaa169b86916320c7eb811d2f9e2a2ba7ef851475f5cc5645604092a881f118",
+      "source_relative_path": ".backups/20260711T134236Z/aota_agent_runs.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "d75ec50bea799ee0d545dc15a9128067028ac36eea5091bdcb9fd181c11a9e30",
+      "source_relative_path": ".backups/20260711T134236Z/dashboard-index.html"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "e834e94917f6ac374a04e398c702b38ed2a851a27a184ab2cd2a57bbf8e04fc5",
+      "source_relative_path": ".backups/20260711T134236Z/dashboard.css"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "eaaee4735380e2dd0dfb44bb9f176a29fc3bca775300c7efff54720af2bfb08d",
+      "source_relative_path": ".backups/20260711T134236Z/dashboard.js"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "6828264a8d27de2b77f67a74e3cf873b9f67351845942e6bb0357a0a9637e015",
+      "source_relative_path": ".backups/20260711T134236Z/docker-compose.yml"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "f541b0e5588655d9146be8e2edb72f71e7f344cd7bab0267aaa4511b6ebaefa5",
+      "source_relative_path": ".backups/20260711T140626Z/delegate_tool.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "8eda913806244ef31c19dcf78b1f3ae209fc7f1e2ae23d94dd086e37968fd449",
+      "source_relative_path": ".backups/20260711T140626Z/docker-compose.yml"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "d819f04f4f3a7d2c7f2d3b5befb13aa50dc0df7ca8416909f65f6d214e8c7b66",
+      "source_relative_path": ".backups/20260711T144705Z/api_server.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "78e9eec6c108751c66cfdced3ccaeec0ba2261a1774bc4822ec46fbc64afe400",
+      "source_relative_path": ".backups/20260711T144705Z/docker-compose.yml"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o640",
+      "sha256": "a398aa6d908863784dc783c3b07bae341d9f661ce067e8d9b5fceb878c20379e",
+      "source_relative_path": ".backups/20260711T150000Z/config.yaml"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "4711db88881d265e5ddbceaba4ba570bd5bbafd0c39e5fc05717b057339b894b",
+      "source_relative_path": ".backups/20260712T001500Z/aota_agent_runs.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "c1c1c4a290ad72d87eee13afede8943d56c3526d66fd61b3a73e55e5679750b7",
+      "source_relative_path": ".backups/20260712T001500Z/dashboard-index.html"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "49c34896276e876afaefabe80a4206791852b3446277adae8c38ca8de2ab99e4",
+      "source_relative_path": ".backups/20260712T001500Z/dashboard.css"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "4681699e962c5d78e9c9e3efc5de176677aebf1f449113f1182bb4761dec3cbb",
+      "source_relative_path": ".backups/20260712T001500Z/dashboard.js"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "7c1610187cf5c20e29c37120dc6acdd9655d8276c50da384a52f23b358777e55",
+      "source_relative_path": ".backups/20260712T001500Z/docker-compose.yml"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o664",
+      "sha256": "47c0dacebca9f56c9020b68584470dfc51f07650a3719904e98f4b447a5dd003",
+      "source_relative_path": ".codegraph/.gitignore"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o644",
+      "sha256": "cbc721712b1a11935fb921707b64680b96ec9d42904d2618bd6f86a0f0a8084a",
+      "source_relative_path": ".codegraph/codegraph.db"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o664",
+      "sha256": "65a94803bad8e66c69558ac172ec5136936cc621d73d2e54a7653c9f2bc4ffcd",
+      "source_relative_path": ".gitignore"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_relative_path": ".tmp/.gitkeep"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "9f8df06545af1a13adb338ca2f418e00b269431f57d0537d311851eefa2df5e2",
+      "source_relative_path": "README.md"
+    },
+    {
+      "category": "agent",
+      "disposition": "migrate_agent",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-agent",
+          "source": "/home/latios/workspace/hermes-overrides/agent/api_server/aota_delegate_runtime_route.py",
+          "target": "/opt/hermes/gateway/platforms/aota_delegate_runtime_route.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "f369801c659cc25a2a46963bcf3f3c01e2c864a062fd94ac16cd0e6f4ffb5562",
+      "source_relative_path": "agent/api_server/aota_delegate_runtime_route.py"
+    },
+    {
+      "category": "agent",
+      "disposition": "migrate_agent",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-agent",
+          "source": "/home/latios/workspace/hermes-overrides/agent/api_server/api_server.py",
+          "target": "/opt/hermes/gateway/platforms/api_server.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "f2c833aab31d468a3bf6f1f091e0c0be15ec57046f7a060de0ce8853cbd82c0a",
+      "source_relative_path": "agent/api_server/api_server.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_relative_path": "agent/prompt_builder/.gitkeep"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "9e5aefd7539264932942f328b96dcc9ec0ab88a22e30f88caabfd3f61279fd41",
+      "source_relative_path": "agent/prompt_builder/README.md"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "645f79e463d615c022f48f1619a61071486142ba8f68efd6c8bc324539b8633e",
+      "source_relative_path": "agent/prompt_builder/prompt_builder.patch"
+    },
+    {
+      "category": "agent",
+      "disposition": "migrate_agent",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-agent",
+          "source": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/prompt_builder.py",
+          "target": "/opt/hermes/agent/prompt_builder.py"
+        },
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/prompt_builder.py",
+          "target": "/home/hermeswebui/.hermes/hermes-agent/agent/prompt_builder.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "7019df54d8b7ee9aa7347479baac1676bd44512c8c2ef4023015410e03e9a2eb",
+      "source_relative_path": "agent/prompt_builder/prompt_builder.py"
+    },
+    {
+      "category": "webui",
+      "disposition": "retire_webui",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/api/aota_agent_runs.py",
+          "target": "/apptoo/api/aota_agent_runs.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "3b272fd6536f0e9ad9e9692daae081d627382c6e6e314e9354a21c82c93479ab",
+      "source_relative_path": "api/aota_agent_runs.py"
+    },
+    {
+      "category": "webui",
+      "disposition": "retire_webui",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runs.py",
+          "target": "/apptoo/api/aota_delegate_runs.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "83b26aeb69184140e8bc943b2fc29e4ed899b4b5fee2beb38c95bd8a196de4db",
+      "source_relative_path": "api/aota_delegate_runs.py"
+    },
+    {
+      "category": "webui",
+      "disposition": "retire_webui",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runtime_client.py",
+          "target": "/apptoo/api/aota_delegate_runtime_client.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "f7487ea1f45a68a4caf16804d3948ff41a9bccf2dcf3007310623f43be7b01c5",
+      "source_relative_path": "api/aota_delegate_runtime_client.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "4943c8a595ef05e9e0119af620e735ea443edeb5f21d8ecee8c2d4499c02b453",
+      "source_relative_path": "api/background_process/README.md"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "10ab4842a984128e082268e13a8f53a1cd419e65e6205a504d1ec2f8ef3f551d",
+      "source_relative_path": "api/background_process/background_process.patch"
+    },
+    {
+      "category": "webui",
+      "disposition": "retire_webui",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/api/background_process/background_process.py",
+          "target": "/apptoo/api/background_process.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "92a8a00346a6676cd514e48106aea4b8112f5ddb15ffb0f1e1a9af01e25d6647",
+      "source_relative_path": "api/background_process/background_process.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "77aaa36fd351225d93c25d4907b37822feddbaf35f59a44ffd72cbe180d76938",
+      "source_relative_path": "api/process_event_utils/README.md"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "74095f2cdc738da55c70ad0fcc2d7b3255cc6b86a08d33091ef436bd8a6ee41b",
+      "source_relative_path": "api/process_event_utils/process_event_utils.patch"
+    },
+    {
+      "category": "webui",
+      "disposition": "retire_webui",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/api/process_event_utils/process_event_utils.py",
+          "target": "/apptoo/api/process_event_utils.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "774b2b8620c1d240eb890968af492b28299c70fc8b32b511ba750e8cb1973d26",
+      "source_relative_path": "api/process_event_utils/process_event_utils.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_relative_path": "api/routes/.gitkeep"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "35ebdb00ba6be4b9f9d4a35749b5034021ce64c7045cef2e86a83bc815083f27",
+      "source_relative_path": "api/routes/README.md"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_relative_path": "api/routes/routes.patch"
+    },
+    {
+      "category": "webui",
+      "disposition": "retire_webui",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/api/routes/routes.py",
+          "target": "/apptoo/api/routes.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "ab63005841b6a1b3874e4ad8fd0db4fda2922f32b19ebd409c2733758de55514",
+      "source_relative_path": "api/routes/routes.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_relative_path": "api/streaming/.gitkeep"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "ceca34b7d2a62af7357e561b80daf6eb5edcddf979c6592eab2c1bdfcd66c107",
+      "source_relative_path": "api/streaming/README.md"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_relative_path": "api/streaming/streaming.patch"
+    },
+    {
+      "category": "webui",
+      "disposition": "retire_webui",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/api/streaming/streaming.py",
+          "target": "/apptoo/api/streaming.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "83d73ccaa916db90fdc253d9afa5c38206cbba692d7edc5112afa79a84f46486",
+      "source_relative_path": "api/streaming/streaming.py"
+    },
+    {
+      "category": "webui",
+      "disposition": "retire_webui",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/frontend/index.html",
+          "target": "/apptoo/static/index.html"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "3c999af9be9abf4236d202eefb64da7b35df065d6da66271fb1649f1c0291366",
+      "source_relative_path": "frontend/index.html"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "1a83e20d9a20abfe88861a407df054bff3f982e6a72e3fd54581d4722e574951",
+      "source_relative_path": "tools/delegate_tool/README.md"
+    },
+    {
+      "category": "agent",
+      "disposition": "migrate_agent",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-agent",
+          "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_receipt.py",
+          "target": "/opt/hermes/tools/aota_delegate_receipt.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "a7c03c207bb189ef00fa1579eb5226b76278ac2ebf50a6a9777c3b3db17e6742",
+      "source_relative_path": "tools/delegate_tool/aota_delegate_receipt.py"
+    },
+    {
+      "category": "agent",
+      "disposition": "migrate_agent",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-agent",
+          "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_runtime.py",
+          "target": "/opt/hermes/tools/aota_delegate_runtime.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "b488da976a2c5d4513a4ac2914abc82361ccbd67c679a6d6dc007fda8aa7382d",
+      "source_relative_path": "tools/delegate_tool/aota_delegate_runtime.py"
+    },
+    {
+      "category": "unknown",
+      "disposition": "investigate",
+      "docker_target_mapping": [],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "ad6f0b8aed0e3bb22a9b211f56a31d3a2d52e24612749e8864bab9415a00f622",
+      "source_relative_path": "tools/delegate_tool/delegate_tool.patch"
+    },
+    {
+      "category": "agent",
+      "disposition": "migrate_agent",
+      "docker_target_mapping": [
+        {
+          "read_only": true,
+          "service": "hermes-agent",
+          "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/delegate_tool.py",
+          "target": "/opt/hermes/tools/delegate_tool.py"
+        },
+        {
+          "read_only": true,
+          "service": "hermes-webui",
+          "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/delegate_tool.py",
+          "target": "/home/hermeswebui/.hermes/hermes-agent/tools/delegate_tool.py"
+        }
+      ],
+      "is_symlink": false,
+      "mode": "0o600",
+      "sha256": "d62725226c92d645dc592553e3b64857a719f484e7e120a6fb2b5d04226abfd6",
+      "source_relative_path": "tools/delegate_tool/delegate_tool.py"
+    }
+  ],
+  "mount_mappings": [
+    {
+      "read_only": true,
+      "service": "hermes-agent",
+      "source": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/prompt_builder.py",
+      "target": "/opt/hermes/agent/prompt_builder.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-agent",
+      "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/delegate_tool.py",
+      "target": "/opt/hermes/tools/delegate_tool.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-agent",
+      "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_receipt.py",
+      "target": "/opt/hermes/tools/aota_delegate_receipt.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-agent",
+      "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_runtime.py",
+      "target": "/opt/hermes/tools/aota_delegate_runtime.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-agent",
+      "source": "/home/latios/workspace/hermes-overrides/agent/api_server/api_server.py",
+      "target": "/opt/hermes/gateway/platforms/api_server.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-agent",
+      "source": "/home/latios/workspace/hermes-overrides/agent/api_server/aota_delegate_runtime_route.py",
+      "target": "/opt/hermes/gateway/platforms/aota_delegate_runtime_route.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/prompt_builder.py",
+      "target": "/home/hermeswebui/.hermes/hermes-agent/agent/prompt_builder.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/delegate_tool.py",
+      "target": "/home/hermeswebui/.hermes/hermes-agent/tools/delegate_tool.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/api/streaming/streaming.py",
+      "target": "/apptoo/api/streaming.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/api/routes/routes.py",
+      "target": "/apptoo/api/routes.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/api/aota_agent_runs.py",
+      "target": "/apptoo/api/aota_agent_runs.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runs.py",
+      "target": "/apptoo/api/aota_delegate_runs.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runtime_client.py",
+      "target": "/apptoo/api/aota_delegate_runtime_client.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/api/process_event_utils/process_event_utils.py",
+      "target": "/apptoo/api/process_event_utils.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/api/background_process/background_process.py",
+      "target": "/apptoo/api/background_process.py"
+    },
+    {
+      "read_only": true,
+      "service": "hermes-webui",
+      "source": "/home/latios/workspace/hermes-overrides/frontend/index.html",
+      "target": "/apptoo/static/index.html"
+    }
+  ],
+  "schema_version": 1,
+  "source_root": "/home/latios/workspace/hermes-overrides"
+}

@@ -1,5 +1,6 @@
 schema_version: 1
 assembly_version: 2
+projection_contract_schema_version: 1
 
 # This is the canonical Named Profile runtime assembly.  Profile config and
 # SOUL remain the behavioral authorities; this file only declares the runtime
@@ -73,7 +74,57 @@ profiles:
     active_skills:
       - aota-implementation-review
 
+# Exact Host runtime projections.  These five profile-local plugin roots are
+# intentionally symlinks to the one canonical global plugin root.  The
+# deployment adapter accepts only these declarations; project-steward is an
+# ordinary managed directory and is therefore not a projection.
+plugin_projections:
+  - type: profile_plugin_global_projection
+    profile: task-main
+    logical_path: profiles/task-main/plugins/aota-tools
+    target_path: plugins/aota-tools
+    write_mode: canonical_target_only
+    verify_logical_path: true
+  - type: profile_plugin_global_projection
+    profile: architect
+    logical_path: profiles/architect/plugins/aota-tools
+    target_path: plugins/aota-tools
+    write_mode: canonical_target_only
+    verify_logical_path: true
+  - type: profile_plugin_global_projection
+    profile: coder
+    logical_path: profiles/coder/plugins/aota-tools
+    target_path: plugins/aota-tools
+    write_mode: canonical_target_only
+    verify_logical_path: true
+  - type: profile_plugin_global_projection
+    profile: debugger
+    logical_path: profiles/debugger/plugins/aota-tools
+    target_path: plugins/aota-tools
+    write_mode: canonical_target_only
+    verify_logical_path: true
+  - type: profile_plugin_global_projection
+    profile: reviewer
+    logical_path: profiles/reviewer/plugins/aota-tools
+    target_path: plugins/aota-tools
+    write_mode: canonical_target_only
+    verify_logical_path: true
+
 # Same-name override declarations: when a Skill with the same bare name exists
 # in both canonical_managed and another source class, the override must be
 # explicitly declared here.  No undeclared collisions are permitted.
 overrides: []
+
+# Profile Task runner contract.  The launcher is Host-migration owned and is
+# referenced by absolute path; it is never copied into the plugin directory.
+profile_task_runner:
+  contract_version: 2
+  default_runner: /home/latios/.local/bin/hermes-host
+  official_executable: /home/latios/.venvs/hermes-agent-host/bin/hermes
+  forbidden_runner: /usr/local/bin/hermes
+  docker_runner_forbidden: true
+  path_fallback_allowed: false
+  shell_execution_allowed: false
+  worker_toolset_source: WORKER_PROFILE
+  parent_toolset_inherited: false
+  deployment_ownership: host_migration_launcher

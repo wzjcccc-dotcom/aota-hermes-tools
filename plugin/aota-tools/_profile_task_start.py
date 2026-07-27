@@ -26,6 +26,7 @@ from ._profile_task_common import (
     resolve_runner,
     generate_worker_prompt,
 )
+from ._profile_task_runner import runner_contract
 from ._task_spec_common import (
     PROFILE_TASK_ROOT,
     TASK_KINDS,
@@ -496,7 +497,27 @@ def _do_start_locked(
     # Establish the task-local durable rail before profile/config, credential,
     # runner, or terminal bootstrap can fail.  The worker log is intentionally
     # the single canonical launcher+worker capture artifact.
-    parent_profile_hint = os.environ.get("AOTA_PROFILE_TASK_PARENT_PROFILE")
+    parent_profile_env = os.environ.get("AOTA_PROFILE_TASK_PARENT_PROFILE", "").strip()
+    active_parent_profile = ""
+    try:
+        # In a multiplexed gateway the active profile is carried by the
+        # profile runtime scope, not necessarily by an AOTA-specific env var.
+        # Capture that trusted host identity before the worker subprocess is
+        # launched so the frozen contract cannot silently fall back to, or be
+        # overridden by, ``default``.
+        from hermes_cli.profiles import get_active_profile_name
+
+        active_parent_profile = (get_active_profile_name() or "").strip()
+    except Exception:
+        active_parent_profile = ""
+    if active_parent_profile:
+        if parent_profile_env and parent_profile_env != active_parent_profile:
+            raise WorkspaceError("parent_profile_context_mismatch")
+        parent_profile_hint = active_parent_profile
+    else:
+        # Preserve the legacy single-profile launcher contract only when the
+        # host cannot expose an active profile context at all.
+        parent_profile_hint = parent_profile_env or "default"
     launch_log_path = task_dir / f"worker.{task_id}.log"
     with launch_log_path.open("a", encoding="utf-8") as launch_log:
         launch_log.write(
@@ -524,6 +545,8 @@ def _do_start_locked(
         "fallback_finalizer_executed": False,
         "global_hermes_home": "",
         "parent_profile": parent_profile_hint or "unknown",
+        "parent_session_ref": origin_session_id or "",
+        "parent_session_source": origin_source or "",
         "parent_profile_home": "",
         "target_profile_home": "",
         "worker_log": {"path": launch_log_path.name, "size_bytes": launch_log_path.stat().st_size, "truncated": False},
@@ -559,6 +582,8 @@ def _do_start_locked(
         "parent_profile": runtime_context["parent_profile"],
         "parent_profile_home": runtime_context["parent_profile_home"],
         "target_profile_home": runtime_context["target_profile_home"],
+        "parent_session_ref": origin_session_id or "",
+        "parent_session_source": origin_source or "",
     })
     with launch_log_path.open("a", encoding="utf-8") as launch_log:
         launch_log.write(
@@ -645,6 +670,10 @@ def _do_start_locked(
         runner = resolve_runner()
     except WorkspaceError:
         raise WorkspaceError("runner_unavailable: no hermes runner found")
+    try:
+        frozen_runner = runner_contract(runner)
+    except ValueError as exc:
+        raise WorkspaceError(f"runner_unavailable: {exc}") from exc
 
     # ------------------------------------------------------------------
     # 15. Generate worker prompt
@@ -801,11 +830,16 @@ def _do_start_locked(
         "project_root": workspace_context.get("project_root", str(workspace_root)),
         "worker": {
             "runner": runner,
+            "runner_realpath": frozen_runner["runner_realpath"],
+            "runner_identity_hash": frozen_runner["runner_identity_hash"],
+            "runner_contract_version": frozen_runner["runner_contract_version"],
+            "host_mode": True,
             "argv": [runner, "-p", derived_profile, "-z", "<prompt-file>"],
             "argv_template": [runner, "-p", derived_profile, "-z", "<prompt-file>"],
             "prompt_path": str(prompt_path), "cwd": str(workspace_root),
             "timeout_seconds": timeout_seconds or 0, "timeout_deadline_at": timeout_iso_deadline or "",
         },
+        "runner_contract": frozen_runner,
         "provider": {
             "name": _provider_name, "model": resolved_model, "key_env": _key_env,
             "base_url_env": _base_url_env, "configured_base_url": _configured_base_url,

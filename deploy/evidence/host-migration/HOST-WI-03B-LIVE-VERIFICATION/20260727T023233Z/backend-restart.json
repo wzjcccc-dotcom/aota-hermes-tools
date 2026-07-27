@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "canonical_launcher": "/home/latios/.local/bin/hermes-host",
+  "launch_attempt": "EXECUTED",
+  "foreground_session": "STOPPED",
+  "startup_output": "NO_ADAPTER_STARTUP_EVIDENCE",
+  "desktop_reconnect": "BLOCKED_COMPUTER_USE_ORCA_FUSE",
+  "docker_started": false,
+  "stop_reason": "live_parent_and_desktop_observation_unavailable"
+}

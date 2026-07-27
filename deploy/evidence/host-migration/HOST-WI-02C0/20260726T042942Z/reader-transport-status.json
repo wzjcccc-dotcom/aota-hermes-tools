@@ -1,0 +1,9 @@
+{
+  "primary_reader": "AOTA Local Project Reader",
+  "primary_status": "UNAVAILABLE_IN_THIS_SESSION; local Git/filesystem used as authoritative read-only source",
+  "primary_transport": "Tailscale",
+  "secondary_reader": "AOTA Local Project Reader_2",
+  "secondary_status": "NOT_ATTEMPTED; known limitation is UNAVAILABLE_MCP_SSE_404",
+  "secondary_transport": "OpenAI Secure MCP Tunnel",
+  "source_of_truth": "local Git checkout, actual file hashes, bounded local runtime artifact reads"
+}

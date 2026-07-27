@@ -1,0 +1,11 @@
+{
+  "result": "PASS",
+  "isolated_verifier": "PASS",
+  "diff_check": "PASS",
+  "feature_flag_default_disabled": true,
+  "no_async_delegations_insert": true,
+  "no_direct_parent_db_write": true,
+  "no_desktop_frontend_change": true,
+  "no_legacy_overlay_restore": true,
+  "no_whole_file_replacement": true
+}

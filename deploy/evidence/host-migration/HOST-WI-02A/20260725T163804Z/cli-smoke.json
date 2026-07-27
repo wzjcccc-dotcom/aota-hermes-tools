@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-02A",
+  "launcher_version_smoke": "PASS",
+  "launcher_doctor": "PASS_EXIT_0_WITH_EXISTING_CONFIG_WARNINGS",
+  "provider": "opencode-zen",
+  "model": "deepseek-v4-flash-free",
+  "provider_connectivity": "PASS",
+  "one_shot_response": "AOTA_HOST_ENV_OK",
+  "codegraph_version_smoke": "PASS",
+  "aota_runtime_info": "DEFERRED_TO_DESKTOP_LIVE_SMOKE",
+  "plugin_internals_imported": false,
+  "profile_task_started": false
+}

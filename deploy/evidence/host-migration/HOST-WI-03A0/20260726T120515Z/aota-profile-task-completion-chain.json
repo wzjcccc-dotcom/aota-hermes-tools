@@ -1,0 +1,18 @@
+{
+  "chain": [
+    {"step": 1, "component": "profile task start", "file": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_profile_task_start.py", "symbol": "start flow", "finding": "captures trusted origin_session_id when available and writes notify_on_complete metadata"},
+    {"step": 2, "component": "runner resolution", "file": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_profile_task_common.py", "line": 73, "symbol": "resolve_runner", "finding": "uses AOTA_HERMES_RUNNER, fixed candidates, or PATH; it does not default to Hermes native host launcher"},
+    {"step": 3, "component": "worker spawn", "file": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_profile_task_launcher.py", "line": 236, "symbol": "_run_worker", "finding": "Popen(shell=False, start_new_session=True), captures worker logs and waits for exit"},
+    {"step": 4, "component": "finalization", "file": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_profile_task_finalize.py", "line": 406, "symbol": "receipt/meta reconciliation", "finding": "atomically writes completion receipt and terminal execution/meta state"},
+    {"step": 5, "component": "AOTA delivery outbox", "file": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_delivery_outbox.py", "line": 264, "symbol": "write_outbox_event", "finding": "writes sanitized pending event after receipt, meta and handoff are durable; failure is non-fatal"},
+    {"step": 6, "component": "AOTA adapter", "file": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_delivery_adapter.py", "line": 141, "symbol": "drain_pending_for_session", "finding": "would call a WebUI boundary and mark pending event delivered after emitted+wakeup_started"},
+    {"step": 7, "component": "task-main visibility", "file": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_profile_task_status.py", "line": 372, "symbol": "receipt reconciliation", "finding": "task status can read completion_receipt_path and result artifacts"}
+  ],
+  "current_gap": [
+    "The adapter imports api.background_process lazily; that WebUI boundary is not present in the current Hermes Desktop source path.",
+    "P11-L.1B explicitly defers actual WebUI integration, reconnect handling and end-to-end validation.",
+    "No AOTA call to Hermes tools.async_delegation, gateway.wake, or a Desktop JSON-RPC completion API was found."
+  ],
+  "durable_artifacts": ["completion.<start_id>.json", "meta.json execution status", "handoff.<id>.json", "AOTA outbox pending/<event_id>.json"],
+  "not_present": ["Hermes parent messages append", "Hermes completion_queue insertion", "Desktop event publish", "cross-profile DB route", "proven reconnect replay"]
+}

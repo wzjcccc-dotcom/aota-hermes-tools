@@ -1,0 +1,19 @@
+{
+  "plugin_direct_import_possible": "YES_IN_SOURCE_TERMS",
+  "plugin_direct_runtime_reuse_possible": "NO",
+  "plugin_process": "AOTA start/finalizer and Profile Task runner use separate processes; worker launches hermes -p <profile> -z",
+  "parent_process": "persistent Hermes GatewayRunner/Desktop backend process",
+  "same_process": false,
+  "shared_session_manager_singleton": false,
+  "shared_event_loop": false,
+  "shared_gateway_registry": false,
+  "shared_profile_db_handle": false,
+  "safe_ipc_from_current_plugin": "not present for native completion delivery",
+  "aota_can_construct_native_completion_payload": "only by inventing native delegation fields; current outbox schema is not native async_delegation schema",
+  "aota_can_select_parent_session": "origin_session_id is carried, but parent_session_id and parent_profile are not carried in the outbox event contract",
+  "aota_can_pass_result_pointer": "current outbox has handoff_id and bounded summary, but no canonical result pointer field",
+  "aota_can_trigger_synthetic_turn": "not directly from worker; requires backend adapter or authenticated API transport",
+  "desktop_normal_stream": "would be used automatically if backend accepts the normal synthetic MessageEvent path",
+  "blocker": "process-local GatewayRunner/session/adapter/event-loop state plus missing AOTA-to-Hermes authenticated completion ingress and explicit parent profile routing",
+  "decision": "PLUGIN_DIRECT_REUSE=no; direct import is not evidence of runtime reuse"
+}

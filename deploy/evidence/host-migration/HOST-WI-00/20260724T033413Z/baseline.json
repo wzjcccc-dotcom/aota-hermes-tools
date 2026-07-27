@@ -1,0 +1,1116 @@
+{
+  "active_skill_projection": {
+    "architect": [
+      "aota-architecture-review"
+    ],
+    "coder": [
+      "aota-spec-driven-implementation"
+    ],
+    "debugger": [
+      "aota-evidence-first-debugging"
+    ],
+    "project-steward": [
+      "aota-pcf-project-steward",
+      "aota-workspace-model",
+      "aota-workspace-diagnostics",
+      "aota-task-lifecycle",
+      "aota-tool-failure-fallback"
+    ],
+    "reviewer": [
+      "aota-implementation-review"
+    ],
+    "task-main": [
+      "aota-profile-task-orchestration",
+      "aota-runtime-smoke-verification"
+    ]
+  },
+  "active_task_preflight": {
+    "active_task_count": 27,
+    "effective_stop_gate": {
+      "active": 0,
+      "pass": true,
+      "pending": 0,
+      "running": 0
+    },
+    "new_task_paths": [],
+    "new_task_records_since_capture_start": 0,
+    "observed": {
+      "active_records": 27,
+      "pending_records": 24,
+      "running_records": 3
+    },
+    "operator_override": {
+      "artifact_deletion": false,
+      "authorization_id": "HOST-WI-00-IGNORE-LEGACY-TASK-STATE-20260724",
+      "authorized": true,
+      "metadata_mutation": false,
+      "preserve_unchanged": true,
+      "process_termination": false,
+      "reason": "operator classified records as historical/intermediate artifacts"
+    },
+    "pass": true,
+    "pending_task_count": 24,
+    "running_task_count": 3,
+    "status_counts": {
+      "cancelled": 1,
+      "done": 79,
+      "draft": 17,
+      "failed": 25,
+      "frozen": 1,
+      "needs_input": 24,
+      "running": 3,
+      "timeout": 1
+    },
+    "tasks": [
+      {
+        "completion_receipt": "completion.pt_20260719T025905_c7aa80d0.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T025905_c7aa80d0/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T02:59:23Z",
+        "status": "running",
+        "task_id": "pt_20260719T025905_c7aa80d0",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T035813_8b7c5588.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T035813_8b7c5588/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T03:59:04Z",
+        "status": "running",
+        "task_id": "pt_20260719T035813_8b7c5588",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T075006_9d8ed346.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T075006_9d8ed346/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T07:50:20Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T075006_9d8ed346",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T080457_9fb2723e.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T080457_9fb2723e/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T08:05:08Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T080457_9fb2723e",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T091613_26eb58d6.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T091613_26eb58d6/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T09:16:21Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T091613_26eb58d6",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T092148_35a9d1f3.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T092148_35a9d1f3/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T09:22:03Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T092148_35a9d1f3",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T093102_49b28019.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T093102_49b28019/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-19T09:31:10Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T093102_49b28019",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T093315_2637aabc.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T093315_2637aabc/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T09:33:35Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T093315_2637aabc",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T100318_3e4e70fa.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T100318_3e4e70fa/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T10:03:28Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T100318_3e4e70fa",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T150901_07971fff.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T150901_07971fff/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T15:10:41Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T150901_07971fff",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T152018_0c3b1fdf.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T152018_0c3b1fdf/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T15:21:37Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T152018_0c3b1fdf",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260719T230246_5cf6c048.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260719T230246_5cf6c048/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-19T23:05:36Z",
+        "status": "needs_input",
+        "task_id": "pt_20260719T230246_5cf6c048",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260721T110518_5c4ba0b3.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260721T110518_5c4ba0b3/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-21T11:06:58Z",
+        "status": "needs_input",
+        "task_id": "pt_20260721T110518_5c4ba0b3",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260721T215754_36ae49c3.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260721T215754_36ae49c3/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-21T22:00:38Z",
+        "status": "needs_input",
+        "task_id": "pt_20260721T215754_36ae49c3",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260721T232108_ad918639.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260721T232108_ad918639/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-21T23:22:07Z",
+        "status": "needs_input",
+        "task_id": "pt_20260721T232108_ad918639",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260722T093233_3f03a6b6.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260722T093233_3f03a6b6/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-22T09:34:16Z",
+        "status": "needs_input",
+        "task_id": "pt_20260722T093233_3f03a6b6",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260722T094153_5b6a1b13.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260722T094153_5b6a1b13/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-22T09:49:59Z",
+        "status": "needs_input",
+        "task_id": "pt_20260722T094153_5b6a1b13",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260722T110908_4908f007.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260722T110908_4908f007/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-22T11:10:54Z",
+        "status": "needs_input",
+        "task_id": "pt_20260722T110908_4908f007",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": "completion.pt_20260722T142752_8053aea5.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260722T142752_8053aea5/meta.json",
+        "profile": "architect",
+        "started_at": "2026-07-22T14:28:00Z",
+        "status": "needs_input",
+        "task_id": "pt_20260722T142752_8053aea5",
+        "workspace": "aota-hermes-tools"
+      },
+      {
+        "completion_receipt": null,
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260709T080920_0d13ef54/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-09T08:10:45Z",
+        "status": "running",
+        "task_id": "pt_20260709T080920_0d13ef54",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260710T035600_a416093c.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260710T035600_a416093c/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-10T03:56:00Z",
+        "status": "needs_input",
+        "task_id": "pt_20260710T035600_a416093c",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260711T141849_3879be09.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260711T141849_3879be09/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-11T14:20:33Z",
+        "status": "needs_input",
+        "task_id": "pt_20260711T141849_3879be09",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260711T232105_9ab506e1.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260711T232105_9ab506e1/meta.json",
+        "profile": "debugger",
+        "started_at": "2026-07-11T23:21:55Z",
+        "status": "needs_input",
+        "task_id": "pt_20260711T232105_9ab506e1",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260712T015450_604128e8.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260712T015450_604128e8/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-12T01:55:17Z",
+        "status": "needs_input",
+        "task_id": "pt_20260712T015450_604128e8",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260712T020704_fcbe17a9.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260712T020704_fcbe17a9/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-12T02:07:16Z",
+        "status": "needs_input",
+        "task_id": "pt_20260712T020704_fcbe17a9",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260712T120601_f1db5ae4.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260712T120601_f1db5ae4/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-12T12:08:08Z",
+        "status": "needs_input",
+        "task_id": "pt_20260712T120601_f1db5ae4",
+        "workspace": "aota-runtime"
+      },
+      {
+        "completion_receipt": "completion.pt_20260712T123131_0d9e40f1.json",
+        "meta_json": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-runtime/pt_20260712T123131_0d9e40f1/meta.json",
+        "profile": "coder",
+        "started_at": "2026-07-12T12:34:49Z",
+        "status": "needs_input",
+        "task_id": "pt_20260712T123131_0d9e40f1",
+        "workspace": "aota-runtime"
+      }
+    ]
+  },
+  "agent_api_endpoints": {
+    "delegate_runtime": "/internal/aota/delegate-runtime",
+    "health": "http://127.0.0.1:8642/health"
+  },
+  "amf": {
+    "available": false,
+    "endpoint": {
+      "host": "host.docker.internal",
+      "port": 8791,
+      "scheme": "http"
+    },
+    "reason": "URLError"
+  },
+  "aota": {
+    "profiles": 6,
+    "tools": 61,
+    "toolsets": 28
+  },
+  "backup_manifest_references": {
+    "hermes_home": "private:manifests/hermes-home.json",
+    "overrides": "private:manifests/hermes-overrides.json",
+    "volumes": "private:manifests/volumes.json"
+  },
+  "capture_start_epoch": 1784864049.5008361,
+  "captured_at": "2026-07-24T03:35:04Z",
+  "codegraph": [
+    {
+      "executable_on_path": false,
+      "index_exists": true,
+      "mutation": "not_attempted",
+      "project": "/home/latios/workspace/aota-hermes-tools/.aota/project.yaml"
+    },
+    {
+      "executable_on_path": false,
+      "index_exists": true,
+      "mutation": "not_attempted",
+      "project": "/home/latios/workspace/hermes-agent/.aota/project.yaml"
+    },
+    {
+      "executable_on_path": false,
+      "index_exists": true,
+      "mutation": "not_attempted",
+      "project": "/home/latios/workspace/hermes-overrides/.aota/project.yaml"
+    },
+    {
+      "executable_on_path": false,
+      "index_exists": true,
+      "mutation": "not_attempted",
+      "project": "/home/latios/workspace/hermes-webui/.aota/project.yaml"
+    }
+  ],
+  "compose_project": "hermes-stack",
+  "containers": [
+    {
+      "command": [
+        "gateway",
+        "run"
+      ],
+      "environment": [
+        {
+          "key": "AMF_BASE_URL",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_CANONICAL_WORKSPACE_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_CODEGRAPH_EXECUTABLE",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_CODEGRAPH_RUNTIME_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_PROFILE_TASK_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_RUNTIME_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_TRUSTED_AUTHORITIES",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_TRUSTED_PRINCIPAL",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_TRUSTED_WORKSPACE_ID",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_WEBUI_ATTACHMENT_REF_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_WEBUI_ATTACHMENT_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_WORKSPACE_REGISTRY_PATH",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "API_SERVER_ENABLED",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "API_SERVER_HOST",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "API_SERVER_KEY",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "API_SERVER_PORT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_DISABLE_LAZY_INSTALLS",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_GID",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_HOME",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_LAZY_INSTALL_TARGET",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_TUI_DIR",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_UID",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_WEB_DIST",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_WRITE_SAFE_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "OPENAI_API_BASE_URL",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "OPENAI_API_KEY",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PATH",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PLAYWRIGHT_BROWSERS_PATH",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PYTHONDONTWRITEBYTECODE",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PYTHONUNBUFFERED",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "npm_config_install_links",
+          "present": true,
+          "value_redacted": true
+        }
+      ],
+      "health": null,
+      "image_id": "sha256:ad2c82eeee5295ef919b970839c84ad924b93fa89883a434c3f800c1479e8105",
+      "image_reference": "nousresearch/hermes-agent:latest",
+      "mounts": [
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/agent/api_server/aota_delegate_runtime_route.py",
+          "target": "/opt/hermes/gateway/platforms/aota_delegate_runtime_route.py",
+          "type": "bind"
+        },
+        {
+          "read_only": false,
+          "source": "/home/latios/.hermes",
+          "target": "/home/hermes/.hermes",
+          "type": "bind"
+        },
+        {
+          "read_only": false,
+          "source": "/var/lib/docker/volumes/hermes-stack_hermes-agent-src/_data",
+          "target": "/opt/hermes",
+          "type": "volume"
+        },
+        {
+          "read_only": false,
+          "source": "/home/latios/.hermes/aota-runtime",
+          "target": "/aota-runtime",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_receipt.py",
+          "target": "/opt/hermes/tools/aota_delegate_receipt.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/prompt_builder.py",
+          "target": "/opt/hermes/agent/prompt_builder.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_runtime.py",
+          "target": "/opt/hermes/tools/aota_delegate_runtime.py",
+          "type": "bind"
+        },
+        {
+          "read_only": false,
+          "source": "/var/lib/docker/volumes/a2232747b6d2c46afead0b1d8ad9b1b53cc789aedec5313c61aed6850272b152/_data",
+          "target": "/opt/data",
+          "type": "volume"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/.hermes/webui/attachments",
+          "target": "/home/hermes/.hermes/webui/attachments",
+          "type": "bind"
+        },
+        {
+          "read_only": false,
+          "source": "/home/latios/workspace",
+          "target": "/home/latios/workspace",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/delegate_tool.py",
+          "target": "/opt/hermes/tools/delegate_tool.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/agent/api_server/api_server.py",
+          "target": "/opt/hermes/gateway/platforms/api_server.py",
+          "type": "bind"
+        }
+      ],
+      "name": "hermes-agent",
+      "ports": {
+        "8642/tcp": [
+          {
+            "HostIp": "100.123.10.71",
+            "HostPort": "8642"
+          },
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "8642"
+          },
+          {
+            "HostIp": "192.168.25.10",
+            "HostPort": "8642"
+          }
+        ]
+      },
+      "repo_digests": [
+        "nousresearch/hermes-agent@sha256:ad2c82eeee5295ef919b970839c84ad924b93fa89883a434c3f800c1479e8105"
+      ],
+      "restart_policy": "unless-stopped",
+      "state": "running"
+    },
+    {
+      "command": [
+        "/hermeswebui_init.bash"
+      ],
+      "environment": [
+        {
+          "key": "AMF_BASE_URL",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_AGENT_RUNTIME_URL",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_CANONICAL_WORKSPACE_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_PROFILE_TASK_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_RUNTIME_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_WEBUI_ATTACHMENT_REF_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_WEBUI_ATTACHMENT_ROOT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "AOTA_WORKSPACE_REGISTRY_PATH",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "DEBIAN_FRONTEND",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "GPG_KEY",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_API_SERVER_KEY",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_HOME",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_WEBUI_DEFAULT_MODEL",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_WEBUI_DEFAULT_WORKSPACE",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_WEBUI_HOST",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_WEBUI_PASSWORD",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_WEBUI_PLUGINS_DIR",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_WEBUI_PORT",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "HERMES_WEBUI_STATE_DIR",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "LANG",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "LC_ALL",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PATH",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PYTHONDONTWRITEBYTECODE",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PYTHONIOENCODING",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PYTHONPATH",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PYTHONUNBUFFERED",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PYTHON_SHA256",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "PYTHON_VERSION",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "WANTED_GID",
+          "present": true,
+          "value_redacted": true
+        },
+        {
+          "key": "WANTED_UID",
+          "present": true,
+          "value_redacted": true
+        }
+      ],
+      "health": "unhealthy",
+      "image_id": "sha256:754d8409808abb65afc66ee04f0bd7afbf81fa6af9a4df1b7e4c038868ebf447",
+      "image_reference": "ghcr.io/nesquena/hermes-webui:latest",
+      "mounts": [
+        {
+          "read_only": false,
+          "source": "/home/latios/workspace",
+          "target": "/workspace",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/var/lib/docker/volumes/hermes-stack_hermes-agent-src/_data",
+          "target": "/opt/hermes-agent-original",
+          "type": "volume"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/frontend/index.html",
+          "target": "/apptoo/static/index.html",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runs.py",
+          "target": "/apptoo/api/aota_delegate_runs.py",
+          "type": "bind"
+        },
+        {
+          "read_only": false,
+          "source": "/var/lib/docker/volumes/hermes-stack_hermes-home/_data",
+          "target": "/home/hermeswebui/.hermes",
+          "type": "volume"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/api/streaming/streaming.py",
+          "target": "/apptoo/api/streaming.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runtime_client.py",
+          "target": "/apptoo/api/aota_delegate_runtime_client.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/prompt_builder.py",
+          "target": "/home/hermeswebui/.hermes/hermes-agent/agent/prompt_builder.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/delegate_tool.py",
+          "target": "/home/hermeswebui/.hermes/hermes-agent/tools/delegate_tool.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/api/routes/routes.py",
+          "target": "/apptoo/api/routes.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/api/process_event_utils/process_event_utils.py",
+          "target": "/apptoo/api/process_event_utils.py",
+          "type": "bind"
+        },
+        {
+          "read_only": false,
+          "source": "/home/latios/workspace",
+          "target": "/home/latios/workspace",
+          "type": "bind"
+        },
+        {
+          "read_only": false,
+          "source": "/home/latios/.hermes/aota-runtime",
+          "target": "/aota-runtime",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/api/background_process/background_process.py",
+          "target": "/apptoo/api/background_process.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/home/latios/workspace/hermes-overrides/api/aota_agent_runs.py",
+          "target": "/apptoo/api/aota_agent_runs.py",
+          "type": "bind"
+        },
+        {
+          "read_only": true,
+          "source": "/var/lib/docker/volumes/hermes-stack_hermes-agent-src/_data",
+          "target": "/home/hermeswebui/.hermes/hermes-agent",
+          "type": "volume"
+        }
+      ],
+      "name": "hermes-webui",
+      "ports": {},
+      "repo_digests": [
+        "ghcr.io/nesquena/hermes-webui@sha256:754d8409808abb65afc66ee04f0bd7afbf81fa6af9a4df1b7e4c038868ebf447"
+      ],
+      "restart_policy": "unless-stopped",
+      "state": "restarting"
+    }
+  ],
+  "docker": {
+    "compose_version": "Docker Compose version v5.2.0",
+    "engine_version": "29.6.1"
+  },
+  "docker_final_state": "ONLINE_CAPTURED",
+  "host": {
+    "architecture": "x86_64",
+    "gid": 1000,
+    "os": "Linux-6.17.0-35-generic-x86_64-with-glibc2.39",
+    "uid": 1000,
+    "user": "latios"
+  },
+  "host_paths": [
+    {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o700",
+      "owner": "latios",
+      "path": "/home/latios/.hermes",
+      "type": "directory",
+      "uid": 1000
+    },
+    {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o700",
+      "owner": "latios",
+      "path": "/home/latios/workspace/hermes-overrides",
+      "type": "directory",
+      "uid": 1000
+    },
+    {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o600",
+      "owner": "latios",
+      "path": "/home/latios/hermes-stack/docker-compose.yml",
+      "type": "file",
+      "uid": 1000
+    },
+    {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o600",
+      "owner": "latios",
+      "path": "/home/latios/hermes-stack/.env",
+      "type": "file",
+      "uid": 1000
+    },
+    {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o700",
+      "owner": "latios",
+      "path": "/home/latios/workspace",
+      "type": "directory",
+      "uid": 1000
+    },
+    {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o600",
+      "owner": "latios",
+      "path": "/home/latios/workspace/.aota/workspaces.json",
+      "type": "file",
+      "uid": 1000
+    }
+  ],
+  "images": [
+    {
+      "created": "2026-07-23T02:16:03.330678723Z",
+      "digests": [
+        "nousresearch/hermes-agent@sha256:ad2c82eeee5295ef919b970839c84ad924b93fa89883a434c3f800c1479e8105"
+      ],
+      "id": "sha256:ad2c82eeee5295ef919b970839c84ad924b93fa89883a434c3f800c1479e8105",
+      "tags": [
+        "nousresearch/hermes-agent:latest"
+      ]
+    },
+    {
+      "created": "2026-07-23T04:25:24.695576926Z",
+      "digests": [
+        "ghcr.io/nesquena/hermes-webui@sha256:754d8409808abb65afc66ee04f0bd7afbf81fa6af9a4df1b7e4c038868ebf447"
+      ],
+      "id": "sha256:754d8409808abb65afc66ee04f0bd7afbf81fa6af9a4df1b7e4c038868ebf447",
+      "tags": [
+        "ghcr.io/nesquena/hermes-webui:latest"
+      ]
+    }
+  ],
+  "networks": [
+    {
+      "container_membership": [
+        "824e227952a2d752424a18e115c5cd8db1af607141dc5e2f8ec7c55f0aa15d5d"
+      ],
+      "driver": "bridge",
+      "name": "hermes-stack_hermes-net"
+    }
+  ],
+  "override_mapping_summary": {
+    "file_count": 56,
+    "mount_mapping_count": 16
+  },
+  "profile_names": [
+    "task-main",
+    "project-steward",
+    "architect",
+    "coder",
+    "debugger",
+    "reviewer"
+  ],
+  "reference_skill_projection": {
+    "architect": [],
+    "coder": [
+      "aota-plugin-tool-development",
+      "aota-skill-development"
+    ],
+    "debugger": [],
+    "project-steward": [
+      "aota-profile-task-orchestration",
+      "aota-skill-development"
+    ],
+    "reviewer": [],
+    "task-main": [
+      "aota-canonical-spec-contract",
+      "aota-canonical-spec-pitfalls",
+      "aota-work-classify-and-plan-gate",
+      "workspace-file-access-strategy",
+      "aota-multi-phase-doc-closure",
+      "aota-task-lifecycle",
+      "aota-workspace-model",
+      "aota-workspace-diagnostics",
+      "aota-tool-failure-fallback",
+      "aota-plugin-tool-development",
+      "aota-skill-development"
+    ]
+  },
+  "rollback_readiness": "READY_IF_VERIFY_PASS",
+  "runtime_roots": {
+    "aota-runtime": {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o700",
+      "owner": "latios",
+      "path": "/home/latios/.hermes/aota-runtime",
+      "type": "directory",
+      "uid": 1000
+    },
+    "aota-runtime/delegate-runs": {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o700",
+      "owner": "latios",
+      "path": "/home/latios/.hermes/aota-runtime/delegate-runs",
+      "type": "directory",
+      "uid": 1000
+    },
+    "aota-runtime/handoffs": {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o700",
+      "owner": "latios",
+      "path": "/home/latios/.hermes/aota-runtime/handoffs",
+      "type": "directory",
+      "uid": 1000
+    },
+    "aota-runtime/outbox": {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o700",
+      "owner": "latios",
+      "path": "/home/latios/.hermes/aota-runtime/outbox",
+      "type": "directory",
+      "uid": 1000
+    },
+    "aota-runtime/profile-tasks": {
+      "exists": true,
+      "gid": 1000,
+      "group": "latios",
+      "mode": "0o700",
+      "owner": "latios",
+      "path": "/home/latios/.hermes/aota-runtime/profile-tasks",
+      "type": "directory",
+      "uid": 1000
+    }
+  },
+  "schema_version": 1,
+  "verification_results": {
+    "status": "PENDING"
+  },
+  "volumes": [
+    {
+      "backup_status": "preserved-private-tar-if-available",
+      "bind_backing_path": null,
+      "driver": null,
+      "logical_purpose": "Hermes agent runtime/image data",
+      "mountpoint_redacted": true,
+      "name": "hermes-stack_hermes-agent-src"
+    },
+    {
+      "backup_status": "host-path-hash-reference",
+      "bind_backing_path": "/home/latios/.hermes",
+      "driver": "local",
+      "logical_purpose": "Hermes home",
+      "mountpoint_redacted": true,
+      "name": "hermes-stack_hermes-home"
+    }
+  ],
+  "warnings": [
+    "active task gate failed; Docker stop is forbidden",
+    "WebUI reported restarting during baseline",
+    "raw Docker/config evidence is private only"
+  ],
+  "work_item": "HOST-WI-00",
+  "workspace_registry_path": "/home/latios/workspace/.aota/workspaces.json"
+}

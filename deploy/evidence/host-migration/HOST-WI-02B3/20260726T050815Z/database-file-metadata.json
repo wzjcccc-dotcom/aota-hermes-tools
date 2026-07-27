@@ -1,0 +1,253 @@
+{
+  "global": {
+    "exists": true,
+    "group": "1000",
+    "inode": 9847009,
+    "mode": "0o644",
+    "mtime_ns": 1785037269587754381,
+    "owner": "1000",
+    "path": "/home/latios/.hermes/state.db",
+    "sha256": "716401f5a29ffed12936b5c1cdd3820c8432edc6ec0e13822000130ec717703b",
+    "size_bytes": 497434624
+  },
+  "global_shm": {
+    "exists": true,
+    "group": "1000",
+    "inode": 9846527,
+    "mode": "0o644",
+    "mtime_ns": 1785042418459214567,
+    "owner": "1000",
+    "path": "/home/latios/.hermes/state.db-shm",
+    "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+    "size_bytes": 32768
+  },
+  "global_wal": {
+    "exists": true,
+    "group": "1000",
+    "inode": 9870714,
+    "mode": "0o644",
+    "mtime_ns": 1785042493584634110,
+    "owner": "1000",
+    "path": "/home/latios/.hermes/state.db-wal",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  },
+  "profiles": [
+    {
+      "db": {
+        "exists": true,
+        "group": "1000",
+        "inode": 11143261,
+        "mode": "0o600",
+        "mtime_ns": 1784740325066746927,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/architect/state.db",
+        "sha256": "6e2e1ef1070ac35779cdb9bf3d4df32a55642f525a1e2328341d45786b753d28",
+        "size_bytes": 12222464
+      },
+      "profile": "architect",
+      "shm": {
+        "exists": true,
+        "group": "1000",
+        "inode": 11141681,
+        "mode": "0o600",
+        "mtime_ns": 1785042493441566495,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/architect/state.db-shm",
+        "sha256": "64fb2b4cf883594b939131c37d00414653867e9a5ff8daf6bb0e80cdab1ab7e2",
+        "size_bytes": 32768
+      },
+      "wal": {
+        "exists": true,
+        "group": "1000",
+        "inode": 11141629,
+        "mode": "0o600",
+        "mtime_ns": 1785042493441623467,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/architect/state.db-wal",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      }
+    },
+    {
+      "db": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10129937,
+        "mode": "0o600",
+        "mtime_ns": 1784907261705010692,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/coder/state.db",
+        "sha256": "30c6363373e35ad242c662ca4504603e7de50177446512bf2d49753847ecd005",
+        "size_bytes": 78442496
+      },
+      "profile": "coder",
+      "shm": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10113291,
+        "mode": "0o600",
+        "mtime_ns": 1785042493442213496,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/coder/state.db-shm",
+        "sha256": "45319f70692dd0923db41ba999913cc0cde925b9226077ec538ae9ec36a49540",
+        "size_bytes": 32768
+      },
+      "wal": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10110814,
+        "mode": "0o600",
+        "mtime_ns": 1785042493442213496,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/coder/state.db-wal",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      }
+    },
+    {
+      "db": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10129961,
+        "mode": "0o600",
+        "mtime_ns": 1784453533767281944,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/debugger/state.db",
+        "sha256": "0898949f07fa50b07ebdce84daa8e3f73720564e18b7e0bdc61a7b25efab5302",
+        "size_bytes": 2887680
+      },
+      "profile": "debugger",
+      "shm": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10113334,
+        "mode": "0o600",
+        "mtime_ns": 1785042493442802184,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/debugger/state.db-shm",
+        "sha256": "506526a80b95a91524e9e068c7e251d904decf395056c28803d2ac80b09d8253",
+        "size_bytes": 32768
+      },
+      "wal": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10113311,
+        "mode": "0o600",
+        "mtime_ns": 1785042493442802184,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/debugger/state.db-wal",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      }
+    },
+    {
+      "db": {
+        "exists": true,
+        "group": "1000",
+        "inode": 12075410,
+        "mode": "0o600",
+        "mtime_ns": 1784905783475116224,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/project-steward/state.db",
+        "sha256": "bc20ba321c0f2e873d7d0d913c003ca57ed218283124cf4bd015a0ce4665c6e1",
+        "size_bytes": 4403200
+      },
+      "profile": "project-steward",
+      "shm": {
+        "exists": true,
+        "group": "1000",
+        "inode": 12069656,
+        "mode": "0o600",
+        "mtime_ns": 1785042493443355773,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/project-steward/state.db-shm",
+        "sha256": "40b4f0e56691baabff88d66eeb11e4860c49cf24458acd2dc405710e7757dad9",
+        "size_bytes": 32768
+      },
+      "wal": {
+        "exists": true,
+        "group": "1000",
+        "inode": 12069655,
+        "mode": "0o600",
+        "mtime_ns": 1785042493443355773,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/project-steward/state.db-wal",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      }
+    },
+    {
+      "db": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10130188,
+        "mode": "0o600",
+        "mtime_ns": 1784764582440610901,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/reviewer/state.db",
+        "sha256": "3fbddf491d47848b09912e822d2734bbc54e901638bc949d18bda0c613d650c6",
+        "size_bytes": 27000832
+      },
+      "profile": "reviewer",
+      "shm": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10113338,
+        "mode": "0o600",
+        "mtime_ns": 1785042493443933369,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/reviewer/state.db-shm",
+        "sha256": "b395d1afa56bd98f5aa2cb3fc211db961991f654f4d2e197f03cbfadae2040ec",
+        "size_bytes": 32768
+      },
+      "wal": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10113337,
+        "mode": "0o600",
+        "mtime_ns": 1785042493443933369,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/reviewer/state.db-wal",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      }
+    },
+    {
+      "db": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10130017,
+        "mode": "0o600",
+        "mtime_ns": 1785034337614537170,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/task-main/state.db",
+        "sha256": "94974e1793ca8a0ed3f9f5668e66a68404ab35c5257f29ccba4fb3190b489409",
+        "size_bytes": 93642752
+      },
+      "profile": "task-main",
+      "shm": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10113313,
+        "mode": "0o600",
+        "mtime_ns": 1785042493445623764,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/task-main/state.db-shm",
+        "sha256": "87eb6caa3071834eb9d0761d0a6940f7e695ffd8a95dfba80ef4472cb980b192",
+        "size_bytes": 32768
+      },
+      "wal": {
+        "exists": true,
+        "group": "1000",
+        "inode": 10113289,
+        "mode": "0o600",
+        "mtime_ns": 1785042499397065475,
+        "owner": "1000",
+        "path": "/home/latios/.hermes/profiles/task-main/state.db-wal",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size_bytes": 0
+      }
+    }
+  ]
+}

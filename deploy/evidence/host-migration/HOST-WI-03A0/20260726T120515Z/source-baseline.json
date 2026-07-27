@@ -1,0 +1,26 @@
+{
+  "work_item": "HOST-WI-03A0",
+  "mode": "read_only_reconnaissance",
+  "observed_at_utc": "2026-07-26T12:05:15Z",
+  "hermes_source": "/home/latios/workspace/hermes-agent-host",
+  "hermes_commit": "689b51bef68f9ec95b638121bb9c7fefa3703fb2",
+  "hermes_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "host_launcher": "/home/latios/.local/bin/hermes-host",
+  "hermes_home": "/home/latios/.hermes",
+  "aota_source": "/home/latios/workspace/aota-hermes-tools",
+  "aota_runtime": "/home/latios/.hermes/aota-runtime",
+  "profile_task_root": "/home/latios/.hermes/aota-runtime/profile-tasks",
+  "overlay_source": "/home/latios/workspace/hermes-overrides",
+  "prior_work_item": "/home/latios/workspace/aota-hermes-tools/docs/aota-host-migration/HOST-WI-02C0.md",
+  "scope_controls": {
+    "source_mutated": false,
+    "overlay_applied": false,
+    "runtime_mutated": false,
+    "docker_started": false,
+    "profile_task_started": false,
+    "delegate_task_started": false,
+    "state_db_mutated": false,
+    "commit_or_push": false
+  },
+  "runner_defect_context": "HOST-WI-02C0 traced the failed worker to /usr/local/bin/hermes and its Docker guard; this is separate from completion delivery."
+}

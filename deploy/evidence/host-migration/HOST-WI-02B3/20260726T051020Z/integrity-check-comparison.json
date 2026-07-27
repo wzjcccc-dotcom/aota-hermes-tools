@@ -1,0 +1,58 @@
+{
+  "hermes_python": {
+    "integrity_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    },
+    "quick_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    }
+  },
+  "system_python": {
+    "integrity_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    },
+    "quick_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    }
+  },
+  "system_sqlite_cli": {
+    "integrity_check": {
+      "status": "FAIL",
+      "exit_code": 11,
+      "error_message_sanitized": "vtable constructor failed: messages_fts"
+    },
+    "quick_check": {
+      "status": "FAIL",
+      "exit_code": 11,
+      "error_message_sanitized": "vtable constructor failed: messages_fts"
+    }
+  },
+  "table_specific_read_only": {
+    "sessions": {
+      "integrity_check": "FAIL",
+      "detail_sanitized": [
+        "database disk image is malformed",
+        "btreeInitPage() returns error code 11 on multiple trees/pages"
+      ]
+    },
+    "messages": {
+      "integrity_check": "FAIL",
+      "detail_sanitized": [
+        "database disk image is malformed",
+        "btreeInitPage() returns error code 11",
+        "Child page depth differs"
+      ]
+    },
+    "state_meta": {
+      "integrity_check": "ok"
+    }
+  }
+}

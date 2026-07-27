@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "work_item": "HOST-WI-01A",
+  "evidence_timestamp": "20260724T065917Z",
+  "evidence_relative_path": "deploy/evidence/host-migration/HOST-WI-01A/20260724T065917Z",
+  "final": "PASS_WITH_OPERATOR_DESKTOP_PATH_CONFIRMATION_REQUIRED",
+  "canonical_runtime_smoke": "PASS",
+  "vanilla_retirement": "PASS",
+  "vanilla_home_exists": false,
+  "docker_runtime_state": "OFFLINE_STANDBY",
+  "desktop_path_operator_confirmation": "REQUIRED",
+  "commit": false,
+  "push": false
+}

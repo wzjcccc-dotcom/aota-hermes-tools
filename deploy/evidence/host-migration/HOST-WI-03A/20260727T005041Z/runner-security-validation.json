@@ -1,0 +1,16 @@
+{
+  "absolute_only": true,
+  "launcher_target": "",
+  "launcher_target_sha256": "",
+  "parent_chain_validated": true,
+  "regular_executable": true,
+  "runner_mode": "0700",
+  "runner_owner": "latios",
+  "runner_path": "/home/latios/.local/bin/hermes-host",
+  "runner_realpath": "/home/latios/.local/bin/hermes-host",
+  "runner_sha256": "46cc6c2b7b954d5ffb8ba904e13d9ae01ede30d0e453345fa2672cefc2c1bc2a",
+  "schema_version": 1,
+  "status": "PASS",
+  "symlink_policy": "final target validated; trusted managed symlink accepted; escape rejected",
+  "world_writable_rejected": true
+}

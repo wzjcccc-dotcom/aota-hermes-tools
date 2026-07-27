@@ -1,0 +1,9 @@
+{
+  "generic_gc_used": false,
+  "profile_runtime_assembly": "PASS",
+  "projection_contract": "PASS",
+  "schema_version": 1,
+  "source_validation": "PASS",
+  "source_validation_errors": [],
+  "wildcard_used": false
+}

@@ -1,0 +1,6 @@
+{
+  "backup_deduplication": "PASS",
+  "fixture": "PASS",
+  "physical_target_backup_once": true,
+  "schema_version": 1
+}

@@ -1,0 +1,9 @@
+{
+  "role": "user",
+  "max_chars": 1800,
+  "contains_full_result": false,
+  "contains_prompt": false,
+  "contains_worker_stdout": false,
+  "requires_task_result_read": true,
+  "failure_status_not_described_as_success": true
+}

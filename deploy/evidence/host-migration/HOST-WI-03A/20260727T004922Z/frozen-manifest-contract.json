@@ -1,0 +1,22 @@
+{
+  "direct_old_manifest_edit": false,
+  "legacy_old_runner_classification": "LEGACY_RUNNER_UNSUPPORTED_FOR_HOST_EXECUTION",
+  "new_manifest_fields": [
+    "runner_path",
+    "runner_realpath",
+    "runner_identity_hash",
+    "runner_contract_version",
+    "host_mode",
+    "worker_profile",
+    "workspace_id",
+    "workspace_root",
+    "parent_profile",
+    "parent_session_ref",
+    "created_at",
+    "spec_revision"
+  ],
+  "old_manifest_read_compatibility": true,
+  "runner_contract_version": 2,
+  "schema_version": 1,
+  "status": "PASS"
+}

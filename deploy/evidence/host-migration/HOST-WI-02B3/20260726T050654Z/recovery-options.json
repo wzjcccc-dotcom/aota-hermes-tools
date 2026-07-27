@@ -1,0 +1,61 @@
+{
+  "execution": "NOT_RUN",
+  "options": [
+    {
+      "name": "Verifier fix only",
+      "option_id": "A",
+      "reason": "CASE_A not established",
+      "recommended": false
+    },
+    {
+      "backup_required": true,
+      "core_data_mutation": false,
+      "fts_only": true,
+      "name": "Official FTS rebuild",
+      "official_hermes_logic": true,
+      "option_id": "B",
+      "reason": "Source supports it for FTS index corruption, but malformed schema constructor is not the write-corruption class",
+      "recommended": false,
+      "requires_desktop_offline": true,
+      "rollback_available": true
+    },
+    {
+      "backup_required": true,
+      "core_data_mutation": false,
+      "fts_only": true,
+      "name": "Drop/recreate FTS schema and triggers",
+      "official_hermes_logic": true,
+      "option_id": "C",
+      "reason": "Source recovery path exists but is explicitly prohibited in B3",
+      "recommended": false,
+      "requires_desktop_offline": true,
+      "rollback_available": true
+    },
+    {
+      "backup_required": true,
+      "name": "Restore Hermes-generated backup",
+      "official_hermes_logic": true,
+      "option_id": "D",
+      "reason": "Only if controlled backup is known good",
+      "recommended": false,
+      "requires_desktop_offline": true,
+      "rollback_available": true
+    },
+    {
+      "backup_required": true,
+      "name": "SQLite backup API then controlled repair",
+      "official_hermes_logic": true,
+      "option_id": "E",
+      "reason": "Required prerequisite for any repair decision",
+      "recommended": true,
+      "requires_desktop_offline": true,
+      "rollback_available": true
+    },
+    {
+      "name": "Full recovery",
+      "option_id": "F",
+      "reason": "Not justified by current evidence",
+      "recommended": false
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "global_session_count": "UNREADABLE",
+  "message_content_read": false,
+  "new_runtime_session_count": "NOT_COMPUTABLE",
+  "preexisting_session_identifier_hash_set_available": false,
+  "preexisting_sessions_removed": "NOT_PROVABLE_GLOBAL_DB_MALFORMED",
+  "profile_database_count_after": 6,
+  "profile_database_count_before": 6,
+  "profile_session_counts": {
+    "architect": 34,
+    "coder": 77,
+    "debugger": 41,
+    "project-steward": 8,
+    "reviewer": 36,
+    "task-main": 58
+  },
+  "schema_version": 1,
+  "session_content_read": false
+}

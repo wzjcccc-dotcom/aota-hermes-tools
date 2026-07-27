@@ -6,14 +6,13 @@ runner detection, worker prompt generation, and error types.
 
 from __future__ import annotations
 
-import os
 import re
-from pathlib import Path
 from typing import Optional
 
 from ._task_spec_common import TASK_KIND_PROFILE_HINT, TASK_KINDS, STATUS_DRAFT
 from ._workspace import WorkspaceError
 from ._role_contracts import get_prompt_projection
+from ._profile_task_runner import RunnerValidationError, resolve_runner as _resolve_host_runner
 
 # ---------------------------------------------------------------------------
 # Task ID validation (P4 format: pt_<timestamp>_<random>)
@@ -59,51 +58,12 @@ def derive_profile(task_kind: str) -> str:
     return TASK_KIND_PROFILE_HINT[task_kind]
 
 
-# ---------------------------------------------------------------------------
-# Runner detection
-# ---------------------------------------------------------------------------
-
-_RUNNER_CANDIDATES = (
-    "/opt/hermes/hermes",
-    "/opt/hermes/.venv/bin/hermes",
-    "/usr/local/bin/hermes",
-)
-
-
 def resolve_runner() -> str:
-    """Resolve the hermes runner executable.
-
-    Checks AOTA_HERMES_RUNNER env var first (admin override for dev/testing),
-    then falls back to known production candidate paths.
-    Returns the absolute path to the first existing, executable candidate.
-    Raises WorkspaceError if no runner is found.
-    """
-    # Admin-controlled env var override (for dev/testing)
-    env_runner = os.environ.get("AOTA_HERMES_RUNNER", "").strip()
-    if env_runner:
-        p = Path(env_runner)
-        if p.is_file() and os.access(str(p), os.X_OK):
-            return str(p.resolve())
-        raise WorkspaceError(
-            f"runner_unavailable: AOTA_HERMES_RUNNER={env_runner} not found or not executable"
-        )
-
-    for candidate in _RUNNER_CANDIDATES:
-        p = Path(candidate)
-        if p.is_file() and os.access(str(p), os.X_OK):
-            return str(p.resolve())
-    # Last resort: check PATH
-    import shutil
-
-    found = shutil.which("hermes")
-    if found:
-        p = Path(found)
-        if p.is_file() and os.access(str(p), os.X_OK):
-            return str(p.resolve())
-    raise WorkspaceError(
-        "runner_unavailable: no hermes runner found at expected locations "
-        f"({', '.join(_RUNNER_CANDIDATES)}) nor on PATH"
-    )
+    """Resolve only the canonical Host launcher or a validated override."""
+    try:
+        return _resolve_host_runner()
+    except RunnerValidationError as exc:
+        raise WorkspaceError(f"runner_unavailable: {exc}") from exc
 
 
 # ---------------------------------------------------------------------------

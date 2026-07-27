@@ -1,0 +1,18 @@
+{
+  "blocking_finding_count": 0,
+  "checks": {
+    "content_exposed": false,
+    "db_write_executed": false,
+    "read_only_uri": true,
+    "recovery_options_source_based": true,
+    "runtime_vs_corruption_separated": true,
+    "verifier_fix_gate_respected": true,
+    "wal_handled_read_only": true
+  },
+  "findings": [
+    "Global malformed schema prevents independent sessions/messages count proof in current read-only runtime.",
+    "No FTS repair or write-health probe was run because B3 forbids writes."
+  ],
+  "non_blocking_finding_count": 2,
+  "verdict": "PASS_WITH_NON_BLOCKING_FINDINGS"
+}

@@ -1,0 +1,14 @@
+{
+  "deploy_executed": true,
+  "deployed_logical_path_count": 723,
+  "deployed_physical_file_count": 243,
+  "generic_gc_used": "no",
+  "orphan_already_absent_count": 11,
+  "orphan_count": 11,
+  "orphan_preserved_count": 0,
+  "orphan_removed_count": 0,
+  "receipt": "/home/latios/workspace/aota-hermes-tools/.deploy-receipts/aota-forge-plan/20260726T033809Z/deployment.json",
+  "removed_file_count": 15,
+  "schema_version": 1,
+  "wildcard_used": "no"
+}

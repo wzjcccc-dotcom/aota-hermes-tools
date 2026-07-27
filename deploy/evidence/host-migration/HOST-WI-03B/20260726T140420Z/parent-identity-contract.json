@@ -1,0 +1,8 @@
+{
+  "parent_profile_field": "parent_profile",
+  "parent_session_field": "parent_session_ref",
+  "frozen_in": "execution.parent_profile and execution.parent_session_ref",
+  "source_trust": "trusted_finalizer",
+  "worker_can_choose_parent": false,
+  "raw_session_id_in_evidence": false
+}

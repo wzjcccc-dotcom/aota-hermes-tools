@@ -1,0 +1,29 @@
+{
+  "status": "PASS_FOR_RECONNAISSANCE; ADAPTER_SECURITY_CONTRACT_REQUIRED",
+  "native_controls": {
+    "parent_ownership": "target session existence, ended-state and compression-lineage checks",
+    "profile_boundary": "profile-scoped state.db/runtime scope; no native AOTA cross-profile proof",
+    "session_injection": "internal MessageEvent is created only by gateway-owned path; API continuation requires API_SERVER_KEY",
+    "duplicate_delivery": "claim token, delivery identity, bounded retries; not exactly-once",
+    "deleted_closed_parent": "fail closed or terminal drop",
+    "stale_claim": "claim expiry and attempt cap",
+    "failure_timeout_cancelled": "native and AOTA terminal statuses are structured; adapter must allowlist",
+    "raw_output": "native formatter/AOTA outbox are structured; current AOTA outbox excludes raw logs and secrets"
+  },
+  "required_adapter_controls": [
+    "parent session ownership check",
+    "parent profile validation and explicit routing",
+    "task origin and trusted finalizer validation",
+    "bounded payload and summary length",
+    "stable idempotency key and duplicate suppression",
+    "terminal status allowlist",
+    "canonical result pointer under approved runtime root",
+    "reject traversal and symlink targets",
+    "stale event, deleted session and closed session fail-closed handling",
+    "failed/cancelled/timed_out support",
+    "audit receipt and terminal drop disposition",
+    "no secret/raw tool-output propagation"
+  ],
+  "current_aota_gap": "outbox has origin_session_id and event_id, but no explicit parent_profile, parent_session_id, result_pointer, or Hermes authenticated backend trust contract",
+  "risk_if_direct_queue_inserted": "HIGH"
+}

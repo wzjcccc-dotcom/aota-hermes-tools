@@ -1,0 +1,11 @@
+{
+  "aota_runtime_info": "PENDING_OPERATOR_DESKTOP_RECONNECT",
+  "desktop_hermes_path": "/home/latios/.local/bin/hermes-host",
+  "desktop_reconnect": "PENDING_OPERATOR",
+  "gateway_status": "PENDING_OPERATOR",
+  "known_workspace_id": "aota-hermes-tools",
+  "known_workspace_read_smoke": "PENDING_OPERATOR_DESKTOP_RECONNECT",
+  "profile_visibility": "PENDING_OPERATOR_DESKTOP_RECONNECT",
+  "schema_version": 1,
+  "workspace_tool_modified": "no"
+}

@@ -1,0 +1,105 @@
+{
+  "entrypoint": "aota_profile_task_start",
+  "environment_switch": "AOTA_HERMES_RUNNER",
+  "failed_task": {
+    "available": true,
+    "execution": {
+      "error_classification": "worker_failed",
+      "exit_code": 1,
+      "failure_stage": "worker_execution",
+      "worker_log": {
+        "path": "worker.pt_20260726T025121_1661f1cb.log",
+        "size_bytes": 1055,
+        "truncated": false
+      },
+      "worker_started": true
+    },
+    "launch": {
+      "parent_profile": "default",
+      "paths": {
+        "global_hermes_home": "/home/latios/.hermes",
+        "target_profile_home": "/home/latios/.hermes/profiles/debugger",
+        "workspace_root": "/home/latios/workspace/aota-hermes-tools"
+      },
+      "profile": "debugger",
+      "worker": {
+        "argv": [
+          "/usr/local/bin/hermes",
+          "-p",
+          "debugger",
+          "-z",
+          "<prompt-file>"
+        ],
+        "argv_template": [
+          "/usr/local/bin/hermes",
+          "-p",
+          "debugger",
+          "-z",
+          "<prompt-file>"
+        ],
+        "cwd": "/home/latios/workspace/aota-hermes-tools",
+        "prompt_path": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260726T025121_1661f1cb/worker-prompt.pt_20260726T025121_1661f1cb.txt",
+        "runner": "/usr/local/bin/hermes",
+        "timeout_deadline_at": "",
+        "timeout_seconds": 0
+      }
+    },
+    "meta": {
+      "revision": 1,
+      "status": "failed",
+      "task_id": "pt_20260726T025121_1661f1cb",
+      "work_item_id": "WI-TOOL-TEST-01"
+    },
+    "task_root": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260726T025121_1661f1cb",
+    "worker_log_evidence": [
+      {
+        "line": 8,
+        "text": "stage=runner_resolution runner exists and is executable"
+      },
+      {
+        "line": 9,
+        "text": "stage=worker_spawn worker argv prepared runner/profile/-z prompt; prompt omitted"
+      },
+      {
+        "line": 10,
+        "text": "stage=worker_spawn pid=45007"
+      },
+      {
+        "line": 11,
+        "text": "stage=worker_execution:stderr Hermes agent container is not running."
+      },
+      {
+        "line": 12,
+        "text": "stage=worker_execution:stderr Start it with: docker compose up -d hermes-agent"
+      },
+      {
+        "line": 13,
+        "text": "stage=worker_exit exit_code=1 timeout_triggered=false"
+      }
+    ]
+  },
+  "failure_source": "/home/latios/.hermes/aota-runtime/profile-tasks/aota-hermes-tools/pt_20260726T025121_1661f1cb/worker.pt_20260726T025121_1661f1cb.log:11-12",
+  "flow": [
+    "_profile_task_start._do_start",
+    "_profile_task_common.resolve_runner",
+    "launch manifest worker.runner",
+    "_profile_task_launcher.run",
+    "_run_worker",
+    "runner stderr"
+  ],
+  "host_native_mode_present": "no explicit host-native default; env override can point to /home/latios/.local/bin/hermes-host",
+  "ownership": "AOTA Plugin / runner contract / deployment configuration; not Hermes core overlay",
+  "runner_candidates": [
+    "/opt/hermes/hermes",
+    "/opt/hermes/.venv/bin/hermes",
+    "/usr/local/bin/hermes",
+    "PATH: hermes"
+  ],
+  "source_evidence": [
+    "aota-hermes-tools/plugin/aota-tools/_profile_task_start.py:642-647",
+    "aota-hermes-tools/plugin/aota-tools/_profile_task_start.py:802-822",
+    "aota-hermes-tools/plugin/aota-tools/_profile_task_start.py:835-845",
+    "aota-hermes-tools/plugin/aota-tools/_profile_task_common.py:73-106",
+    "aota-hermes-tools/plugin/aota-tools/_profile_task_launcher.py:323-360"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "blocking_finding_count": 0,
+  "checks": {
+    "backup_rollback_revalidation": true,
+    "chain_rejection": true,
+    "exact_allowlist": true,
+    "exact_target": true,
+    "fixture_pass": true,
+    "no_adapter_prefix_check": true,
+    "no_adapter_wildcard": true,
+    "no_generic_gc": true,
+    "physical_dedup": true,
+    "source_validation": true,
+    "strict_containment": true
+  },
+  "non_blocking_finding_count": 0,
+  "process_exit_code": 0,
+  "review_scope": "standalone independent read-only static and fixture review of projection adapter",
+  "reviewer": "standalone-independent-read-only-review",
+  "schema_version": 1,
+  "verdict": "PASS"
+}

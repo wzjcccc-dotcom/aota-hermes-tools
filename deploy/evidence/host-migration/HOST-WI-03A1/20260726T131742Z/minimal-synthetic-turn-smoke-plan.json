@@ -1,0 +1,18 @@
+{
+  "status": "NOT_EXECUTED",
+  "required": false,
+  "purpose": "confirm runtime display/resume and adapter duplicate behavior before implementation",
+  "timeout_seconds": 120,
+  "steps": [
+    "Use a disposable test parent session and no real worker.",
+    "Create a controlled sanitized completion fixture with deterministic event/idempotency key.",
+    "Send through the proposed backend adapter with safe summary plus canonical result pointer.",
+    "Observe parent session new user-role turn, assistant generation, persisted assistant message and normal stream.",
+    "Replay the same event and verify no duplicate turn/delivery.",
+    "Repeat with Desktop disconnected while backend remains online, then reconnect and inspect persisted session state.",
+    "Verify missing/closed parent fails closed and records terminal disposition.",
+    "Verify failed, cancelled and timed_out terminal statuses remain bounded and do not inject raw output."
+  ],
+  "prohibited_during_smoke": ["real worker", "delegate_task", "workspace writes", "Docker", "database mutation outside disposable test session", "terminal execution"],
+  "source_reason": "source proves call path and normal-turn semantics; runtime Desktop reconnect/render behavior is the only remaining empirical confidence item"
+}

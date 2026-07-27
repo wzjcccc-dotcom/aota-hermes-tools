@@ -1,0 +1,11 @@
+{
+  "implicit_docker_fallback_allowed": false,
+  "path_fallback_allowed": false,
+  "precedence": [
+    "frozen execution contract absolute runner",
+    "validated AOTA_HERMES_RUNNER override",
+    "canonical Host launcher default"
+  ],
+  "schema_version": 1,
+  "status": "PASS"
+}

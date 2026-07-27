@@ -1,0 +1,16 @@
+{
+  "before": {
+    "basis": "previous Hermes log records connection error to configured host proxy; current non-auth endpoint is reachable and returns 401",
+    "endpoint_host": "100.123.10.71",
+    "exception_type": "APIConnectionError",
+    "http_status": null,
+    "launcher_related": false,
+    "network_related": true,
+    "provider_related": "not_established",
+    "retryability": "retryable_but_not_repeated_in_this_work_item",
+    "sanitized_error_category": "PROXY_FAILURE"
+  },
+  "credential_values_redacted": true,
+  "current_non_auth_observation": "configured_endpoint_reachable_but_auth_not_tested",
+  "schema_version": 1
+}

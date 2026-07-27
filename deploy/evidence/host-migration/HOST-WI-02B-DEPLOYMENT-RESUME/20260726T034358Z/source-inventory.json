@@ -1,0 +1,10 @@
+{
+  "canonical_source_root": "/home/latios/workspace/aota-hermes-tools",
+  "deduplicated_write_count": 465,
+  "logical_managed_path_count": 708,
+  "physical_target_count": 243,
+  "profile_count": 6,
+  "schema_version": 1,
+  "tool_count": 61,
+  "toolset_count": 28
+}

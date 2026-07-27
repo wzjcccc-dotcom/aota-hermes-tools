@@ -1,0 +1,10 @@
+{
+  "rollback_deduplication": "PASS",
+  "rollback_entry_count": 321,
+  "rollback_executed": false,
+  "rollback_receipt": "dry-verification-only",
+  "rollback_self_check": "PASS",
+  "schema_version": 1,
+  "state_db_restore_entry": false,
+  "unmanaged_restore_entry": false
+}

@@ -1,0 +1,5 @@
+{
+  "RUNTIME_QUIESCENT": "yes",
+  "hermes_host_serve_status": "No hermes dashboard processes running.",
+  "pgrep_hermes_serve": []
+}

@@ -1,0 +1,26 @@
+{
+  "hermes_python": {
+    "integrity_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    },
+    "quick_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    }
+  },
+  "system_python": {
+    "integrity_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    },
+    "quick_check": {
+      "error_message_sanitized": "vtable constructor failed: messages_fts",
+      "error_type": "DatabaseError",
+      "status": "FAIL"
+    }
+  }
+}

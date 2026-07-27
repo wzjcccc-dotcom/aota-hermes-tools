@@ -1,0 +1,12 @@
+{
+  "review_mode": "source-and-schema cross-check",
+  "reviewed_scope": ["HOST-WI-02C0 evidence", "Hermes native async delegation", "gateway wake/session context", "Desktop JSON-RPC/reconnect", "AOTA Profile Task runner/finalizer/outbox", "profile-local state.db schema"],
+  "independent_findings": [
+    "Native Hermes completion delivery is real and durable for native delegate/subagent work.",
+    "Desktop SSH owner nonce/session token preserve backend process ownership, not event replay semantics.",
+    "AOTA now has a filesystem outbox design, but P11-L.1B labels actual WebUI/SSE integration and reconnect handling deferred.",
+    "The AOTA one-shot worker does not inherit native persistent-channel async delivery semantics.",
+    "Cross-profile parent delivery is not established by the observed schemas or source paths."
+  ],
+  "review_conclusion": "D for current behavior; C is the minimum future boundary if automatic parent wake is mandated."
+}

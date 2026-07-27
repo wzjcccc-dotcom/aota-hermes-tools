@@ -1,0 +1,22 @@
+{
+  "blocking_finding_count": 0,
+  "checks": {
+    "canonical_default": true,
+    "canonical_deployer": true,
+    "frozen_identity": true,
+    "launcher_invocation": true,
+    "legacy_preserved": true,
+    "no_docker": true,
+    "no_path_fallback": true,
+    "no_shell": true,
+    "override_validated": true,
+    "runtime_plugin_parity": true,
+    "schema_v2_compatibility": true,
+    "worker_profile_isolation": true
+  },
+  "finding": "profile assembly post-activation bootstrap snapshot remains pending; no activation was requested in this work item",
+  "non_blocking_finding_count": 1,
+  "review_task": "HOST-WI-03A-REVIEW-SOURCE-ONLY",
+  "schema_version": 1,
+  "verdict": "PASS_WITH_NON_BLOCKING_FINDINGS"
+}

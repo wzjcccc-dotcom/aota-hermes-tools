@@ -1,0 +1,8 @@
+{
+  "canonical_deployer": "scripts/aota_forge_plan_package.py",
+  "desktop_restarted": false,
+  "docker_started": false,
+  "receipt_exists": true,
+  "receipt_path": "/home/latios/workspace/aota-hermes-tools/.deploy-receipts/aota-forge-plan/20260727T004639Z/deployment.json",
+  "schema_version": 1
+}

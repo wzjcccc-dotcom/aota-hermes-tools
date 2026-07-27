@@ -1,0 +1,7 @@
+{
+  "post_activation": "DEFERRED_OPERATOR_ACTIVATION",
+  "post_output": "POST_ACTIVATION_VERIFY=fail\nROLLBACK_REQUIRED=yes\nPROFILE_ASSEMBLY_POST_ACTIVATION_BLOCKED\nruntime:task-main:bootstrap-snapshot",
+  "pre_activation": "PASS",
+  "pre_output": "PRE_ACTIVATION_VERIFY=pass\nBOOTSTRAP_SNAPSHOT=pending_activation\nACTIVATION_ALLOWED=yes\nPROFILE_ASSEMBLY_PRE_ACTIVATION_PASS",
+  "schema_version": 1
+}

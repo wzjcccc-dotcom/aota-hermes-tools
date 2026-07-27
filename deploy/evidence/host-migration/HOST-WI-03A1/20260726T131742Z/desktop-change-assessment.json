@@ -1,0 +1,15 @@
+{
+  "desktop_frontend_change_required": "NO_BY_SOURCE",
+  "desktop_backend_change_required": "YES_FOR_AOTA_AUTOMATIC_PARENT_WAKE",
+  "reason": "Once the parent backend accepts the completion through the normal synthetic MessageEvent/session pipeline, existing stream publication and persisted session message handling are reused. The missing boundary is backend delivery, not renderer display.",
+  "desktop_source": [
+    "/home/latios/workspace/hermes-agent-host/apps/shared/src/json-rpc-gateway.ts",
+    "/home/latios/workspace/hermes-agent-host/apps/desktop/src/lib/gateway-events.ts"
+  ],
+  "frontend_replay_finding": "No dedicated durable completion cursor/replay handshake was found; reconnect can reload persisted session state but is not the AOTA delivery mechanism",
+  "required_desktop_changes_conditions": "only if a minimal backend smoke proves persisted/streamed synthetic turn is not rendered; source does not establish that condition",
+  "aota_plugin_change_required": "not for existing receipt/outbox production; likely small event schema alignment for explicit parent_profile/result_pointer",
+  "profile_task_runner_change_required": "NO",
+  "legacy_webui_overlay_required": "NO",
+  "legacy_delegate_overlay_required": "NO"
+}

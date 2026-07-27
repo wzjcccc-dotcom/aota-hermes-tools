@@ -1,0 +1,245 @@
+{
+  "artifact_file_count": 32,
+  "captured_at_utc": "20260726T042622Z",
+  "deployable_source_file_count": 14,
+  "excluded": [
+    ".backup",
+    ".backups",
+    ".bak",
+    ".codegraph",
+    ".git",
+    ".pyc",
+    ".tmp",
+    "__pycache__",
+    "cache",
+    "~"
+  ],
+  "files": [
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/.aota/project.yaml",
+      "relative_path": ".aota/project.yaml",
+      "sha256": "73314d44c95fc481fcf761f08e944476777601679a5d87157de362b6baf635fe",
+      "size_bytes": 1119
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/.gitignore",
+      "relative_path": ".gitignore",
+      "sha256": "65a94803bad8e66c69558ac172ec5136936cc621d73d2e54a7653c9f2bc4ffcd",
+      "size_bytes": 490
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/README.md",
+      "relative_path": "README.md",
+      "sha256": "9f8df06545af1a13adb338ca2f418e00b269431f57d0537d311851eefa2df5e2",
+      "size_bytes": 3111
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/agent/api_server/aota_delegate_runtime_route.py",
+      "relative_path": "agent/api_server/aota_delegate_runtime_route.py",
+      "sha256": "f369801c659cc25a2a46963bcf3f3c01e2c864a062fd94ac16cd0e6f4ffb5562",
+      "size_bytes": 2374
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/agent/api_server/api_server.py",
+      "relative_path": "agent/api_server/api_server.py",
+      "sha256": "f2c833aab31d468a3bf6f1f091e0c0be15ec57046f7a060de0ce8853cbd82c0a",
+      "size_bytes": 220456
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/.gitkeep",
+      "relative_path": "agent/prompt_builder/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/README.md",
+      "relative_path": "agent/prompt_builder/README.md",
+      "sha256": "9e5aefd7539264932942f328b96dcc9ec0ab88a22e30f88caabfd3f61279fd41",
+      "size_bytes": 1351
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/prompt_builder.patch",
+      "relative_path": "agent/prompt_builder/prompt_builder.patch",
+      "sha256": "645f79e463d615c022f48f1619a61071486142ba8f68efd6c8bc324539b8633e",
+      "size_bytes": 10740
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/prompt_builder.py",
+      "relative_path": "agent/prompt_builder/prompt_builder.py",
+      "sha256": "7019df54d8b7ee9aa7347479baac1676bd44512c8c2ef4023015410e03e9a2eb",
+      "size_bytes": 95136
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/api/aota_agent_runs.py",
+      "relative_path": "api/aota_agent_runs.py",
+      "sha256": "3b272fd6536f0e9ad9e9692daae081d627382c6e6e314e9354a21c82c93479ab",
+      "size_bytes": 12487
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runs.py",
+      "relative_path": "api/aota_delegate_runs.py",
+      "sha256": "83b26aeb69184140e8bc943b2fc29e4ed899b4b5fee2beb38c95bd8a196de4db",
+      "size_bytes": 5255
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runtime_client.py",
+      "relative_path": "api/aota_delegate_runtime_client.py",
+      "sha256": "f7487ea1f45a68a4caf16804d3948ff41a9bccf2dcf3007310623f43be7b01c5",
+      "size_bytes": 6374
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/background_process/README.md",
+      "relative_path": "api/background_process/README.md",
+      "sha256": "4943c8a595ef05e9e0119af620e735ea443edeb5f21d8ecee8c2d4499c02b453",
+      "size_bytes": 852
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/background_process/background_process.patch",
+      "relative_path": "api/background_process/background_process.patch",
+      "sha256": "10ab4842a984128e082268e13a8f53a1cd419e65e6205a504d1ec2f8ef3f551d",
+      "size_bytes": 9264
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/api/background_process/background_process.py",
+      "relative_path": "api/background_process/background_process.py",
+      "sha256": "92a8a00346a6676cd514e48106aea4b8112f5ddb15ffb0f1e1a9af01e25d6647",
+      "size_bytes": 84144
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/process_event_utils/README.md",
+      "relative_path": "api/process_event_utils/README.md",
+      "sha256": "77aaa36fd351225d93c25d4907b37822feddbaf35f59a44ffd72cbe180d76938",
+      "size_bytes": 1145
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/process_event_utils/process_event_utils.patch",
+      "relative_path": "api/process_event_utils/process_event_utils.patch",
+      "sha256": "74095f2cdc738da55c70ad0fcc2d7b3255cc6b86a08d33091ef436bd8a6ee41b",
+      "size_bytes": 4422
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/api/process_event_utils/process_event_utils.py",
+      "relative_path": "api/process_event_utils/process_event_utils.py",
+      "sha256": "774b2b8620c1d240eb890968af492b28299c70fc8b32b511ba750e8cb1973d26",
+      "size_bytes": 4245
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/routes/.gitkeep",
+      "relative_path": "api/routes/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/routes/README.md",
+      "relative_path": "api/routes/README.md",
+      "sha256": "35ebdb00ba6be4b9f9d4a35749b5034021ce64c7045cef2e86a83bc815083f27",
+      "size_bytes": 1032
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/routes/routes.patch",
+      "relative_path": "api/routes/routes.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/api/routes/routes.py",
+      "relative_path": "api/routes/routes.py",
+      "sha256": "ab63005841b6a1b3874e4ad8fd0db4fda2922f32b19ebd409c2733758de55514",
+      "size_bytes": 1049882
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/streaming/.gitkeep",
+      "relative_path": "api/streaming/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/streaming/README.md",
+      "relative_path": "api/streaming/README.md",
+      "sha256": "ceca34b7d2a62af7357e561b80daf6eb5edcddf979c6592eab2c1bdfcd66c107",
+      "size_bytes": 1099
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/api/streaming/streaming.patch",
+      "relative_path": "api/streaming/streaming.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/api/streaming/streaming.py",
+      "relative_path": "api/streaming/streaming.py",
+      "sha256": "83d73ccaa916db90fdc253d9afa5c38206cbba692d7edc5112afa79a84f46486",
+      "size_bytes": 510652
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/frontend/index.html",
+      "relative_path": "frontend/index.html",
+      "sha256": "3c999af9be9abf4236d202eefb64da7b35df065d6da66271fb1649f1c0291366",
+      "size_bytes": 214406
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/README.md",
+      "relative_path": "tools/delegate_tool/README.md",
+      "sha256": "1a83e20d9a20abfe88861a407df054bff3f982e6a72e3fd54581d4722e574951",
+      "size_bytes": 1581
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_receipt.py",
+      "relative_path": "tools/delegate_tool/aota_delegate_receipt.py",
+      "sha256": "a7c03c207bb189ef00fa1579eb5226b76278ac2ebf50a6a9777c3b3db17e6742",
+      "size_bytes": 6080
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_runtime.py",
+      "relative_path": "tools/delegate_tool/aota_delegate_runtime.py",
+      "sha256": "b488da976a2c5d4513a4ac2914abc82361ccbd67c679a6d6dc007fda8aa7382d",
+      "size_bytes": 6946
+    },
+    {
+      "file_type": "artifact",
+      "path": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/delegate_tool.patch",
+      "relative_path": "tools/delegate_tool/delegate_tool.patch",
+      "sha256": "ad6f0b8aed0e3bb22a9b211f56a31d3a2d52e24612749e8864bab9415a00f622",
+      "size_bytes": 1441
+    },
+    {
+      "file_type": "source",
+      "path": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/delegate_tool.py",
+      "relative_path": "tools/delegate_tool/delegate_tool.py",
+      "sha256": "d62725226c92d645dc592553e3b64857a719f484e7e120a6fb2b5d04226abfd6",
+      "size_bytes": 158098
+    }
+  ],
+  "inventory_complete": "yes",
+  "root": "/home/latios/workspace/hermes-overrides"
+}

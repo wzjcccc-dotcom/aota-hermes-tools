@@ -1,0 +1,22 @@
+{
+  "aota_plugin_loaded": "PASS_SOURCE_AND_RUNTIME_PATHS_PRESENT",
+  "aota_toolset_discovery": "PASS",
+  "doctor": "PASS_WITH_EXISTING_CONFIG_WARNINGS",
+  "hermes_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "launcher": "/home/latios/.local/bin/hermes-host",
+  "profile_discovery": "PASS",
+  "profile_task_started": false,
+  "profiles": [
+    "architect",
+    "coder",
+    "debugger",
+    "project-steward",
+    "reviewer",
+    "task-main"
+  ],
+  "schema_version": 1,
+  "tool_count": 61,
+  "toolset_count": 28,
+  "version_output": "Hermes Agent v0.19.0 (2026.7.20) \u00b7 upstream 689b51be\nInstall directory: /home/latios/workspace/hermes-agent-host\nInstall method: git\nPython: 3.12.3\nOpenAI SDK: 2.24.0\nUp to date",
+  "version_smoke": "PASS"
+}

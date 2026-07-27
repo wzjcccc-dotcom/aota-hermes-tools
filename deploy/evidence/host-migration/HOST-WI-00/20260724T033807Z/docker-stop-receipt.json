@@ -1,0 +1,7 @@
+{
+  "docker_runtime_state": "ONLINE",
+  "reason": "active task gate failed",
+  "schema_version": 1,
+  "status": "NOT_ATTEMPTED",
+  "work_item": "HOST-WI-00"
+}

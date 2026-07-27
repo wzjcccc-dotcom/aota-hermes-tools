@@ -1,0 +1,16 @@
+{
+  "canonical_deployment": "PASS",
+  "database_mutated": false,
+  "deployment_backup": "PASS",
+  "desktop_restarted": false,
+  "docker_started": false,
+  "parent_wake_executed": false,
+  "profile_task_started": false,
+  "rollback": "PASS",
+  "runner_resolution": "PASS",
+  "runtime_discovery": "PASS",
+  "schema_version": 1,
+  "source_runtime_parity": "PASS",
+  "source_validation": "PASS",
+  "worker_started": false
+}

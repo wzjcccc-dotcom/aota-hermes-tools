@@ -1,0 +1,15 @@
+{
+  "serve_command": "hermes serve --host 127.0.0.1 --port 18642 --skip-build",
+  "host_serve_local": "PASS",
+  "local_bind": "127.0.0.1",
+  "local_port": 18642,
+  "status_endpoint": "PASS; /api/status reported 0.19.0, isolated HERMES_HOME, auth_required=false",
+  "unauthenticated_sensitive_api": "PASS_REJECTED; /api/sessions returned 401",
+  "local_websocket": "PASS; gateway.ready received",
+  "local_session_create": "PASS; official JSON-RPC session.create returned a session_id",
+  "local_session_list": "PASS; official JSON-RPC session.list returned a result",
+  "local_chat": "BLOCKED_PROVIDER_AUTH",
+  "local_session_restart_persistence": "BLOCKED_PROVIDER_AUTH; no durable chat turn could be written without a configured provider",
+  "smoke_process": "stopped gracefully after bounded probe",
+  "logs": "no AOTA import or traceback observed in bounded smoke output"
+}

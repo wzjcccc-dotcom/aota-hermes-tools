@@ -1,0 +1,24 @@
+{
+  "review_type": "second-pass source and boundary checklist",
+  "review_task_id": "HOST-WI-03A1-REVIEW-SOURCE-ONLY",
+  "verdict": "PASS",
+  "blocking_findings": [],
+  "non_blocking_findings": [
+    "Desktop reconnect/render behavior should be confirmed by the explicitly deferred minimal smoke before production adapter work.",
+    "A future adapter must add explicit parent_profile and result_pointer semantics because current AOTA outbox fields are insufficient for safe cross-profile automatic wake."
+  ],
+  "checks": {
+    "found_final_synthetic_turn_entry": true,
+    "restricted_to_completion_delivery_segment": true,
+    "separated_direct_function_from_process_local_state": true,
+    "cross_process_analyzed": true,
+    "cross_profile_analyzed": true,
+    "importability_not_equated_with_reuse": true,
+    "fake_native_lifecycle_risk_identified": true,
+    "desktop_change_decision_supported": true,
+    "ownership_and_idempotency_included": true,
+    "minimal_boundary_recommended": true,
+    "ui_notification_separated_from_model_resume": true,
+    "alternatives_recorded": true
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "decisions": [
+    {
+      "capability": "Profile Task runner selection",
+      "evidence": [
+        "aota-hermes-tools/plugin/aota-tools/_profile_task_common.py:73-106"
+      ],
+      "owner": "PLUGIN"
+    },
+    {
+      "capability": "Host executable contract",
+      "evidence": [
+        "/home/latios/.local/bin/hermes-host",
+        "aota-hermes-tools/plugin/aota-tools/_profile_task_launcher.py:344-352"
+      ],
+      "owner": "HOST_LAUNCHER / DEPLOYER"
+    },
+    {
+      "capability": "AOTA WebUI run dashboard and wakeup bridge",
+      "evidence": [
+        "hermes-overrides/.aota/project.yaml:37-43",
+        "hermes-agent-host/gateway/platforms/api_server.py:1181-1189"
+      ],
+      "owner": "REMOVE from Host scope; legacy WebUI/Docker"
+    },
+    {
+      "capability": "Hermes generic delegate/durable async delivery",
+      "evidence": [
+        "hermes-agent-host/tools/async_delegation.py:243-370",
+        "hermes-agent-host/gateway/run.py:18052-18251"
+      ],
+      "owner": "HERMES_CORE upstream"
+    },
+    {
+      "capability": "Prompt shortening",
+      "evidence": [
+        "hermes-agent-host/agent/prompt_builder.py:160-181"
+      ],
+      "owner": "HERMES_CORE overlay only if host product requirement remains"
+    }
+  ]
+}

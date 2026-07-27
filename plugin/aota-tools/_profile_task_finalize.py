@@ -48,6 +48,13 @@ _TASK_ID_RE = re.compile(r"^pt_\d{8}T\d{6}_[a-f0-9]{8}$")
 _TASK_ID_MAX_LENGTH = 64
 _FORBIDDEN_CHARS = ("\x00", "/", "\\", " ")
 _TERMINAL_STATUSES = {"done", "failed", "cancelled", "timeout", "needs_input", "scope_violation"}
+_ROLE_RESULT_NAMES = {
+    "coder": "RESULT.md",
+    "debugger": "DIAGNOSIS.md",
+    "reviewer": "REVIEW.md",
+    "architect": "ARCHITECT_REVIEW.md",
+    "project-steward": "STEWARD_RESULT.md",
+}
 _LIST_SEPARATOR = ";"
 
 # ---------------------------------------------------------------------------
@@ -141,6 +148,50 @@ def _atomic_write_json(path: Path, data: dict[str, Any]) -> None:
         except OSError:
             pass
         raise
+
+
+def _completion_pointers(
+    *,
+    workspace_id: str,
+    task_id: str,
+    start_id: str,
+    profile: str,
+    task_dir: Path,
+    handoff_id: str | None,
+) -> tuple[str, str]:
+    """Return task-root-relative bounded pointers for backend delivery.
+
+    The handoff pointer is a small task-local marker.  The full handoff stays
+    in the existing handoff rail; the marker gives the trusted backend a
+    canonical, regular file under the Profile Task root without making it
+    read the handoff or worker output.
+    """
+    result_name = _ROLE_RESULT_NAMES.get(profile, "RESULT.md")
+    result_path = task_dir / result_name
+    result_pointer = (
+        f"{workspace_id}/{task_id}/{result_name}"
+        if result_path.is_file() and not result_path.is_symlink()
+        else ""
+    )
+    handoff_pointer = ""
+    if handoff_id:
+        marker_name = f"handoff.{start_id}.json"
+        marker_path = task_dir / marker_name
+        if not marker_path.exists():
+            _atomic_write_json(
+                marker_path,
+                {
+                    "schema_version": 1,
+                    "handoff_id": handoff_id,
+                    "workspace_id": workspace_id,
+                    "task_id": task_id,
+                    "start_id": start_id,
+                    "source": "profile_task_finalizer",
+                },
+            )
+        if marker_path.is_file() and not marker_path.is_symlink():
+            handoff_pointer = f"{workspace_id}/{task_id}/{marker_name}"
+    return result_pointer, handoff_pointer
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -840,6 +891,15 @@ def run_finalize(
                 else:
                     handoff_id_for_outbox = existing_hid
 
+                _result_pointer, _handoff_pointer = _completion_pointers(
+                    workspace_id=workspace_id,
+                    task_id=task_id,
+                    start_id=start_id,
+                    profile=profile,
+                    task_dir=task_dir,
+                    handoff_id=handoff_id_for_outbox,
+                )
+
                 # ------------------------------------------------------------------
                 # P11-L.1B: Produce delivery outbox event AFTER terminal state +
                 # handoff are both durable.  Best-effort — failure does NOT revert
@@ -867,6 +927,19 @@ def run_finalize(
                             origin_session_id=_origin_sid,
                             needs_input_reason=needs_input_reason,
                             completed_at=completed_at,
+                            parent_profile=(
+                                meta.get("parent_profile")
+                                or meta.get("execution", {}).get("parent_profile")
+                                or ""
+                            ),
+                            parent_session_ref=(
+                                meta.get("parent_session_ref")
+                                or meta.get("execution", {}).get("parent_session_ref")
+                                or _origin_sid
+                                or ""
+                            ),
+                            result_pointer=_result_pointer,
+                            handoff_pointer=_handoff_pointer,
                         )
                 except Exception as e:
                     # Outbox failure is non-fatal — task state is already durable.
@@ -1041,7 +1114,53 @@ def write_failure_artifacts(
             _release_lock(lock_fd)
 
     try:
-        _write_failure_handoff(workspace_id, task_id, start_id, profile, meta, completed_at, failure_stage)
+        _failure_handoff_id = _write_failure_handoff(
+            workspace_id, task_id, start_id, profile, meta, completed_at, failure_stage
+        )
+        _failure_task_dir = task_root / workspace_id / task_id
+        _failure_result_pointer, _failure_handoff_pointer = _completion_pointers(
+            workspace_id=workspace_id,
+            task_id=task_id,
+            start_id=start_id,
+            profile=profile,
+            task_dir=_failure_task_dir,
+            handoff_id=_failure_handoff_id,
+        )
+        _outbox_path = Path(__file__).resolve().parent / "_delivery_outbox.py"
+        _outbox_spec = importlib.util.spec_from_file_location(
+            "_delivery_outbox_failure", str(_outbox_path)
+        )
+        if _outbox_spec and _outbox_spec.loader:
+            _outbox_mod = importlib.util.module_from_spec(_outbox_spec)
+            _outbox_spec.loader.exec_module(_outbox_mod)
+            _outbox_mod.write_outbox_event(
+                workspace_id=workspace_id,
+                task_id=task_id,
+                start_id=start_id,
+                profile=profile,
+                terminal_status="failed",
+                handoff_id=_failure_handoff_id,
+                origin_session_id=(
+                    meta.get("parent_session_ref")
+                    or meta.get("execution", {}).get("parent_session_ref")
+                    or meta.get("origin_session_id")
+                    or ""
+                ),
+                completed_at=completed_at,
+                parent_profile=(
+                    meta.get("parent_profile")
+                    or meta.get("execution", {}).get("parent_profile")
+                    or ""
+                ),
+                parent_session_ref=(
+                    meta.get("parent_session_ref")
+                    or meta.get("execution", {}).get("parent_session_ref")
+                    or meta.get("origin_session_id")
+                    or ""
+                ),
+                result_pointer=_failure_result_pointer,
+                handoff_pointer=_failure_handoff_pointer,
+            )
     except Exception:
         pass
     return True
@@ -1068,7 +1187,7 @@ def _read_log_diagnostics(path: str, limit: int = 8192) -> str:
 def _write_failure_handoff(
     workspace_id: str, task_id: str, start_id: str, profile: str,
     meta: dict[str, Any], completed_at: str, failure_stage: str,
-) -> None:
+) -> str | None:
     module_path = Path(__file__).resolve().parent / "_handoff_common.py"
     spec = importlib.util.spec_from_file_location("_handoff_common_failure", module_path)
     if not spec or not spec.loader:
@@ -1076,7 +1195,7 @@ def _write_failure_handoff(
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     if module.find_existing_handoff(workspace_id, task_id, start_id) is not None:
-        return
+        return module.find_existing_handoff(workspace_id, task_id, start_id)
     data = module.build_handoff_data(
         workspace_id=workspace_id,
         task_id=task_id,
@@ -1090,6 +1209,7 @@ def _write_failure_handoff(
         task_dir=Path(os.environ.get("AOTA_PROFILE_TASK_ROOT", "/aota-runtime/profile-tasks")) / workspace_id / task_id,
     )
     module.write_handoff_atomic(workspace_id, data)
+    return data.get("handoff_id")
 
 
 # ---------------------------------------------------------------------------

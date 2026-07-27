@@ -1,0 +1,30 @@
+{
+  "artifact_file_count": 8,
+  "artifact_names": [
+    "SPEC.md",
+    "completion.pt_20260726T025121_1661f1cb.json",
+    "launch.pt_20260726T025121_1661f1cb.json",
+    "meta.json",
+    "scope.json",
+    "worker-prompt.pt_20260726T025121_1661f1cb.txt",
+    "worker.pt_20260726T025121_1661f1cb.log",
+    "workspace-baseline.json"
+  ],
+  "artifact_sha256": {
+    "SPEC.md": "84d59fde37b19376c0d81fb7abf1d9e25ef5478ea2bee144cdab7e4f8510c697",
+    "completion.pt_20260726T025121_1661f1cb.json": "8eaa99b6874ee26af11343e5db63c95be24f70cd42f50d5c80caca252e6172c4",
+    "launch.pt_20260726T025121_1661f1cb.json": "749f29a1b9c6906f4d72e76a21c0f2fd4f24cde09ecf8d5cd2e5318db31fb2bb",
+    "meta.json": "9c80c111abafa73244f217394cacbad85388894b026549cfc93163f6944cc15d",
+    "scope.json": "d35703bcdc498c550e6c657ad77877237cc3831e4fcd7aa4119ea962be602f81",
+    "worker-prompt.pt_20260726T025121_1661f1cb.txt": "d29612350d20a6ea74b92dfb57f0c0d9196133bb6d1078d0985fbd66e6b3b723",
+    "worker.pt_20260726T025121_1661f1cb.log": "b1316a5ed2d07a862067c38e51248878bc244584a9e5e21d141c256e8982e3d0",
+    "workspace-baseline.json": "219a1cde73c21bcf0bddcf10836f98a97fa1e33f8eb0baa3cc5fb979fe008d08"
+  },
+  "legacy_docker_runner_failure_preserved": true,
+  "legacy_task_id": "pt_20260726T025121_1661f1cb",
+  "log_rewritten": false,
+  "manifest_rewritten": false,
+  "rerun": false,
+  "schema_version": 1,
+  "status": "PASS"
+}

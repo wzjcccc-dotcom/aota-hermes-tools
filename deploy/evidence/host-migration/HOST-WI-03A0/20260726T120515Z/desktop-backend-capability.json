@@ -1,0 +1,22 @@
+{
+  "desktop_is_client": true,
+  "desktop_backend": {
+    "status": "PERSISTENT_TRANSPORT_ONLY",
+    "evidence": [
+      {"file": "/home/latios/workspace/hermes-agent-host/apps/desktop/electron/remote-lifecycle.ts", "line": 443, "finding": "remote backend is detached so it survives SSH channel closure"},
+      {"file": "/home/latios/workspace/hermes-agent-host/apps/desktop/electron/remote-lifecycle.ts", "line": 512, "finding": "SSH session token and owner nonce are process ownership/reuse controls"},
+      {"file": "/home/latios/workspace/hermes-agent-host/apps/desktop/electron/ssh-connection.ts", "line": 680, "finding": "SSH exec/tunnel lifecycle is transport management"}
+    ]
+  },
+  "frontend": {
+    "session_events": "SUPPORTED_WHILE_CONNECTED",
+    "background_complete_dedicated_replay": "NOT_FOUND",
+    "reconnect_event_cursor": "NOT_FOUND",
+    "reconnect_behavior": "reconnect socket and reload/resume current session state"
+  },
+  "event_routing": {
+    "file": "/home/latios/workspace/hermes-agent-host/apps/desktop/src/lib/gateway-events.ts",
+    "finding": "events are session-scoped in the renderer; missing session_id can be dropped for subagent events"
+  },
+  "conclusion": "Desktop can display live gateway events and later persisted session messages, but the source does not prove a Desktop-specific durable missed-event replay protocol or automatic LLM resume."
+}

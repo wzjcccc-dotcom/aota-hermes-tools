@@ -1,0 +1,14 @@
+{
+  "vanilla_home": "/home/latios/.local/state/aota-host-migration/HOST-WI-01/vanilla-hermes-home",
+  "vanilla_home_isolated": "PASS",
+  "vanilla_home_owner_mode": "latios:latios 700",
+  "hermes_home_override": "HERMES_HOME supported and used",
+  "aota_plugin_loaded": "no",
+  "aota_profile_loaded": "no",
+  "aota_override_loaded": "no",
+  "canonical_hermes_home": "/home/latios/.hermes",
+  "canonical_hermes_home_mutated": "no after HOST-WI-01 start; one accidental .update_check cache write was restored byte-for-byte from HOST-WI-00 backup",
+  "aota_env_keys_stripped": ["PYTHONPATH", "AOTA_RUNTIME_ROOT", "AOTA_PROFILE_TASK_ROOT", "AOTA_TRUSTED_PRINCIPAL", "AOTA_TRUSTED_AUTHORITIES", "AOTA_TRUSTED_WORKSPACE_ID", "AOTA_CODEGRAPH_EXECUTABLE", "AMF_BASE_URL"],
+  "official_builtin_skills_present": true,
+  "aota_skill_or_profile_paths_present": false
+}

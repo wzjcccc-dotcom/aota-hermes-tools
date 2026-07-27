@@ -1,0 +1,11 @@
+{
+  "source_mutated": true,
+  "runtime_mutated": false,
+  "database_mutated": false,
+  "profile_task_started": false,
+  "synthetic_turn_executed": false,
+  "desktop_restarted": false,
+  "docker_started": false,
+  "commit": false,
+  "push": false
+}

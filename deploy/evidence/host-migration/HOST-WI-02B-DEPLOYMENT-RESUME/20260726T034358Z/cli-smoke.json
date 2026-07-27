@@ -1,0 +1,15 @@
+{
+  "doctor": "PASS_WITH_EXISTING_CONFIG_WARNINGS",
+  "model": "deepseek-v4-flash-free",
+  "one_shot_output_redacted": "API call failed after 3 retries: Connection error.\n",
+  "one_shot_response": null,
+  "one_shot_status": "FAIL_CONNECTION",
+  "plugin_discovery": "PASS",
+  "profile_discovery": "PASS",
+  "profile_task_started": false,
+  "provider": "opencode-zen",
+  "schema_version": 1,
+  "tool_discovery": "PASS",
+  "toolset_discovery": "PASS_VIA_TOOLS_LIST",
+  "version": "PASS"
+}

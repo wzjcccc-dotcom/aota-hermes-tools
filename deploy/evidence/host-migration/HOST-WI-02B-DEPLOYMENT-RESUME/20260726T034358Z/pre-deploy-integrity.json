@@ -1,0 +1,19 @@
+{
+  "canonical_config": "/home/latios/.hermes/config.yaml",
+  "canonical_config_sha256": "96b28228eaa8533f1cbceb46e0b0edc068cfdc5b96250313eaf8e33f9e8a35c5",
+  "host_launcher": "/home/latios/.local/bin/hermes-host",
+  "host_launcher_sha256": "46cc6c2b7b954d5ffb8ba904e13d9ae01ede30d0e453345fa2672cefc2c1bc2a",
+  "official_hermes_executable": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "official_hermes_sha256": "20b6090fb45261e897c446a2021746be67e66caa1c548523b91482cdf00af81f",
+  "private_runtime_env": {
+    "exists": true,
+    "mode": "0o600",
+    "owner": "1000:1000",
+    "path": "/home/latios/.config/hermes-host/runtime.env",
+    "size_bytes": 930,
+    "type": "file"
+  },
+  "schema_version": 1,
+  "session_content_read": false,
+  "state_db_content_read": false
+}

@@ -1,0 +1,13 @@
+{
+  "doctor": "FAIL_GLOBAL_STATE_DB_MALFORMED",
+  "model": "deepseek-v4-flash-free",
+  "one_shot_response": null,
+  "one_shot_status": "NOT_RUN_DB_INTEGRITY_BLOCKER_AND_AUTH_APPROVAL_GATE",
+  "plugin_discovery": "PASS_FROM_PREVIOUS_EVIDENCE",
+  "profile_discovery": "PASS",
+  "profile_task_started": false,
+  "provider": "opencode-zen",
+  "schema_version": 1,
+  "tool_discovery": "PASS_FROM_PREVIOUS_EVIDENCE",
+  "version": "PASS"
+}

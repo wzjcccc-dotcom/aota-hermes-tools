@@ -1,0 +1,11 @@
+{
+  "docker_baseline_hermes_version": "0.19.0",
+  "docker_baseline_commit": "8a21df18acbe73c63d06747d0ab359288bf84276",
+  "docker_baseline_release_line": "v2026.7.20",
+  "host_selected_version": "0.19.0",
+  "host_selected_tag": "none; exact post-release image commit",
+  "host_selected_commit": "8a21df18acbe73c63d06747d0ab359288bf84276",
+  "version_selection_reason": "BASELINE_MATCH: private Docker source-volume pyproject and hermes_cli metadata report 0.19.0 / 2026.7.20; host checkout pins the image OCI revision exactly.",
+  "version_parity": "PASS_PACKAGE_VERSION_AND_COMMIT_MATCH",
+  "official_release_metadata_checked": "v2026.7.20 signed release line; exact image revision is newer than the tag commit but retains 0.19.0 metadata"
+}

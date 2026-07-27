@@ -1,0 +1,12 @@
+{
+  "HERMES_HOME": "/home/latios/.hermes",
+  "HOME": "/home/latios",
+  "allowlist_source": "_profile_task_launcher._child_env",
+  "aota_runtime_paths": true,
+  "docker_environment_inherited": false,
+  "launcher_loaded_private_env": "/home/latios/.config/hermes-host/runtime.env",
+  "private_env_values_serialized": false,
+  "schema_version": 1,
+  "status": "PASS",
+  "workspace_binding": true
+}

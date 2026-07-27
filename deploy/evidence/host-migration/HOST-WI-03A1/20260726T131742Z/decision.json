@@ -1,0 +1,26 @@
+{
+  "final": "PASS_MINIMAL_BACKEND_ADAPTER_REQUIRED",
+  "reuse_decision": "MINIMAL_BACKEND_ADAPTER",
+  "source_validation": "PASS",
+  "reasons": [
+    "Native synthetic completion delivery is fully traceable and reusable only inside a live parent GatewayRunner/backend boundary.",
+    "AOTA Profile Task completion is produced in a separate hermes -z worker/finalizer process and currently terminates at a sanitized filesystem outbox.",
+    "Direct Python import does not transfer GatewayRunner, event loop, adapter registry, session DB handle, ownership context, or profile scope.",
+    "Direct async_delegations INSERT would require a fake native delegation lifecycle and is high risk.",
+    "A small trusted backend adapter can consume the existing outbox and invoke the existing gateway wake/normal-turn path, with explicit parent profile/session validation and durable idempotency."
+  ],
+  "recommended_integration_option": "AOTA Completion to Hermes Parent Turn Backend Adapter",
+  "recommended_backend_boundary": "parent Hermes backend/GatewayRunner delivery service",
+  "recommended_transport": "existing AOTA sanitized outbox into backend; in-process gateway.wake where available, authenticated API self-post only as profile-aware fallback",
+  "recommended_persistence": "existing AOTA pending/delivered outbox plus adapter delivery receipt/claim; do not insert async_delegations",
+  "recommended_authentication": "trusted finalizer provenance, parent ownership/profile validation, API_SERVER_KEY for raw-session self-post",
+  "recommended_idempotency": "stable AOTA event identity derived from task/start, adapter claim, duplicate suppression, at-least-once acknowledgment",
+  "desktop_frontend_change_required": "NO",
+  "desktop_backend_change_required": "YES",
+  "aota_plugin_change_required": "small schema alignment likely; existing outbox producer remains source of truth",
+  "profile_task_runner_change_required": "NO",
+  "legacy_webui_overlay_required": "NO",
+  "legacy_delegate_overlay_required": "NO",
+  "minimal_live_smoke_required": "NO_FOR_SOURCE_DECISION; RECOMMENDED_BEFORE_PRODUCTION",
+  "next_work_item": "HOST-WI-03B AOTA Completion to Hermes Parent Turn Backend Adapter"
+}

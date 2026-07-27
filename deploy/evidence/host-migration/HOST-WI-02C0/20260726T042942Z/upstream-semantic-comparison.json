@@ -1,0 +1,91 @@
+{
+  "comparisons": [
+    {
+      "evidence": [
+        "hermes-agent-host/agent/prompt_builder.py:160-181",
+        "hermes-agent-host/agent/prompt_builder.py:339-352",
+        "hermes-agent-host/agent/prompt_builder.py:382-393",
+        "hermes-agent-host/agent/prompt_builder.py:646-657",
+        "hermes-agent-host/agent/prompt_builder.py:1738-1765"
+      ],
+      "level": "same_prompt_constants_and_builder_regions_exist; current host source is newer",
+      "overlay_id": "agent/prompt_builder/prompt_builder.py",
+      "upstream_equivalent": "partial"
+    },
+    {
+      "evidence": [
+        "hermes-agent-host/tools/delegate_tool.py:1143-1159",
+        "hermes-agent-host/tools/async_delegation.py:243-370",
+        "hermes-agent-host/gateway/run.py:18052-18251"
+      ],
+      "level": "core delegate and durable async behavior upstreamed; allowed_override_toolsets and AOTA hooks absent",
+      "overlay_id": "tools/delegate_tool/delegate_tool.py",
+      "upstream_equivalent": "partial"
+    },
+    {
+      "evidence": [
+        "hermes-agent-host/gateway/platforms/api_server.py:60-93",
+        "hermes-agent-host/gateway/platforms/api_server.py:1181-1189",
+        "hermes-agent-host/gateway/platforms/api_server.py:1690-1735",
+        "hermes-agent-host/gateway/platforms/api_server.py:1895-1907"
+      ],
+      "level": "generic API/run/session behavior upstreamed, AOTA endpoint absent; whole file drops newer profile/runtime/security code",
+      "overlay_id": "agent/api_server/api_server.py",
+      "upstream_equivalent": "partial"
+    },
+    {
+      "evidence": [
+        "hermes-overrides/api/routes/README.md:9-15"
+      ],
+      "level": "recorded WebUI baseline byte-identical and patch empty",
+      "overlay_id": "api/routes/routes.py",
+      "upstream_equivalent": "yes"
+    },
+    {
+      "evidence": [
+        "hermes-overrides/api/streaming/README.md:9-15"
+      ],
+      "level": "recorded WebUI baseline byte-identical and patch empty",
+      "overlay_id": "api/streaming/streaming.py",
+      "upstream_equivalent": "yes"
+    },
+    {
+      "evidence": [
+        "hermes-overrides/api/background_process/README.md:9-18"
+      ],
+      "level": "AOTA delivery/wakeup/sanitization delta remains, but WebUI-only",
+      "overlay_id": "api/background_process/background_process.py",
+      "upstream_equivalent": "no"
+    },
+    {
+      "evidence": [
+        "hermes-overrides/api/process_event_utils/README.md:7-20"
+      ],
+      "level": "new WebUI helper; no host target",
+      "overlay_id": "api/process_event_utils/process_event_utils.py",
+      "upstream_equivalent": "no"
+    },
+    {
+      "evidence": [
+        "hermes-overrides/.aota/project.yaml:37-43"
+      ],
+      "level": "no current host Hermes target; current need is WebUI-only",
+      "overlay_id": "all other WebUI modules",
+      "upstream_equivalent": "not applicable"
+    }
+  ],
+  "method": "static symbol/behavior comparison plus recorded Docker image baseline notes; no runtime deployment",
+  "whole_file_risk": {
+    "api_server": [
+      "multiplex profile prefix and profile runtime scope",
+      "runtime/provider resolution",
+      "readiness/security behavior"
+    ],
+    "delegate_tool": [
+      "current delegation/session/provider/async-delivery changes must be retained"
+    ],
+    "prompt_builder": [
+      "current prompt sections and upstream changes must be retained"
+    ]
+  }
+}

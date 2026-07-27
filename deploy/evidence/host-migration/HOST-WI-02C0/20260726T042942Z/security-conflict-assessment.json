@@ -1,0 +1,33 @@
+{
+  "conflicts": [
+    {
+      "conflict": "whole-file replacement omits current profile multiplexing, profile runtime scope, readiness and provider/runtime changes",
+      "evidence": [
+        "hermes-agent-host/gateway/platforms/api_server.py:60-93",
+        "hermes-agent-host/gateway/platforms/api_server.py:1690-1735",
+        "hermes-agent-host/gateway/platforms/api_server.py:1895-1907"
+      ],
+      "overlay_id": "agent/api_server/api_server.py",
+      "severity": "high"
+    },
+    {
+      "conflict": "whole-file replacement is based on v0.18.2 while current host has newer async/session/provider delivery behavior",
+      "evidence": [
+        "hermes-agent-host/tools/delegate_tool.py:2594-2613",
+        "hermes-agent-host/tools/delegate_tool.py:2921-2999"
+      ],
+      "overlay_id": "tools/delegate_tool/delegate_tool.py",
+      "severity": "medium"
+    },
+    {
+      "conflict": "whole-file replacement can overwrite newer prompt/security guidance; rebase required",
+      "evidence": [
+        "hermes-agent-host/agent/prompt_builder.py:160-181",
+        "hermes-agent-host/agent/prompt_builder.py:1738-1765"
+      ],
+      "overlay_id": "agent/prompt_builder/prompt_builder.py",
+      "severity": "medium"
+    }
+  ],
+  "security_conflict_count": 3
+}

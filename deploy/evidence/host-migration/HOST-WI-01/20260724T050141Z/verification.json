@@ -1,0 +1,19 @@
+{
+  "work_item": "HOST-WI-01",
+  "status": "BLOCKED_PROVIDER_AUTH",
+  "source_validation": "PASS",
+  "version_discovery": "PASS",
+  "version_selection": "PASS",
+  "host_installation": "PASS",
+  "host_executable_isolated": "PASS",
+  "vanilla_home_isolated": "PASS",
+  "host_serve_local": "PASS",
+  "local_websocket": "PASS",
+  "local_session_create": "PASS",
+  "local_chat": "BLOCKED_PROVIDER_AUTH",
+  "host_remote_readiness": "NOT_RUN",
+  "desktop_validation": "NOT_RUN",
+  "pytest": "not run",
+  "commit": "no",
+  "push": "no"
+}

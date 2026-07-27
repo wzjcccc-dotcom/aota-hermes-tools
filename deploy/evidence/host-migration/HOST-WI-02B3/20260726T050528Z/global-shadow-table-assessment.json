@@ -1,0 +1,198 @@
+{
+  "hermes_python": [
+    {
+      "expected_shadow_tables": [
+        "messages_fts_config",
+        "messages_fts_content",
+        "messages_fts_data",
+        "messages_fts_docsize",
+        "messages_fts_idx"
+      ],
+      "fts_table": "messages_fts",
+      "missing_shadow_tables": [],
+      "present_shadow_tables": [
+        "messages_fts_config",
+        "messages_fts_content",
+        "messages_fts_data",
+        "messages_fts_docsize",
+        "messages_fts_idx"
+      ],
+      "shadow_table_readability": {
+        "messages_fts_config": {
+          "count": 1,
+          "status": "PASS"
+        },
+        "messages_fts_content": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_data": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_docsize": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_idx": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        }
+      },
+      "unexpected_shadow_tables": [
+        "messages_fts_trigram_config",
+        "messages_fts_trigram_content",
+        "messages_fts_trigram_data",
+        "messages_fts_trigram_docsize",
+        "messages_fts_trigram_idx"
+      ]
+    },
+    {
+      "expected_shadow_tables": [
+        "messages_fts_trigram_config",
+        "messages_fts_trigram_content",
+        "messages_fts_trigram_data",
+        "messages_fts_trigram_docsize",
+        "messages_fts_trigram_idx"
+      ],
+      "fts_table": "messages_fts_trigram",
+      "missing_shadow_tables": [],
+      "present_shadow_tables": [
+        "messages_fts_trigram_config",
+        "messages_fts_trigram_content",
+        "messages_fts_trigram_data",
+        "messages_fts_trigram_docsize",
+        "messages_fts_trigram_idx"
+      ],
+      "shadow_table_readability": {
+        "messages_fts_trigram_config": {
+          "count": 1,
+          "status": "PASS"
+        },
+        "messages_fts_trigram_content": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_trigram_data": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_trigram_docsize": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_trigram_idx": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        }
+      },
+      "unexpected_shadow_tables": []
+    }
+  ],
+  "system_python": [
+    {
+      "expected_shadow_tables": [
+        "messages_fts_config",
+        "messages_fts_content",
+        "messages_fts_data",
+        "messages_fts_docsize",
+        "messages_fts_idx"
+      ],
+      "fts_table": "messages_fts",
+      "missing_shadow_tables": [],
+      "present_shadow_tables": [
+        "messages_fts_config",
+        "messages_fts_content",
+        "messages_fts_data",
+        "messages_fts_docsize",
+        "messages_fts_idx"
+      ],
+      "shadow_table_readability": {
+        "messages_fts_config": {
+          "count": 1,
+          "status": "PASS"
+        },
+        "messages_fts_content": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_data": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_docsize": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_idx": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        }
+      },
+      "unexpected_shadow_tables": [
+        "messages_fts_trigram_config",
+        "messages_fts_trigram_content",
+        "messages_fts_trigram_data",
+        "messages_fts_trigram_docsize",
+        "messages_fts_trigram_idx"
+      ]
+    },
+    {
+      "expected_shadow_tables": [
+        "messages_fts_trigram_config",
+        "messages_fts_trigram_content",
+        "messages_fts_trigram_data",
+        "messages_fts_trigram_docsize",
+        "messages_fts_trigram_idx"
+      ],
+      "fts_table": "messages_fts_trigram",
+      "missing_shadow_tables": [],
+      "present_shadow_tables": [
+        "messages_fts_trigram_config",
+        "messages_fts_trigram_content",
+        "messages_fts_trigram_data",
+        "messages_fts_trigram_docsize",
+        "messages_fts_trigram_idx"
+      ],
+      "shadow_table_readability": {
+        "messages_fts_trigram_config": {
+          "count": 1,
+          "status": "PASS"
+        },
+        "messages_fts_trigram_content": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_trigram_data": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_trigram_docsize": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        },
+        "messages_fts_trigram_idx": {
+          "error_message_sanitized": "database disk image is malformed",
+          "error_type": "DatabaseError",
+          "status": "FAIL"
+        }
+      },
+      "unexpected_shadow_tables": []
+    }
+  ]
+}

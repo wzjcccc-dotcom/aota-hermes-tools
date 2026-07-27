@@ -1,0 +1,14 @@
+{
+  "checks": {
+    "contradictory_classification_count": 0,
+    "docker_runner_trace_complete": true,
+    "overlay_inventory_complete": true,
+    "plugin_vs_core_boundary": true,
+    "unsupported_classification_count": 0,
+    "upstream_security_changes_checked": true,
+    "webui_only_not_retained_as_host_core": true,
+    "whole_file_risk_checked": true
+  },
+  "review_mode": "independent second-pass self-review, read-only",
+  "verdict": "PASS_WITH_HOST_RUNNER_BLOCKER_AND_PROMPT_DECISION"
+}

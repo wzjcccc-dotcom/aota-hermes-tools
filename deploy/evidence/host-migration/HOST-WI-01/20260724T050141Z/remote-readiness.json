@@ -1,0 +1,13 @@
+{
+  "host_remote_readiness": "NOT_RUN_BLOCKED",
+  "reason": "localhost chat/provider gate not complete; remote must not open before local smoke passes",
+  "remote_bind": "not configured",
+  "remote_port": 18642,
+  "tailscale_status": "not readable from Codex sandbox; tailscaled socket access denied",
+  "user_systemd_status": "not readable from Codex sandbox; user bus access denied",
+  "remote_auth_mode": "not configured",
+  "unauthenticated_remote_rejected": "NOT_RUN",
+  "authenticated_remote_allowed": "NOT_RUN",
+  "systemd_enabled": "no",
+  "docker_runtime_state": "OFFLINE_STANDBY"
+}

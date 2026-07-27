@@ -1,0 +1,142 @@
+[
+  {
+    "classification": "REMOVE_DOCKER_ONLY",
+    "overlay_id": "agent/api_server/aota_delegate_runtime_route.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/agent/api_server/aota_delegate_runtime_route.py",
+    "overlay_sha256": "f369801c659cc25a2a46963bcf3f3c01e2c864a062fd94ac16cd0e6f4ffb5562",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/opt/hermes/gateway/platforms/aota_delegate_runtime_route.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_DOCKER_ONLY",
+    "overlay_id": "agent/api_server/api_server.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/agent/api_server/api_server.py",
+    "overlay_sha256": "f2c833aab31d468a3bf6f1f091e0c0be15ec57046f7a060de0ce8853cbd82c0a",
+    "target_exists": true,
+    "target_path_current": "/home/latios/workspace/hermes-agent-host/gateway/platforms/api_server.py",
+    "target_path_old": "/opt/hermes/gateway/platforms/api_server.py",
+    "target_sha256": "a2a2688a0218727574eafd1c19f21dee90c00da3b4f8d60e894706ae8f87a2e6"
+  },
+  {
+    "classification": "KEEP_REBASE",
+    "overlay_id": "agent/prompt_builder/prompt_builder.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/agent/prompt_builder/prompt_builder.py",
+    "overlay_sha256": "7019df54d8b7ee9aa7347479baac1676bd44512c8c2ef4023015410e03e9a2eb",
+    "target_exists": true,
+    "target_path_current": "/home/latios/workspace/hermes-agent-host/agent/prompt_builder.py",
+    "target_path_old": "/opt/hermes/agent/prompt_builder.py; /home/hermeswebui/.hermes/hermes-agent/agent/prompt_builder.py",
+    "target_sha256": "cb38db40047fdafb3b3aceb2fca45758d92fbab4192086cf6b21776589388b0b"
+  },
+  {
+    "classification": "REMOVE_WEBUI_ONLY",
+    "overlay_id": "api/aota_agent_runs.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/api/aota_agent_runs.py",
+    "overlay_sha256": "3b272fd6536f0e9ad9e9692daae081d627382c6e6e314e9354a21c82c93479ab",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/apptoo/api/aota_agent_runs.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_WEBUI_ONLY",
+    "overlay_id": "api/aota_delegate_runs.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runs.py",
+    "overlay_sha256": "83b26aeb69184140e8bc943b2fc29e4ed899b4b5fee2beb38c95bd8a196de4db",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/apptoo/api/aota_delegate_runs.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_WEBUI_ONLY",
+    "overlay_id": "api/aota_delegate_runtime_client.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/api/aota_delegate_runtime_client.py",
+    "overlay_sha256": "f7487ea1f45a68a4caf16804d3948ff41a9bccf2dcf3007310623f43be7b01c5",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/apptoo/api/aota_delegate_runtime_client.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_WEBUI_ONLY",
+    "overlay_id": "api/background_process/background_process.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/api/background_process/background_process.py",
+    "overlay_sha256": "92a8a00346a6676cd514e48106aea4b8112f5ddb15ffb0f1e1a9af01e25d6647",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/apptoo/api/background_process.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_WEBUI_ONLY",
+    "overlay_id": "api/process_event_utils/process_event_utils.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/api/process_event_utils/process_event_utils.py",
+    "overlay_sha256": "774b2b8620c1d240eb890968af492b28299c70fc8b32b511ba750e8cb1973d26",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/apptoo/api/process_event_utils.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_WEBUI_ONLY",
+    "overlay_id": "api/routes/routes.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/api/routes/routes.py",
+    "overlay_sha256": "ab63005841b6a1b3874e4ad8fd0db4fda2922f32b19ebd409c2733758de55514",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/apptoo/api/routes.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_WEBUI_ONLY",
+    "overlay_id": "api/streaming/streaming.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/api/streaming/streaming.py",
+    "overlay_sha256": "83d73ccaa916db90fdc253d9afa5c38206cbba692d7edc5112afa79a84f46486",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/apptoo/api/streaming.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_WEBUI_ONLY",
+    "overlay_id": "frontend/index.html",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/frontend/index.html",
+    "overlay_sha256": "3c999af9be9abf4236d202eefb64da7b35df065d6da66271fb1649f1c0291366",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/apptoo/static/index.html",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_DOCKER_ONLY",
+    "overlay_id": "tools/delegate_tool/aota_delegate_receipt.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_receipt.py",
+    "overlay_sha256": "a7c03c207bb189ef00fa1579eb5226b76278ac2ebf50a6a9777c3b3db17e6742",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/opt/hermes/tools/aota_delegate_receipt.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_DOCKER_ONLY",
+    "overlay_id": "tools/delegate_tool/aota_delegate_runtime.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/aota_delegate_runtime.py",
+    "overlay_sha256": "b488da976a2c5d4513a4ac2914abc82361ccbd67c679a6d6dc007fda8aa7382d",
+    "target_exists": false,
+    "target_path_current": null,
+    "target_path_old": "/opt/hermes/tools/aota_delegate_runtime.py",
+    "target_sha256": null
+  },
+  {
+    "classification": "REMOVE_DOCKER_ONLY",
+    "overlay_id": "tools/delegate_tool/delegate_tool.py",
+    "overlay_path": "/home/latios/workspace/hermes-overrides/tools/delegate_tool/delegate_tool.py",
+    "overlay_sha256": "d62725226c92d645dc592553e3b64857a719f484e7e120a6fb2b5d04226abfd6",
+    "target_exists": true,
+    "target_path_current": "/home/latios/workspace/hermes-agent-host/tools/delegate_tool.py",
+    "target_path_old": "/opt/hermes/tools/delegate_tool.py; /home/hermeswebui/.hermes/hermes-agent/tools/delegate_tool.py",
+    "target_sha256": "cec3523332d85a27d7ac46ec6dfc41a138f9cd30acc8cc4c5af8943d0f9da1af"
+  }
+]
