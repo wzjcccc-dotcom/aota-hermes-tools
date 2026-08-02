@@ -1,0 +1,11 @@
+{
+  "baseline_commit": "689b51bef68f9ec95b638121bb9c7fefa3703fb2",
+  "current_commit": "3c388db06b6543821f15ed62efb9d8e7cd9bb9be",
+  "upstream_native_aota_parent_wake_replacement": false,
+  "native_async_delegation_present": true,
+  "native_async_delegation_equivalent_to_external_aota_profile_task_completion": false,
+  "relevant_upstream_changes": ["gateway wake delivery changes", "durable delegation origin-session persistence", "gateway/delegation lifecycle changes"],
+  "external_aota_completion_outbox_consumer_found_outside_adapter": false,
+  "assessment": "The host adapter remains the smallest external AOTA completion boundary; upstream native delegation is a separate ledger and execution path.",
+  "classification": "NO_UPSTREAM_REPLACEMENT"
+}

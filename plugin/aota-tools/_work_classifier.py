@@ -2,12 +2,20 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import tempfile
 from pathlib import Path
 from typing import Any, Mapping
 
 from ._handoff_common import validate_workspace_id
 from ._workspace import WorkspaceError, resolve_workspace
+from ._session_active_spec_binding import trusted_session_context
+from ._session_state_authority import (
+    SessionStateError,
+    STANDALONE_PROJECT_SENTINEL,
+    session_digest,
+    write_current_work_classification_pointer,
+)
 
 TOOL_NAME = "aota_work_classify"
 TOOLSET_NAME = "aota_work_intake"
@@ -382,10 +390,111 @@ def _classify(args: Any) -> dict[str, Any]:
     }
 
 
+def _classification_failure(code: str, *, workspace_id: str | None, next_action: str, detail: str = "") -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "classification_status": "error",
+        "error_code": code,
+        "workspace_id": workspace_id,
+        "retryable": False,
+        "human_action_required": False,
+        "recommended_next_step": next_action,
+    }
+    if detail:
+        result["detail"] = detail
+    return result
+
+
+def _trusted_classification_project(result: Mapping[str, Any], kwargs: Mapping[str, Any], context: Any) -> str:
+    """Resolve the existing project authority for P1/P2; P0 is standalone."""
+    workspace_id = str(result["workspace_id"])
+    if result["planning_depth"] == "P0":
+        return f"standalone:{workspace_id}"
+    project_id = getattr(context, "project_id", "") or ""
+    from ._phase3_control_plane import Phase3ResolutionError, resolve_current_project
+
+    try:
+        resolved = str(resolve_current_project(kwargs=kwargs)["project_id"])
+    except Phase3ResolutionError as exc:
+        raise SessionStateError("classification_context_missing", exc.code) from exc
+    if project_id and resolved != project_id:
+        raise SessionStateError("classification_context_boundary_mismatch", "trusted_project_id_mismatch")
+    return resolved
+
+
 def handle(args: dict, **_kwargs: Any) -> str:
     workspace_id = args.get("workspace_id") if isinstance(args, dict) else None
     try:
-        return json.dumps(_classify(args), ensure_ascii=False, sort_keys=True)
+        result = _classify(args)
+        if result.get("classification_status") != "classified":
+            return json.dumps(result, ensure_ascii=False, sort_keys=True)
+        context = trusted_session_context(_kwargs)
+        if not context.usable_for_active_spec or context.workspace_id != result.get("workspace_id"):
+            return json.dumps(_classification_failure(
+                "classification_context_missing",
+                workspace_id=workspace_id if isinstance(workspace_id, str) else None,
+                next_action="run_work_intake_and_classification",
+                detail="trusted_session_context_required_after_classifier_success",
+            ), ensure_ascii=False, sort_keys=True)
+        project_id = _trusted_classification_project(result, _kwargs, context)
+        classifier_result_digest = hashlib.sha256(
+            json.dumps(result, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        pointer, pointer_path, idempotent = write_current_work_classification_pointer(
+            context,
+            classification=result["planning_depth"],
+            authority=result["architect_gate"],
+            execution_depth=result["delivery_path"],
+            classifier_result_digest=classifier_result_digest,
+            project_id=project_id,
+        )
+        result["classification_binding"] = {
+            "status": "written",
+            "idempotent": idempotent,
+            "pointer_kind": pointer["pointer_kind"],
+            "pointer_path": str(pointer_path),
+            "session_digest": session_digest(context.session_id),
+            "session_match": pointer["session_id"] == context.session_id,
+            "workspace_match": pointer["workspace_id"] == context.workspace_id,
+            "project_match": pointer["project_id"] == (STANDALONE_PROJECT_SENTINEL if result["planning_depth"] == "P0" else project_id),
+            "project_id": pointer["project_id"],
+            "artifact_digest": pointer["artifact_digest"],
+            "classifier_result_digest": classifier_result_digest,
+        }
+        from ._next_tool_contract import attach_next_tool_option
+        if result["planning_depth"] == "P0":
+            # P0 is a semantic one-round-trip route.  The control plane, not
+            # the model, selects the dispatch facade; P1/P2 retain the
+            # administrative SPEC chain below.
+            from ._profile_task_dispatch import SCHEMA as profile_task_dispatch_schema
+
+            attach_next_tool_option(
+                result,
+                profile_task_dispatch_schema,
+                include=(
+                    "acceptance_criteria",
+                    "read_scope",
+                    "write_scope",
+                    "forbidden_scope",
+                    "requirements",
+                    "constraints",
+                    "subject_ref",
+                    "validation",
+                ),
+                reason="P0 classification is bound to this session; dispatch one semantic SPEC without internal IDs.",
+            )
+            result["next_action"] = "dispatch_p0_semantic_spec"
+        else:
+            from ._task_spec_create import SCHEMA as task_spec_create_schema
+
+            attach_next_tool_option(
+                result,
+                task_spec_create_schema,
+                include=("subject_ref", "read_scope", "write_scope", "payload"),
+                reason="P1/P2 classification is bound to this session; create the semantic SPEC without internal IDs.",
+            )
+        result.setdefault("same_call_retryable", False)
+        result.setdefault("flow_disposition", "continue")
+        return json.dumps(result, ensure_ascii=False, sort_keys=True)
     except _ClassificationError as exc:
         return json.dumps(_error(
             exc.code,
@@ -395,6 +504,13 @@ def handle(args: dict, **_kwargs: Any) -> str:
             expected=exc.expected,
             accepted_fields=exc.accepted_fields,
             corrective_action=exc.corrective_action,
+        ), ensure_ascii=False, sort_keys=True)
+    except SessionStateError as exc:
+        return json.dumps(_classification_failure(
+            exc.code,
+            workspace_id=workspace_id if isinstance(workspace_id, str) else None,
+            next_action="run_work_intake_and_classification",
+            detail=exc.detail,
         ), ensure_ascii=False, sort_keys=True)
     except Exception:
         return json.dumps(_error("CLASSIFICATION_INTERNAL_ERROR", workspace_id if isinstance(workspace_id, str) else None), ensure_ascii=False, sort_keys=True)
@@ -426,7 +542,7 @@ def run_isolated_smoke() -> dict[str, str]:
             before_mtime_ns = root.stat().st_mtime_ns
             def run(**changes: Any) -> dict[str, Any]:
                 facts = {**base, **changes}
-                return json.loads(handle({"workspace_id": "fixture", "title": "Fixture", "summary": "Deterministic fixture", "facts": facts}))
+                return _classify({"workspace_id": "fixture", "title": "Fixture", "summary": "Deterministic fixture", "facts": facts})
             assert (run()["planning_depth"], run()["architect_gate"], run()["delivery_path"]) == ("P0", "A0", "fast")
             assert (run(estimated_work_items=2, has_dependencies=True)["planning_depth"], run(estimated_work_items=2, has_dependencies=True)["architect_gate"], run(estimated_work_items=2, has_dependencies=True)["delivery_path"]) == ("P1", "A0", "standard")
             assert (run(estimated_work_items=5)["planning_depth"], run(estimated_work_items=5)["architect_gate"], run(estimated_work_items=5)["delivery_path"]) == ("P2", "A0", "standard")
@@ -442,11 +558,11 @@ def run_isolated_smoke() -> dict[str, str]:
             assert run(validation_scope="integration")["architect_gate"] == "A1"
             assert run(validation_scope="end_to_end")["delivery_path"] == "deep"
             expected = run(estimated_work_items=2); assert expected == run(estimated_work_items=2)
-            missing = json.loads(handle({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": {}})); assert missing["classification_status"] == "needs_input"
-            unknown = json.loads(handle({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": {**base, "unknown": True}})); assert unknown["error_code"] == "CLASSIFICATION_FACT_UNKNOWN"
-            wrong = json.loads(handle({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": {**base, "estimated_work_items": True}})); assert wrong["error_code"] == "CLASSIFICATION_FACT_TYPE_INVALID"
-            overridden = json.loads(handle({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": base, "override": {"planning_depth": "P1", "architect_gate": "A1", "delivery_path": "standard", "rationale": "More review"}})); assert overridden["override_applied"] and overridden["planning_depth"] == "P1"
-            denied = json.loads(handle({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": {**base, "auth_or_security_change": True}, "override": {"architect_gate": "A0", "rationale": "No"}})); assert denied["error_code"] == "CLASSIFICATION_OVERRIDE_DENIED"
+            missing = _classify({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": {}}); assert missing["classification_status"] == "needs_input"
+            unknown = _classify({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": {**base, "unknown": True}}); assert unknown["error_code"] == "CLASSIFICATION_FACT_UNKNOWN"
+            wrong = _classify({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": {**base, "estimated_work_items": True}}); assert wrong["error_code"] == "CLASSIFICATION_FACT_TYPE_INVALID"
+            overridden = _classify({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": base, "override": {"planning_depth": "P1", "architect_gate": "A1", "delivery_path": "standard", "rationale": "More review"}}); assert overridden["override_applied"] and overridden["planning_depth"] == "P1"
+            denied = _classify({"workspace_id": "fixture", "title": "Fixture", "summary": "x", "facts": {**base, "auth_or_security_change": True}, "override": {"architect_gate": "A0", "rationale": "No"}}); assert denied["error_code"] == "CLASSIFICATION_OVERRIDE_DENIED"
             assert not list(root.iterdir()) and root.stat().st_mtime_ns == before_mtime_ns
         finally:
             _workspace._REGISTRY_PATH = prior_registry

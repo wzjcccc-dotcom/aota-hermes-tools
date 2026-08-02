@@ -1,0 +1,15 @@
+{
+  "case": "CASE_G",
+  "FINAL": "NEEDS_PARENT_WAKE_CONFIGURATION_OR_SCHEMA_RECONCILIATION",
+  "source_module": "PRESENT",
+  "lifecycle_wiring": "PRESENT",
+  "native_wake_contract": "COMPATIBLE",
+  "upstream_replacement": "NOT_FOUND",
+  "runtime_import": "CANONICAL_HOST_SOURCE",
+  "feature_flag": "EFFECTIVE_TRUE",
+  "outbox_schema": "COMPATIBLE",
+  "outbox_workspace_path": "DRIFT",
+  "blocking_finding": "AotaParentWakeAdapter.from_environment defaults to workspace aota-runtime, while the active AOTA producer path and pending events use workspace aota-hermes-tools; no workspace override is present in the protected host environment.",
+  "live_wake_proof": "NOT_CLAIMED",
+  "next_work_item": "Reconcile the canonical workspace selector or explicitly configure AOTA_PARENT_WAKE_WORKSPACE_ID, then perform a separately authorized live verification."
+}

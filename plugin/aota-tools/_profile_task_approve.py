@@ -25,6 +25,9 @@ from ._task_spec_common import (
     write_json,
 )
 from ._workspace import WorkspaceError
+from ._reference_resolver import ReferenceError, resolve_for_start
+from ._session_active_spec_binding import trusted_session_context
+from ._trusted_runtime_context import missing_context_result
 
 TOOL_NAME = "aota_profile_task_approve"
 TOOLSET_NAME = "aota_profile_task"
@@ -32,15 +35,17 @@ TOOLSET_NAME = "aota_profile_task"
 SCHEMA = {
     "name": TOOL_NAME,
     "description": (
-        "Record explicit human checkpoint approval for an exact frozen AOTA revision. "
+        "Record an explicit human checkpoint decision for the current frozen SPEC. "
         "Creates APPROVAL.json in the task directory. "
         "Only for implementation tasks (diagnosis/review do not require approval). "
         "This tool does not start execution, modify SPEC, choose profile, or create "
         "another task. Call this only when the current human reviewer has explicitly "
         "approved the exact SPEC revision/hash for execution. "
         "Approval is bound to exact revision+hash; spec updates invalidate approval.\n\n"
-        "REQUIRED PARAMETERS:\n"
-        "- expected_spec_hash (REQUIRED for canonical WI-09C SPECs): The exact "
+        "CANONICAL PARAMETERS:\n"
+        "- decision: approve, reject, or request_changes.\n"
+        "- rationale: bounded human checkpoint rationale.\n"
+        "The control plane resolves the exact "
         "canonical frozen SPEC hash returned by aota_task_spec_freeze. This is the "
         "spec_hash field from the freeze response (64-char hex string).\n"
         "- expected_revision (REQUIRED): The exact frozen SPEC revision number.\n"
@@ -59,7 +64,7 @@ SCHEMA = {
         "  workspace_id: my-ws, task_id: pt_20260721T120000_abcdef01, "
         "expected_revision: 3, "
         "expected_spec_hash: 4d05d6b4cdd3907b2d3e8674f699951064b8d3e8df868704b5c83a750f141dbc\n"
-        "  -> returns {status: approved, spec_sha256: <canonical spec_hash>, ...}\n\n"
+        "  -> returns {status: approved, spec_hash: <canonical>, spec_sha256: <raw file hash>, ...}\n\n"
         "VALID EXAMPLE (legacy non-WI-09C SPEC):\n"
         "  workspace_id: my-ws, task_id: pt_..., "
         "expected_revision: 3, "
@@ -87,10 +92,6 @@ SCHEMA = {
                 "type": "integer",
                 "description": "Expected SPEC revision number for optimistic locking. Must match the frozen SPEC's current revision exactly.",
             },
-            "expected_spec_sha256": {
-                "type": "string",
-                "description": "DEPRECATED for canonical WI-09C SPECs. Raw SHA-256 of SPEC.md file content (legacy binding). For canonical SPECs, use expected_spec_hash instead. This is NOT the freeze return spec_hash.",
-            },
             "expected_spec_hash": {
                 "type": "string",
                 "description": "REQUIRED for canonical WI-09C SPECs. The exact canonical frozen SPEC hash (spec_hash from aota_task_spec_freeze response). 64-char hex string. This is the authoritative hash for approval binding.",
@@ -100,13 +101,27 @@ SCHEMA = {
             "workspace_id",
             "task_id",
             "expected_revision",
-            "expected_spec_sha256",
+            "expected_spec_hash",
         ],
         "additionalProperties": False,
     },
 }
 SCHEMA["description"] += " For canonical WI-09C SPECs (contract_version=1), expected_spec_hash is required and expected_spec_sha256 is deprecated."
-SCHEMA["parameters"]["required"] = ["workspace_id", "task_id", "expected_revision"]
+# Canonical model surface is an explicit approval of the active frozen SPEC;
+# exact task/revision/hash values remain handler-only compatibility fields.
+SCHEMA["parameters"]["properties"] = {
+    "decision": {"type": "string", "enum": ["approve", "reject", "request_changes"], "description": "The explicit human checkpoint decision."},
+    "rationale": {"type": "string", "maxLength": 4000, "description": "Bounded rationale or requested change scope."},
+}
+SCHEMA["parameters"]["required"] = ["decision", "rationale"]
+SCHEMA["description"] = (
+    "Submit approve, reject, or request_changes for the current frozen implementation SPEC as an explicit human checkpoint. "
+    "The control plane resolves workspace, task, revision, canonical hash and raw SHA; "
+    "the model does not copy identifiers or digests. Legacy exact fields are "
+    "handler-only compatibility. Only implementation SPECs require "
+    "this decision. Canonical example: {decision: approve, rationale: '範圍與驗收條件已確認'}. "
+    "The legacy task_ref/exact revision/hash fields are handler-only compatibility."
+)
 
 
 # ---------------------------------------------------------------------------
@@ -114,16 +129,46 @@ SCHEMA["parameters"]["required"] = ["workspace_id", "task_id", "expected_revisio
 # ---------------------------------------------------------------------------
 
 
-def handle(args: dict, **_kwargs) -> str:
+def handle(args: dict, **kwargs) -> str:
     try:
+        if "decision" in args:
+            context = trusted_session_context(kwargs)
+            if not context.usable_for_active_spec:
+                return json.dumps(missing_context_result(operation="profile_task_approve"), sort_keys=True)
+            decision = args.get("decision")
+            rationale = args.get("rationale")
+            if decision not in {"approve", "reject", "request_changes"} or not isinstance(rationale, str) or not rationale.strip():
+                raise WorkspaceError("approval_decision_invalid")
+            binding = resolve_for_start(context.workspace_id, "active_frozen_spec", trusted_session_id=context.session_id, trusted_principal=context.principal)
+            args = {"workspace_id": binding["workspace_id"], "task_id": binding["task_id"], "expected_revision": binding["expected_revision"], "expected_spec_hash": binding["expected_spec_hash"], "decision": decision, "rationale": rationale}
+        elif args.get("task_ref"):
+            context = trusted_session_context(kwargs)
+            if not context.usable_for_active_spec:
+                return json.dumps(missing_context_result(operation="profile_task_approve"), sort_keys=True)
+            binding = resolve_for_start(
+                context.workspace_id,
+                args["task_ref"],
+                trusted_session_id=context.session_id,
+                trusted_principal=context.principal,
+            )
+            args = {
+                "workspace_id": binding["workspace_id"],
+                "task_id": binding["task_id"],
+                "expected_revision": binding["expected_revision"],
+                "expected_spec_hash": binding["expected_spec_hash"],
+            }
         return _do_approve(args)
+    except ReferenceError as e:
+        return json.dumps({"status": "rejected", "operation_result": "approval", "error": e.code, "detail": e.detail, "choices": e.choices,
+                           "retryable": False, "human_action_required": bool(e.choices), "next_action": "select_approval_subject" if e.choices else "stop_and_report_approval_reference_failure"}, sort_keys=True)
     except WorkspaceError as e:
         return json.dumps(
-            {"status": "rejected", "error": str(e)}, sort_keys=True
+            {"status": "rejected", "operation_result": "approval", "error": str(e), "retryable": False, "human_action_required": False,
+             "next_action": "refresh_current_subject" if any(token in str(e) for token in ("revision_conflict", "spec_hash_conflict", "artifact_integrity_mismatch")) else "stop_and_report_approval_failure"}, sort_keys=True
         )
     except Exception as e:
         return json.dumps(
-            {"status": "failed", "error": str(e)}, sort_keys=True
+            {"status": "failed", "operation_result": "approval", "error": str(e), "retryable": False, "human_action_required": False, "next_action": "stop_and_report_approval_failure"}, sort_keys=True
         )
 
 
@@ -131,7 +176,10 @@ def _do_approve(args: dict) -> str:
     workspace_id: str = args.get("workspace_id", "")
     task_id: str = args.get("task_id", "")
     expected_revision: int = args.get("expected_revision", 0)
-    expected_spec_sha256: str = args.get("expected_spec_hash") or args.get("expected_spec_sha256", "")
+    expected_spec_hash: str = args.get("expected_spec_hash", "") or ""
+    expected_spec_sha256: str = args.get("expected_spec_sha256", "") or ""
+    decision = args.get("decision", "approve")
+    rationale = args.get("rationale", "")
 
     # 1. Locate task directory
     task_dir = get_task_dir(workspace_id, task_id)
@@ -172,10 +220,10 @@ def _do_approve(args: dict) -> str:
     # 5. Only implementation tasks require approval
     task_kind = meta.get("task_kind", "")
     if task_kind != "implementation":
-        raise WorkspaceError(
-            f"approval_not_required: task_kind={task_kind} does not require approval "
-            f"(only implementation tasks require human checkpoint)"
-        )
+        return json.dumps({"status": "not_required", "operation_result": "approval_not_required", "approval_binding_verified": False, "retryable": False, "human_action_required": False, "next_action": "start_active_frozen_spec"}, sort_keys=True)
+
+    if decision != "approve":
+        return json.dumps({"status": "rejected" if decision == "reject" else "changes_requested", "operation_result": "approval_decision_recorded", "decision": decision, "rationale": rationale, "revision": meta.get("revision"), "spec_hash": meta.get("spec_hash"), "approval_binding_verified": True, "retryable": False, "human_action_required": False, "next_action": "stop_and_report_approval_rejected" if decision == "reject" else "update_current_draft_spec"}, sort_keys=True)
 
     # 6. Status must be draft with a frozen current revision
     current_status = meta.get("status", "")
@@ -196,21 +244,24 @@ def _do_approve(args: dict) -> str:
         )
 
     # 8. Compute actual SPEC SHA-256
-    actual_spec_sha256 = meta.get("spec_hash", "") if contract else compute_sha256(spec_md)
+    actual_spec_hash = meta.get("spec_hash", "") if contract else ""
+    actual_spec_sha256 = compute_sha256(spec_md)
 
     # 8a. Verify integrity
     stored_hash = meta.get("spec_hash", "") if contract else meta.get("spec_sha256", "")
-    if actual_spec_sha256 != stored_hash:
+    if (contract and (actual_spec_hash != stored_hash or meta.get("spec_sha256") != actual_spec_sha256)) or (not contract and actual_spec_sha256 != stored_hash):
         raise WorkspaceError(
             f"artifact_integrity_mismatch: stored={stored_hash}, "
-            f"actual={actual_spec_sha256}"
+            f"actual={actual_spec_hash if contract else actual_spec_sha256}"
         )
 
     # 8b. Verify expected hash
-    if expected_spec_sha256 != actual_spec_sha256:
+    expected_binding = expected_spec_hash if contract else expected_spec_sha256
+    actual_binding = actual_spec_hash if contract else actual_spec_sha256
+    if expected_binding != actual_binding:
         raise WorkspaceError(
-            f"spec_hash_conflict: expected={expected_spec_sha256}, "
-            f"actual={actual_spec_sha256}. "
+            f"spec_hash_conflict: expected={expected_binding}, "
+            f"actual={actual_binding}. "
             f"The SPEC may have been re-frozen since you last read it. "
             f"Re-read the current frozen SPEC revision and hash, then retry with the correct values. "
             f"Corrective action: reopen_spec_and_retry_with_current_hash."
@@ -241,7 +292,8 @@ def _do_approve(args: dict) -> str:
 
             existing_rev = existing_approval.get("revision")
             existing_hash = existing_approval.get("spec_sha256")
-            if existing_rev == current_revision and existing_hash == actual_spec_sha256:
+            expected_existing_hash = actual_spec_hash if contract else actual_spec_sha256
+            if existing_rev == current_revision and existing_hash in {expected_existing_hash, actual_spec_sha256}:
                 # Idempotent: same revision/hash already approved
                 return json.dumps(
                     {
@@ -249,10 +301,11 @@ def _do_approve(args: dict) -> str:
                         "task_id": task_id,
                         "workspace_id": workspace_id,
                         "revision": current_revision,
+                        "spec_hash": actual_spec_hash or None,
                         "spec_sha256": actual_spec_sha256,
                         "approval_id": existing_approval.get("approval_id", ""),
                         "approved_at": existing_approval.get("approved_at", ""),
-                        "approval_source": "explicit_tool_invocation",
+                        "approval_source": "explicit_tool_invocation", "operation_result": "approval_already_recorded", "approval_binding_verified": True, "retryable": False, "human_action_required": False, "next_action": "start_active_frozen_spec",
                     },
                     sort_keys=True,
                 )
@@ -266,10 +319,11 @@ def _do_approve(args: dict) -> str:
             "workspace_id": workspace_id,
             "task_id": task_id,
             "revision": current_revision,
+            "spec_hash": actual_spec_hash or None,
             "spec_sha256": actual_spec_sha256,
             "approved_at": now,
             "approval_source": "explicit_tool_invocation",
-            "task_kind": task_kind,
+            "task_kind": task_kind, "decision": "approve", "rationale": rationale,
         }
 
         # Atomic write
@@ -281,10 +335,11 @@ def _do_approve(args: dict) -> str:
                 "task_id": task_id,
                 "workspace_id": workspace_id,
                 "revision": current_revision,
+                "spec_hash": actual_spec_hash or None,
                 "spec_sha256": actual_spec_sha256,
                 "approval_id": approval_id,
                 "approved_at": now,
-                "approval_source": "explicit_tool_invocation",
+                "approval_source": "explicit_tool_invocation", "operation_result": "approval_recorded", "approval_binding_verified": True, "retryable": False, "human_action_required": False, "next_action": "start_active_frozen_spec",
             },
             sort_keys=True,
         )

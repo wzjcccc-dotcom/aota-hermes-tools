@@ -33,6 +33,15 @@ from ._orchestration_common import (
     validate_decision_id,
     validate_workspace_id,
 )
+from ._completion_subject_resolver import (
+    CompletionSubjectError,
+    _result_error,
+    resolve_current_completion_subject,
+    resolved_context,
+)
+from ._session_active_spec_binding import trusted_session_context
+from ._session_state_authority import SessionStateError, write_current_decision_pointer
+from ._next_tool_contract import attach_next_tool_option
 
 TOOL_NAME = "aota_orchestration_decision_record"
 TOOLSET_NAME = "aota_orchestration"
@@ -40,7 +49,9 @@ TOOLSET_NAME = "aota_orchestration"
 SCHEMA = {
     "name": TOOL_NAME,
     "description": (
-        "Record an orchestration decision for a handoff. "
+        "Record the decision for the current completion handoff. Canonical "
+        "invocation is {decision, rationale}; the control plane resolves and "
+        "validates the subject binding. "
         "Creates a durable decision artifact that captures what action "
         "should be taken based on a handoff's completion signal. "
         "Does NOT auto-create any task, auto-start any worker, modify handoff, "
@@ -50,14 +61,6 @@ SCHEMA = {
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
-                "type": "string",
-                "description": "Registered workspace identifier (e.g. 'aota-runtime')",
-            },
-            "handoff_id": {
-                "type": "string",
-                "description": "Exact handoff ID to record a decision for",
-            },
             "decision": {
                 "type": "string",
                 "enum": sorted(_DECISION_DECISIONS),
@@ -71,13 +74,17 @@ SCHEMA = {
                     "no_action=handoff consumed but no further action needed"
                 ),
             },
-            "reason": {
+            "rationale": {
                 "type": "string",
                 "description": (
-                    f"Optional context/reason for the decision "
+                    f"Bounded rationale for the decision "
                     f"(max {_REASON_MAX_LENGTH} characters)"
                 ),
                 "maxLength": _REASON_MAX_LENGTH,
+            },
+            "subject_ref": {
+                "type": "string",
+                "description": "Optional semantic current-completion selector.",
             },
             "followup_task_kind": {
                 "type": "string",
@@ -91,7 +98,7 @@ SCHEMA = {
                 ),
             },
         },
-        "required": ["workspace_id", "handoff_id", "decision"],
+        "required": ["decision", "rationale"],
         "additionalProperties": False,
     },
 }
@@ -100,13 +107,56 @@ SCHEMA = {
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_orchestration_decision_record tool invocation."""
     try:
-        result = _do_record(args)
+        trusted_context = trusted_session_context(_kwargs)
+        if not {"workspace_id", "handoff_id"} & set(args):
+            subject = resolve_current_completion_subject(
+                args,
+                _kwargs,
+                ref=args.get("subject_ref", "current_completion"),
+            )
+            normalized = {
+                "workspace_id": subject["workspace_id"],
+                "handoff_id": subject["handoff_id"],
+                "decision": args.get("decision", ""),
+                "reason": args.get("rationale", ""),
+                "followup_task_kind": args.get("followup_task_kind"),
+            }
+            result = _do_record(normalized, trusted_context=trusted_context)
+            if result.get("status") in {"ok", "recorded"}:
+                result.update(
+                    {
+                        "status": "recorded",
+                        "operation_result": "decision_recorded",
+                        "decision_binding_verified": True,
+                        "resolved_context": resolved_context(
+                            subject, selector=args.get("subject_ref", "current_completion")
+                        ),
+                        "next_action": "ack_current_handoff",
+                        "retryable": False,
+                        "human_action_required": False,
+                    }
+                )
+                from ._handoff_ack import SCHEMA as handoff_ack_schema
+
+                attach_next_tool_option(
+                    result,
+                    handoff_ack_schema,
+                    include=("ack_ref", "note"),
+                    reason="The decision is durable; acknowledge the same current handoff before reading closure.",
+                )
+                result["flow_disposition"] = "continue"
+            return json.dumps(result, sort_keys=True)
+        result = _do_record(args, trusted_context=trusted_context)
         return json.dumps(result, sort_keys=True)
+    except CompletionSubjectError as exc:
+        return json.dumps(
+            _result_error(exc, operation="decision_record"), sort_keys=True
+        )
     except Exception as e:
         return json.dumps({"status": "error", "error": str(e)}, sort_keys=True)
 
 
-def _do_record(args: dict) -> dict[str, Any]:
+def _do_record(args: dict, *, trusted_context=None) -> dict[str, Any]:
     workspace_id: str = args.get("workspace_id", "")
     handoff_id: str = args.get("handoff_id", "")
     decision: str = args.get("decision", "")
@@ -306,6 +356,17 @@ def _do_record(args: dict) -> dict[str, Any]:
         "reason": reason if reason else None,
         "created_at": now,
         "source": "explicit_tool_invocation",
+        "binding": {
+            "workspace_id": workspace_id,
+            "project_id": handoff_data.get("project_id"),
+            "task_id": source_task_id,
+            "start_id": source_start_id,
+            "spec_id": handoff_data.get("spec_id"),
+            "revision": handoff_data.get("spec_revision"),
+            "spec_hash": handoff_data.get("spec_hash"),
+            "profile": source_profile,
+            "receipt_ref": handoff_data.get("receipt_ref"),
+        },
         "followup": {
             "required": followup_required,
             "task_kind": resolved_task_kind if followup_required else None,
@@ -333,6 +394,26 @@ def _do_record(args: dict) -> dict[str, Any]:
             "error": f"failed to write decision artifact: {str(e)}",
         }
 
+    binding_result: dict[str, Any] = {"status": "not_attempted"}
+    if trusted_context is not None and trusted_context.usable_for_active_spec:
+        try:
+            pointer, pointer_path = write_current_decision_pointer(
+                trusted_context,
+                {
+                    **decision_data,
+                    "decision_id": decision_id,
+                    "task_id": source_task_id,
+                    "start_id": source_start_id,
+                    "spec_revision": handoff_data.get("spec_revision"),
+                    "spec_hash": handoff_data.get("spec_hash"),
+                    "profile": source_profile,
+                    "project_id": handoff_data.get("project_id"),
+                },
+            )
+            binding_result = {"status": "written", "pointer_path": str(pointer_path), "artifact_digest": pointer["artifact_digest"]}
+        except SessionStateError as exc:
+            binding_result = {"status": "failed", "error": exc.code, "detail": exc.detail, "retryable": False}
+
     # ------------------------------------------------------------------
     # 10. Return compact result
     # ------------------------------------------------------------------
@@ -345,5 +426,7 @@ def _do_record(args: dict) -> dict[str, Any]:
         "handoff_id": handoff_id,
         "followup": decision_data["followup"],
         "human_checkpoint": decision_data["human_checkpoint"],
+        "decision_binding_verified": True,
+        "decision_binding": binding_result,
         "idempotent": False,
     }

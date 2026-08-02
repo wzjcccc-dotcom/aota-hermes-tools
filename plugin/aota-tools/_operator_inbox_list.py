@@ -31,6 +31,7 @@ from ._operator_common import (
 from ._handoff_common import (
     get_handoff_pending_dir,
     read_handoff,
+    validate_task_id,
     _HANDOFF_ID_RE,
 )
 from ._orchestration_common import (
@@ -43,26 +44,33 @@ from ._task_spec_common import (
     load_meta,
     read_json,
 )
+from ._completion_observation import (
+    NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+    completion_observation_context,
+)
+from ._completion_subject_resolver import (
+    CompletionSubjectError,
+    _result_error,
+    resolve_current_completion_subject,
+)
 
 TOOL_NAME = "aota_operator_inbox_list"
 TOOLSET_NAME = "aota_operator"
 
 SCHEMA = {
     "name": TOOL_NAME,
-    "description": (
-        "List operator inbox items for a workspace. "
+        "description": (
+        "List operator inbox items in the trusted current operator scope. "
         "Returns unified compact inbox with items sorted by priority "
         "(lower first) and then by created_at. "
         "Supports filtering by item_type, priority_max, consistency_status. "
-        "Read-only: no file mutations."
+        "Read-only: no file mutations. A task-main completion observation must "
+        "provide task_id and observation_purpose=completion; ordinary operator "
+        "inbox management without that scope remains unchanged."
     ),
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
-                "type": "string",
-                "description": "Registered workspace identifier",
-            },
             "limit": {
                 "type": "integer",
                 "description": "Maximum items to return (default 20, max 100)",
@@ -105,8 +113,12 @@ SCHEMA = {
                 "description": "Include informational items (running_task) in results (default: false)",
                 "default": False,
             },
+            "inbox_ref": {
+                "type": "string",
+                "description": "Semantic selector; current_relevant_item opens the current completion subject.",
+            },
         },
-        "required": ["workspace_id"],
+        "required": [],
         "additionalProperties": False,
     },
 }
@@ -132,8 +144,51 @@ _ACTIVE_DECISION_STATES = frozenset(
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_operator_inbox_list tool invocation."""
     try:
+        if "workspace_id" not in args:
+            from ._session_active_spec_binding import trusted_session_context
+
+            context = trusted_session_context(_kwargs)
+            if not context.workspace_id:
+                return json.dumps(
+                    {
+                        "status": "rejected",
+                        "operation_result": "operator_inbox_list",
+                        "error": "trusted_session_context_missing",
+                        "retryable": False,
+                        "human_action_required": False,
+                        "next_action": "stop_and_report_runtime_context_missing",
+                    },
+                    sort_keys=True,
+                )
+            try:
+                subject = resolve_current_completion_subject(args, _kwargs)
+            except CompletionSubjectError as exc:
+                if exc.code != "completion_subject_missing":
+                    return json.dumps(_result_error(exc, operation="operator_inbox_list"), sort_keys=True)
+            else:
+                return json.dumps(
+                    {
+                        "status": "rejected",
+                        "operation_result": "operator_inbox_list",
+                        "error": "current_completion_subject_available",
+                        "resolved_context": {
+                            "selector": "current_relevant_item",
+                            "title": subject.get("title", "completion"),
+                            "task_kind": subject.get("task_kind", ""),
+                            "profile": subject.get("profile", ""),
+                        },
+                        "next_action": "open_current_handoff",
+                        "retryable": False,
+                        "human_action_required": False,
+                    },
+                    sort_keys=True,
+                )
+            args = dict(args)
+            args["workspace_id"] = context.workspace_id
         result = _do_list(args)
         return json.dumps(result, sort_keys=True)
+    except CompletionSubjectError as exc:
+        return json.dumps(_result_error(exc, operation="operator_inbox_list"), sort_keys=True)
     except Exception as e:
         return json.dumps({"status": "error", "error": str(e)}, sort_keys=True)
 
@@ -150,11 +205,50 @@ def _do_list(args: dict) -> dict[str, Any]:
     priority_max: Optional[int] = args.get("priority_max")
     consistency_filter: Optional[str] = args.get("consistency_status")
     include_informational: bool = args.get("include_informational", False)
+    task_id_filter: Optional[str] = args.get("task_id")
+    observation_purpose: Optional[str] = args.get("observation_purpose")
 
     # Validate
     err = validate_workspace_id(workspace_id)
     if err:
         return {"status": "error", "error": f"invalid_workspace_id: {err}"}
+
+    if task_id_filter and observation_purpose not in (None, "completion"):
+        return {"status": "error", "error": "invalid_observation_purpose"}
+    if task_id_filter:
+        task_err = validate_task_id(task_id_filter)
+        if task_err:
+            return {"status": "error", "error": f"invalid_task_id: {task_err}"}
+    if task_id_filter and observation_purpose == "completion":
+        task_dir = get_task_dir(workspace_id, task_id_filter)
+        if task_dir.is_dir():
+            observation = completion_observation_context(load_meta(task_dir), task_id_filter)
+            if observation["active"]:
+                if not observation["recovery_due"]:
+                    return {
+                        "status": "rejected",
+                        "error": "completion_delivery_pending",
+                        "task_id": task_id_filter,
+                        "workspace_id": workspace_id,
+                        "next_action": NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+                        "recovery_allowed_after": observation["recovery_allowed_after"],
+                    }
+                if observation["recovery_consumed"]:
+                    return {
+                        "status": "rejected",
+                        "error": "recovery_already_consumed",
+                        "task_id": task_id_filter,
+                        "workspace_id": workspace_id,
+                        "next_action": NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+                    }
+                return {
+                    "status": "rejected",
+                    "error": "completion_recovery_requires_status",
+                    "task_id": task_id_filter,
+                    "workspace_id": workspace_id,
+                    "next_action": "perform_one_bounded_recovery",
+                    "recovery_allowed_after": observation["recovery_allowed_after"],
+                }
 
     effective_limit = max(1, min(limit, MAX_ITEMS))
 
@@ -633,6 +727,9 @@ def _do_list(args: dict) -> dict[str, Any]:
     for item in all_items:
         # item_type filter
         if item_type_filter and item.get("item_type") != item_type_filter:
+            continue
+
+        if task_id_filter and item.get("task_id") != task_id_filter:
             continue
 
         # priority_max filter

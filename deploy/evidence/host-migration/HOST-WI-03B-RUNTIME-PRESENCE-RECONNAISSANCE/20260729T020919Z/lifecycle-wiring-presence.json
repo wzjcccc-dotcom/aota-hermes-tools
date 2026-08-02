@@ -1,0 +1,24 @@
+{
+  "runner": "GatewayRunner",
+  "start_symbol": "GatewayRunner.start",
+  "start_registration": {
+    "present": true,
+    "adapter_factory": "AotaParentWakeAdapter.from_environment(self)",
+    "background_runner": "_spawn_supervised(self._aota_parent_wake.run, aota_parent_wake)",
+    "setup_exception_isolated": true,
+    "feature_flag_gated": true
+  },
+  "supervision": {
+    "storage": "GatewayRunner._background_tasks",
+    "restart_capable": true,
+    "current_call_shape_compatible_with_upstream": true
+  },
+  "stop_symbol": "GatewayRunner.stop",
+  "stop_registration": {
+    "present": true,
+    "adapter_stop_called_before_background_task_cancellation": true,
+    "graceful_shutdown": true
+  },
+  "source_file": "/home/latios/workspace/hermes-agent-host/gateway/run.py",
+  "classification": "LIFECYCLE_WIRING_PRESENT"
+}

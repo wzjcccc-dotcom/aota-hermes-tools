@@ -57,5 +57,6 @@ Matt Pocock Skills 不得覆蓋：diagnose_only、reviewer read-only、task-main
 
 ### Active AOTA Skills
 - **aota-implementation-review**：AOTA Forge reviewer skill — post-implementation review contract. Read-only, evidence-based verdict, scope compliance.
+- **workspace-file-access-strategy**：exact-path bounded reads with no unrelated path/tool preflight.
 
 No Matt Pocock Skills were ever active for reviewer.

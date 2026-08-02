@@ -44,6 +44,21 @@ Registry refresh 是 bounded project metadata mutation，不是 readonly action�
 `aota_project_docs_update` 與 `aota_project_artifact_link` 只可依 trusted
 stewardship task binding 寫入 allowlisted 目標。CodeGraph 僅可 status/query/explore；ready 才使用查詢，stale/missing/broken/busy 改用 read/search，不 rebuild、不等 lock。
 
+## Raw current-project setup route
+
+When the request is only to register/refresh the current project and confirm
+that it opens, use the runtime route contract exactly:
+
+1. `aota_project_registry_refresh({"operation":"register_current_project"})`
+2. Consume its `allowed_next_tool_schema` and call
+   `aota_project_open({"project_ref":"current_project","include_observed":true})`
+
+This bounded route has two domain calls. Do not call `aota_workspace_open`,
+project search/scan/registry discovery, `tool_search`, or `tool_describe` for
+this route. The response `route_contract` and `allowed_next_tool_schema` are
+control-plane authority; stop if they report ambiguity or a non-retryable
+failure. Other stewardship operations use their own returned route contract.
+
 ## Project Lifecycle Contract: Execution Ownership
 
 The canonical project lifecycle contract lives in
@@ -74,3 +89,5 @@ Project Steward is an **execution owner**, not a dispatch authority:
   與 frozen binding；缺 context 先 list/open，不猜 ID。
 - **aota-task-lifecycle**、**aota-tool-failure-fallback**：只交 recommendation，
   不做 durable selection，也不得為取得更高權限切換 Profile。
+- **workspace-file-access-strategy**：bounded exact-file routing；已知 current
+  project 操作優先使用語意 project tools，不做 filesystem discovery。

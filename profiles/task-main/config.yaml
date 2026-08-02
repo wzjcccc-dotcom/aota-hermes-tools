@@ -38,6 +38,7 @@ toolsets:
   - aota_codegraph_rebuild
   - aota_workspace_readonly
   - aota_active_task_context
+  - skills-readonly
 platform_toolsets:
   api_server:
     - aota_work_intake
@@ -57,6 +58,7 @@ platform_toolsets:
     - aota_codegraph_rebuild
     - aota_workspace_readonly
     - aota_active_task_context
+    - skills-readonly
   cli:
     - aota_work_intake
     - aota_plan_read
@@ -75,6 +77,7 @@ platform_toolsets:
     - aota_codegraph_rebuild
     - aota_workspace_readonly
     - aota_active_task_context
+    - skills-readonly
 plugins:
   enabled:
     - aota-tools
@@ -114,6 +117,24 @@ memory:
 compression:
   enabled: false
 skills:
+  allowlist:
+    - aota-profile-skill-routing-index
+    - aota-runtime-smoke-verification
+    - aota-hermes-host-upgrade-recovery
+    - workspace-file-access-strategy
+  reference_allowlist:
+    - aota-profile-task-orchestration
+    - aota-canonical-spec-contract
+    - aota-canonical-spec-pitfalls
+    - aota-work-classify-and-plan-gate
+    - aota-multi-phase-doc-closure
+    - aota-task-lifecycle
+    - aota-workspace-model
+    - aota-workspace-diagnostics
+    - aota-tool-failure-fallback
+    - aota-plugin-tool-development
+    - aota-skill-development
+    - aota-native-terminal-completion-runtime-verification
   disabled:
     - aota-evidence-first-debugging
     - aota-implementation-review

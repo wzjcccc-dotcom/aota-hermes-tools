@@ -1,0 +1,8 @@
+{
+  "work_item": "HOST-WI-03B-RUNTIME-PRESENCE-RECONNAISSANCE",
+  "timestamp": "20260729T020919Z",
+  "result": "NEEDS_PARENT_WAKE_CONFIGURATION_OR_SCHEMA_RECONCILIATION",
+  "result_path": "20260729T020919Z/RESULT.md",
+  "evidence_root": "20260729T020919Z",
+  "read_only": true
+}

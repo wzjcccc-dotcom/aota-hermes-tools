@@ -1,0 +1,11 @@
+{
+  "py_compile": {
+    "status": "PASS",
+    "files": ["gateway/aota_parent_wake.py", "gateway/run.py", "gateway/wake.py", "plugin/aota-tools/_delivery_outbox.py", "plugin/aota-tools/_profile_task_start.py", "plugin/aota-tools/_profile_task_finalize.py", "scripts/verify-host-wi-03b-parent-turn-adapter.py"]
+  },
+  "git_diff_check": {
+    "hermes_agent_host": "PASS",
+    "aota_hermes_tools": "PASS"
+  },
+  "pytest": "NOT_RUN"
+}

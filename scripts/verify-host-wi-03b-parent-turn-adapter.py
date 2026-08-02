@@ -38,6 +38,7 @@ from gateway.platforms.base import Platform  # noqa: E402
 
 TASK_ID = "pt_20260726T120000_deadbeef"
 SESSION = "session-fixture-03b"
+WORKSPACE_ID = "aota-hermes-tools"
 
 
 class FakeGateway:
@@ -74,7 +75,7 @@ async def isolated_to_thread(func, /, *args, **kwargs):
 
 def make_adapter(tmp: Path, gateway=None) -> adapter_mod.AotaParentWakeAdapter:
     task_root = tmp / "profile-tasks"
-    task_dir = task_root / "aota-runtime" / TASK_ID
+    task_dir = task_root / WORKSPACE_ID / TASK_ID
     task_dir.mkdir(parents=True)
     (task_dir / "RESULT.md").write_text("fixture result; never injected\n", encoding="utf-8")
     (task_dir / "handoff.fixture.json").write_text("{}\n", encoding="utf-8")
@@ -95,7 +96,7 @@ def make_adapter(tmp: Path, gateway=None) -> adapter_mod.AotaParentWakeAdapter:
         gateway or FakeGateway(),
         outbox_root=tmp / "outbox",
         task_root=task_root,
-        workspace_id="aota-runtime",
+        workspace_id=WORKSPACE_ID,
         max_attempts=1,
     )
     adapter._validate_root()
@@ -111,8 +112,8 @@ def valid_event(status: str = "done") -> dict:
         parent_profile="default",
         parent_session_ref=SESSION,
         origin_session_id=SESSION,
-        result_pointer=f"aota-runtime/{TASK_ID}/RESULT.md",
-        handoff_pointer=f"aota-runtime/{TASK_ID}/handoff.fixture.json",
+        result_pointer=f"{WORKSPACE_ID}/{TASK_ID}/RESULT.md",
+        handoff_pointer=f"{WORKSPACE_ID}/{TASK_ID}/handoff.fixture.json",
         completed_at="2026-07-26T12:00:00Z",
     )
 
@@ -142,17 +143,17 @@ def main() -> int:
         check("event_type_rejected", lambda: reject(adapter, {**valid_event(), "event_type": "wrong"}, "INVALID_EVENT_TYPE"))
         check("missing_parent_profile", lambda: reject(adapter, {**valid_event(), "parent_profile": ""}, "INVALID_PARENT_PROFILE"))
         check("missing_parent_session", lambda: reject(adapter, {**valid_event(), "parent_session_ref": ""}, "PARENT_SESSION_NOT_FOUND"))
-        check("result_path_traversal", lambda: reject(adapter, {**valid_event(), "result_pointer": "aota-runtime/../escape"}, "PATH_TRAVERSAL_REJECTED"))
+        check("result_path_traversal", lambda: reject(adapter, {**valid_event(), "result_pointer": f"{WORKSPACE_ID}/../escape"}, "PATH_TRAVERSAL_REJECTED"))
 
         outside = tmp / "outside.txt"
         outside.write_text("outside", encoding="utf-8")
-        result = tmp / "profile-tasks" / "aota-runtime" / TASK_ID / "RESULT.md"
+        result = tmp / "profile-tasks" / WORKSPACE_ID / TASK_ID / "RESULT.md"
         result.unlink()
         result.symlink_to(outside)
         check("result_symlink_rejected", lambda: reject(adapter, valid_event(), "SYMLINK_REJECTED"))
         result.unlink()
         result.write_text("fixture", encoding="utf-8")
-        check("handoff_outside_rejected", lambda: reject(adapter, {**valid_event(), "handoff_pointer": "aota-runtime/other/handoff.json"}, "PATH_TRAVERSAL_REJECTED"))
+        check("handoff_outside_rejected", lambda: reject(adapter, {**valid_event(), "handoff_pointer": f"{WORKSPACE_ID}/other/handoff.json"}, "PATH_TRAVERSAL_REJECTED"))
 
         oversized = adapter.pending / "oversized.json"
         adapter.pending.mkdir(parents=True, exist_ok=True)

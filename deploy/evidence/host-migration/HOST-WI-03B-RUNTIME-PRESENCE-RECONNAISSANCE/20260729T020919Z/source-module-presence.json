@@ -1,0 +1,16 @@
+{
+  "source_root": "/home/latios/workspace/hermes-agent-host",
+  "module": "/home/latios/workspace/hermes-agent-host/gateway/aota_parent_wake.py",
+  "exists": true,
+  "regular_file": true,
+  "mode": "0664",
+  "size_bytes": 22362,
+  "sha256": "f753142a50d26411b8eb8d7be23072dd8b76af50dbaf7afa1ca550ca13bd7c8e",
+  "git_tracking": "untracked in current worktree",
+  "source_symbols": ["AotaParentWakeAdapter", "from_environment", "run", "stop", "_process", "_resolve_parent_target"],
+  "feature_flag": "AOTA_PARENT_WAKE_ENABLED",
+  "native_wake_import": "gateway.wake.deliver_wake",
+  "contract_guards": ["schema/event validation", "trusted source validation", "bounded payload", "atomic claim", "idempotency", "stale claim recovery", "retry/fail-closed handling"],
+  "syntax": "PASS",
+  "classification": "SOURCE_MODULE_PRESENT_AND_PRESERVED"
+}

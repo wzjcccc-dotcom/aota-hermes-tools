@@ -132,7 +132,10 @@ def soul_skills(path: Path) -> set[str]:
     match = re.search(r"##+ Active AOTA Skills\n(?P<body>.*?)(?:\n##+ |\Z)", text, re.DOTALL)
     if not match:
         return set()
-    return set(re.findall(r"\*\*(aota-[a-z0-9][a-z0-9-]*)\*\*", match.group("body")))
+    return set(re.findall(
+        r"\*\*((?:aota-[a-z0-9][a-z0-9-]*|workspace-file-access-strategy))\*\*",
+        match.group("body"),
+    ))
 
 
 def source_errors() -> list[str]:
@@ -167,9 +170,35 @@ def source_errors() -> list[str]:
             enabled = config_data.get("plugins", {}).get("enabled", [])
             if "aota-tools" not in (enabled if isinstance(enabled, list) else [enabled]):
                 errors.append(f"profile:{profile}:plugin-not-enabled")
+            toolsets = config_data.get("toolsets", [])
+            if not isinstance(toolsets, list) or "skills-readonly" not in toolsets:
+                errors.append(f"profile:{profile}:skills-readonly-toolset-not-enabled")
+            platform_toolsets = config_data.get("platform_toolsets", {})
+            for platform in ("api_server", "cli"):
+                projected = platform_toolsets.get(platform, []) if isinstance(platform_toolsets, dict) else []
+                if not isinstance(projected, list) or "skills-readonly" not in projected:
+                    errors.append(f"profile:{profile}:{platform}:skills-readonly-toolset-not-enabled")
             disabled = set(config_data.get("skills", {}).get("disabled", []))
             if active & disabled:
                 errors.append(f"profile:{profile}:active-skill-disabled")
+            allowlist_value = config_data.get("skills", {}).get("allowlist")
+            allowlist = set(allowlist_value) if isinstance(allowlist_value, list) else set()
+            reference_allowlist_value = config_data.get("skills", {}).get(
+                "reference_allowlist"
+            )
+            reference_allowlist = (
+                set(reference_allowlist_value)
+                if isinstance(reference_allowlist_value, list)
+                else set()
+            )
+            if allowlist != active:
+                errors.append(f"profile:{profile}:skill-active-allowlist-mismatch")
+            if reference_allowlist != references:
+                errors.append(f"profile:{profile}:skill-reference-allowlist-mismatch")
+            if allowlist & reference_allowlist:
+                errors.append(f"profile:{profile}:skill-allowlist-overlap")
+            if len(allowlist) > 8 or len(allowlist | reference_allowlist) > 16:
+                errors.append(f"profile:{profile}:skill-allowlist-over-budget")
         except Exception:
             errors.append(f"profile:{profile}:config-parse")
         for skill in active:
@@ -444,10 +473,10 @@ def fixture() -> int:
 
         broken_skill = root / "broken-skill"
         _copy_fixture_runtime(broken_skill)
-        broken = broken_skill / "profiles" / "task-main" / "skills" / "aota-profile-task-orchestration" / "SKILL.md"
+        broken = broken_skill / "profiles" / "task-main" / "skills" / "aota-profile-skill-routing-index" / "SKILL.md"
         broken.unlink()
         broken.symlink_to(root / "missing-skill.md")
-        assert any("active-skill:aota-profile-task-orchestration:parity:SKILL.md" in error for error in pre_activation_errors(broken_skill))
+        assert any("active-skill:aota-profile-skill-routing-index:parity:SKILL.md" in error for error in pre_activation_errors(broken_skill))
         print("PRE_ACTIVATION_BROKEN_SKILL_LINK_FAIL")
 
         legacy_collision = root / "legacy-collision"
@@ -604,7 +633,7 @@ def fixture() -> int:
 
     # Case I: receipt count parity — canonical counts derived from sources
     counts = canonical_counts()
-    assert counts["tools"] == 61, f"Expected 61 tools, got {counts['tools']}"
+    assert counts["tools"] == 62, f"Expected 62 tools, got {counts['tools']}"
     assert counts["toolsets"] == 28, f"Expected 28 toolsets, got {counts['toolsets']}"
     assert counts["profiles"] == 6, f"Expected 6 profiles, got {counts['profiles']}"
     # Detect old 59 baseline

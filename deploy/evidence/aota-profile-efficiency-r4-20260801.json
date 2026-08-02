@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-01T12:48:22+08:00",
+  "deployment": {
+    "contract_evidence": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/aota-profile-efficiency-r4-contracts-20260801.json",
+    "backup": "/home/latios/workspace/aota-hermes-tools/.deploy-backups/20260801T023201Z",
+    "receipt": "/home/latios/workspace/aota-hermes-tools/.deploy-receipts/aota-forge-plan/20260801T023203Z/deployment.json",
+    "deploy_verify": "pass",
+    "zero_llm_fixture": "pass"
+  },
+  "model": "glm-5.2",
+  "sample_contract": "same-six-profile-minimal-sample",
+  "baseline_evidence": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/aota-profile-efficiency-r3-20260801.json",
+  "per_task_llm_plus_tool_limit": 100,
+  "baseline_aggregate": {
+    "input_tokens": 304172,
+    "model_response_turns": 32,
+    "tool_calls": 39,
+    "domain_tool_calls": 18,
+    "meta_tool_calls": 21,
+    "composite_efficiency_percent": 58.3
+  },
+  "current_aggregate": {
+    "input_tokens": 277697,
+    "input_token_reduction_percent": 8.7,
+    "model_response_turns": 29,
+    "model_response_turn_reduction_percent": 9.4,
+    "tool_calls": 32,
+    "tool_call_reduction_percent": 17.9,
+    "domain_tool_calls": 14,
+    "meta_tool_calls": 18,
+    "max_llm_plus_tool_calls_in_one_scored_session": 20
+  },
+  "evaluation_contract": {
+    "outcome_completion": "requested bounded result completed",
+    "correct_tool_and_parameter_path": "canonical domain path and valid model-supplied parameters; control-plane contract rejection is not charged to the model",
+    "retry_stop_safety": "no changed-argument retry after a retryable=false error",
+    "total_tool_budget": "all recorded tool messages, including meta tools, are within the prompt limit",
+    "minimal_skill_and_tool_description": "at most one relevant skill_view and at most one tool_describe; redundant tool_search is scored separately under correct path"
+  },
+  "profiles": [
+    {
+      "profile": "project-steward",
+      "baseline_session": "20260801_072514_e3c175",
+      "session": "20260801_123924_f26ab0",
+      "outcome": "pass",
+      "input_tokens_baseline": 51367,
+      "input_tokens": 57302,
+      "output_tokens": 1748,
+      "model_response_turns": 7,
+      "tool_calls": 7,
+      "tool_limit_in_prompt": 3,
+      "skill_views": 1,
+      "tool_searches": 0,
+      "tool_describes": 3,
+      "domain_tool_calls": 3,
+      "evaluation": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": false,
+        "minimal_skill_and_tool_description": false
+      },
+      "notes": [
+        "registry refresh and current project open succeeded",
+        "one skill and three schemas caused seven recorded calls for a three-call prompt budget",
+        "allowed_next_tool_schema was returned by the domain tools but arrived after schemas had already been described"
+      ]
+    },
+    {
+      "profile": "task-main",
+      "baseline_session": "20260801_072619_02ed91",
+      "session": "20260801_124047_52c364",
+      "outcome": "failed_before_dispatch",
+      "input_tokens_baseline": 109147,
+      "input_tokens": 114120,
+      "output_tokens": 2160,
+      "model_response_turns": 8,
+      "tool_calls": 12,
+      "tool_limit_in_prompt": 12,
+      "skill_views": 1,
+      "tool_searches": 1,
+      "tool_describes": 5,
+      "domain_tool_calls": 5,
+      "evaluation": {
+        "outcome_completion": false,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": false
+      },
+      "notes": [
+        "semantic subject_ref=current_work_classification created and froze the P0 architecture SPEC successfully",
+        "aota_profile_task_start rejected the frozen SPEC with architecture_missing_subject because the start preflight still requires legacy subject_task_id",
+        "the model stopped after the first retryable=false rejection and did not retry or change parameters"
+      ]
+    },
+    {
+      "profile": "architect",
+      "baseline_session": "20260801_072732_b2c34a",
+      "session": "20260801_124206_5408d7",
+      "outcome": "pass",
+      "input_tokens_baseline": 19241,
+      "input_tokens": 29872,
+      "output_tokens": 742,
+      "model_response_turns": 4,
+      "tool_calls": 4,
+      "tool_limit_in_prompt": 4,
+      "skill_views": 1,
+      "tool_searches": 0,
+      "tool_describes": 1,
+      "domain_tool_calls": 2,
+      "evaluation": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "notes": [
+        "used direct aota_read_file calls for both exact paths",
+        "result was correct but input tokens increased because the new file-access skill added one model round"
+      ]
+    },
+    {
+      "profile": "reviewer",
+      "baseline_session": "20260801_072805_bb484a",
+      "session": "20260801_124243_71b4a3",
+      "outcome": "pass",
+      "input_tokens_baseline": 18900,
+      "input_tokens": 19024,
+      "output_tokens": 616,
+      "model_response_turns": 3,
+      "tool_calls": 3,
+      "tool_limit_in_prompt": 4,
+      "skill_views": 0,
+      "tool_searches": 0,
+      "tool_describes": 1,
+      "domain_tool_calls": 2,
+      "evaluation": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "notes": [
+        "read both exact paths directly and correctly reported matching versions"
+      ]
+    },
+    {
+      "profile": "coder",
+      "baseline_session": "20260801_072829_571457",
+      "session": "20260801_124428_8bc976",
+      "outcome": "pass",
+      "input_tokens_baseline": 24730,
+      "input_tokens": 24141,
+      "output_tokens": 1038,
+      "model_response_turns": 2,
+      "tool_calls": 2,
+      "tool_limit_in_prompt": 4,
+      "skill_views": 1,
+      "tool_searches": 0,
+      "tool_describes": 0,
+      "domain_tool_calls": 1,
+      "evaluation": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "notes": [
+        "replaced the R3 unauthorized search path with one direct exact-path aota_read_file call",
+        "the exact-path read returned the full 40877-byte source file, leaving a bounded-range optimization opportunity"
+      ]
+    },
+    {
+      "profile": "debugger",
+      "baseline_session": "20260801_072908_31fa6c",
+      "session": "20260801_124535_fcf681",
+      "outcome": "pass",
+      "input_tokens_baseline": 80787,
+      "input_tokens": 33238,
+      "output_tokens": 1976,
+      "model_response_turns": 5,
+      "tool_calls": 4,
+      "tool_limit_in_prompt": 4,
+      "skill_views": 1,
+      "tool_searches": 1,
+      "tool_describes": 1,
+      "domain_tool_calls": 1,
+      "evaluation": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": false,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "notes": [
+        "correctly diagnosed invalid project.id, path traversal, and unknown top-level field",
+        "still called tool_search before aota_read_file despite an exact path and the direct-read posture",
+        "stayed within the four-call ceiling and used 58.9 percent fewer input tokens than R3"
+      ]
+    }
+  ],
+  "score": {
+    "outcome_completion_rate_percent": 83.3,
+    "correct_tool_and_parameter_path_rate_percent": 83.3,
+    "retry_stop_safety_rate_percent": 100.0,
+    "total_tool_budget_pass_rate_percent": 83.3,
+    "minimal_skill_and_tool_description_rate_percent": 66.7,
+    "weights": {
+      "outcome_completion": 0.30,
+      "correct_tool_and_parameter_path": 0.25,
+      "retry_stop_safety": 0.20,
+      "total_tool_budget": 0.10,
+      "minimal_skill_and_tool_description": 0.15
+    },
+    "composite_efficiency_percent": 84.2,
+    "target_percent": 90.0,
+    "target_met": false,
+    "delta_from_baseline_points": 25.9
+  },
+  "residuals": [
+    {
+      "priority": "P0",
+      "owner": "control-plane",
+      "issue": "profile task start still requires legacy subject_task_id for architecture even when the frozen canonical SPEC carries a semantic work-classification subject",
+      "evidence": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_profile_task_start.py:713"
+    },
+    {
+      "priority": "P1",
+      "owner": "profile-skill-prompt",
+      "issue": "project-steward pre-describes three tools and cannot use downstream allowed_next_tool_schema to meet the total-call budget"
+    },
+    {
+      "priority": "P1",
+      "owner": "profile-skill-prompt",
+      "issue": "debugger still discovers aota_read_file through tool_search even though the user supplied an exact path"
+    },
+    {
+      "priority": "P2",
+      "owner": "read-contract",
+      "issue": "coder exact-path strategy is correct but reads a 40877-byte source file when a bounded schema slice would be cheaper"
+    }
+  ],
+  "not_performed": [
+    "no source, skill, profile, or Hermes Host files were modified during this scored rerun",
+    "no deployment or service restart was performed after the scored rerun",
+    "no retries were issued for failed scored sessions"
+  ]
+}

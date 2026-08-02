@@ -29,7 +29,7 @@ PROFILE_CEILINGS = {
     "architect": {"source_read": True, "codegraph_read": True},
     "project-steward": {"source_read": True, "project_metadata_write": True, "codegraph_read": True},
 }
-REF_TYPES = frozenset(("plan", "project_card", "relationship_brief", "unified_brief",
+REF_TYPES = frozenset(("plan", "work_classification", "project_card", "relationship_brief", "unified_brief",
     "architect_review", "subject_spec", "subject_result", "review", "diagnosis",
     "steward_result", "user_approval", "external_research"))
 _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
@@ -45,7 +45,7 @@ PAYLOAD_FIELDS = {
  "implementation": frozenset(("read_scope", "write_scope", "forbidden_scope", "implementation_requirements", "validation_commands", "validation_strategy", "runtime_actions", "human_checkpoints")),
  "diagnosis": frozenset(("symptom", "reproduction", "known_facts", "hypotheses", "evidence_required", "mutation_allowed")),
  "review": frozenset(("subject_spec_ref", "subject_result_ref", "review_dimensions", "required_evidence", "scope_review_required", "documentation_review_required")),
- "architecture": frozenset(("review_mode", "subject_plan_ref", "subject_spec_ref", "challenge_questions", "tradeoffs_required", "risk_dimensions")),
+ "architecture": frozenset(("review_mode", "subject_plan_ref", "subject_spec_ref", "subject_work_classification_ref", "challenge_questions", "tradeoffs_required", "risk_dimensions")),
  "stewardship": frozenset(("operation", "project_context_questions", "allowed_project_artifacts", "docs_update_scope", "artifact_link_requests", "close_checks", "approved_content_refs")),
 }
 
@@ -129,9 +129,10 @@ def _payload(kind: str, payload: Any, context_refs: list[Any], caps: dict[str, b
         _list("review_dimensions", payload.get("review_dimensions"), True)
     elif kind == "architecture":
         if payload.get("review_mode") not in {"design_review", "spec_preflight"}: _fail("architecture review_mode invalid")
-        if not payload.get("subject_plan_ref") and not payload.get("subject_spec_ref"): _fail("architecture requires a subject plan or spec ref")
+        if not payload.get("subject_plan_ref") and not payload.get("subject_spec_ref") and not payload.get("subject_work_classification_ref"): _fail("architecture requires a subject plan, spec, or work-classification ref")
         if payload.get("subject_plan_ref"): validate_ref(payload["subject_plan_ref"], required_type="plan")
         if payload.get("subject_spec_ref"): validate_ref(payload["subject_spec_ref"], required_type="subject_spec")
+        if payload.get("subject_work_classification_ref"): validate_ref(payload["subject_work_classification_ref"], required_type="work_classification")
         _list("challenge_questions", payload.get("challenge_questions"), True)
     else:
         op = payload.get("operation")

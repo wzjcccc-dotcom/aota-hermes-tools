@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "authority": "canonical-host-source",
+  "status": "parent-wake-retired-profile-skill-projection-active",
+  "source_root": "/home/latios/workspace/hermes-agent-host",
+  "runtime_import_root": "/home/latios/workspace/hermes-agent-host",
+  "managed_source_files": [
+    "agent/prompt_builder.py",
+    "agent/skill_utils.py",
+    "tests/agent/test_prompt_builder.py",
+    "tests/agent/test_skill_utils.py",
+    "tests/test_toolsets.py",
+    "tests/tools/test_skills_tool_discovery_cache.py",
+    "tools/skills_tool.py",
+    "toolsets.py"
+  ],
+  "required_contracts": [
+    "skills.allowlist",
+    "skills.reference_allowlist",
+    "skills-readonly",
+    "prompt-active-skills-only",
+    "exact-reference-skill-view"
+  ],
+  "retired_parent_wake": {
+    "decision_date": "2026-08-01",
+    "gateway/aota_parent_wake.py": "removed",
+    "gateway/run.py": "restored_to_current_hermes_head",
+    "gateway/wake.py": "unchanged_native_source",
+    "runtime_env_keys": "inactive_after_gateway_reload; removal requires separate authorized env edit",
+    "historical_events": "preserved_untouched"
+  },
+  "historical_backlog_policy": "preserve-and-do-not-process",
+  "deployment_authority": "deploy/aota-forge-plan-files.yaml",
+  "verification": "scripts/verify-aota-parent-wake-retirement.py plus focused Profile Skill exposure tests",
+  "rollback": "scripts/rollback-aota-forge-plan-activation.sh plus timestamped runtime.env backup"
+}

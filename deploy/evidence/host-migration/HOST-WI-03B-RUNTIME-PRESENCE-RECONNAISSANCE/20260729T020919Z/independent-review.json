@@ -1,0 +1,11 @@
+{
+  "status": "BLOCKED_TOOL_UNAVAILABLE",
+  "review_required": true,
+  "reviewer_route": "orca-ide orchestration",
+  "attempted_command": "orca-ide skills get orchestration",
+  "observed_error": "Cannot mount AppImage: FUSE device not found",
+  "fallback_used": false,
+  "reason": "The orchestration skill requires the selected Orca runtime and forbids substituting a different subagent mechanism when that runtime cannot start.",
+  "manual_review_basis": "Evidence was generated from read-only source, import-resolution, configuration, outbox, startup-log, verifier, compile, and diff-check observations.",
+  "verdict": "NOT_EXECUTED"
+}

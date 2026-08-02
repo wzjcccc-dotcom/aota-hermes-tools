@@ -1,0 +1,25 @@
+{
+  "status": "PASS_WITH_LIMITATIONS",
+  "work_item": "AOTA-PARENT-WAKE-WORKSPACE-AUTHORITY-AND-END-TO-END-RESUME-CLOSURE",
+  "canonical_host_source": "/home/latios/workspace/hermes-agent-host",
+  "runtime_env": "/home/latios/.config/hermes-host/runtime.env",
+  "runtime_env_backup": "/home/latios/.config/hermes-host/runtime.env.backup-20260729T062223Z",
+  "workspace_id": "aota-hermes-tools",
+  "activation_boundary": "2026-07-29T06:22:23Z",
+  "outbox_counts": {
+    "pending": 69,
+    "processing": 0,
+    "delivered": 0,
+    "failed": 0
+  },
+  "historical_events_mutated": false,
+  "isolated_fixture": {
+    "claim": "PASS",
+    "native_wake_called": 1,
+    "delivered": "PASS",
+    "historical_skip": "PASS"
+  },
+  "forge_receipt": ".deploy-receipts/aota-forge-plan/20260729T062714Z/deployment.json",
+  "live_worker_resume": "NOT_RUN",
+  "limitation": "orca-ide skills get orca-cli blocked by missing FUSE device"
+}

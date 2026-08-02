@@ -1,6 +1,6 @@
 name: aota-tools
 version: 0.17.6
-description: "AOTA narrow tools + delivery outbox bridge (P11-L.1B)."
+description: "AOTA Forge bounded control-plane tools with validated workspace, session-bound frozen SPEC, Profile Task, and delivery contracts."
 author: AOTA
 kind: standalone
 provides_tools:
@@ -18,6 +18,7 @@ provides_tools:
   - aota_task_spec_create
   - aota_task_spec_update
   - aota_task_spec_freeze
+  - aota_profile_task_dispatch
   - aota_profile_task_start
   - aota_profile_task_status
   - aota_profile_task_cancel

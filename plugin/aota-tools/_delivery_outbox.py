@@ -1,10 +1,11 @@
 """AOTA Completion-to-Origin Delivery Outbox (P11-L.1B).
 
-Produces per-event durable outbox entries after a Profile Task reaches
-terminal state (receipt + handoff durable).  The outbox lives on the AOTA
-filesystem so it can be consumed by any process that has filesystem access
-to the AOTA runtime root – currently the WebUI server process, which can
-drain pending events and deliver them over SessionChannel/SSE.
+Historical compatibility rail for Profile Tasks started before
+terminal-background-only admission.  The native finalizer does not write an
+outbox event; an already-started execution explicitly bound to
+``legacy_durable_delivery`` may still finish its durable event so old receipts
+remain internally consistent.  The outbox lives on the AOTA filesystem and
+was consumed by the retired WebUI/backend adapter path.
 
 Design principles:
   - Per-event files (pending/ → delivered/ atomic rename), NOT a single

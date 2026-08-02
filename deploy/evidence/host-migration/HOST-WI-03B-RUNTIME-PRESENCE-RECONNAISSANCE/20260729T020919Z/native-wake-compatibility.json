@@ -1,0 +1,12 @@
+{
+  "module": "/home/latios/workspace/hermes-agent-host/gateway/wake.py",
+  "symbol": "deliver_wake",
+  "current_signature": "(adapter: Any, *, text: str, session_id: str = '', source: Any = None) -> None",
+  "baseline_signature": "(adapter: Any, *, text: str, session_id: str = '', source: Any = None) -> None",
+  "is_coroutine": true,
+  "behavior_modes": ["push adapter internal MessageEvent delivery", "non-push API self-post using raw session id"],
+  "adapter_call_site": "gateway/aota_parent_wake.py:_process",
+  "gateway_wake_diff_from_baseline": false,
+  "compatibility": "PASS",
+  "classification": "NATIVE_WAKE_COMPATIBLE"
+}

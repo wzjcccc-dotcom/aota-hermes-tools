@@ -1,14 +1,16 @@
 {
   "_header": "此檔案由 scripts/generate-profile-capability-matrix.py 自動生成，不可手動編輯。Source authority 為 deploy/profile-runtime-assembly.yaml, profiles/<profile>/config.yaml, plugin/aota-tools/plugin.yaml, deploy/aota-lifecycle-inventory.yaml",
-  "canonical_tool_count": 61,
-  "generated_at": "2026-07-22T15:14:25.778148+00:00",
+  "canonical_tool_count": 62,
+  "generated_at": "2026-08-01T09:37:52.844445+00:00",
   "generator": "scripts/generate-profile-capability-matrix.py",
   "profile_count": 6,
   "profiles": [
     {
       "active_skills": [
-        "aota-profile-task-orchestration",
-        "aota-runtime-smoke-verification"
+        "aota-hermes-host-upgrade-recovery",
+        "aota-profile-skill-routing-index",
+        "aota-runtime-smoke-verification",
+        "workspace-file-access-strategy"
       ],
       "config_path": "profiles/task-main/config.yaml",
       "declared_toolsets": [
@@ -28,7 +30,8 @@
         "aota_web_readonly",
         "aota_webui_attachment_read",
         "aota_work_intake",
-        "aota_workspace_readonly"
+        "aota_workspace_readonly",
+        "skills-readonly"
       ],
       "disabled_skills": [
         "aota-architecture-review",
@@ -72,11 +75,38 @@
         "file",
         "terminal"
       ],
+      "expected_exact_lookup_skills": [
+        "aota-canonical-spec-contract",
+        "aota-canonical-spec-pitfalls",
+        "aota-hermes-host-upgrade-recovery",
+        "aota-multi-phase-doc-closure",
+        "aota-native-terminal-completion-runtime-verification",
+        "aota-plugin-tool-development",
+        "aota-profile-skill-routing-index",
+        "aota-profile-task-orchestration",
+        "aota-runtime-smoke-verification",
+        "aota-skill-development",
+        "aota-task-lifecycle",
+        "aota-tool-failure-fallback",
+        "aota-work-classify-and-plan-gate",
+        "aota-workspace-diagnostics",
+        "aota-workspace-model",
+        "workspace-file-access-strategy"
+      ],
+      "expected_model_visible_skills": [
+        "aota-hermes-host-upgrade-recovery",
+        "aota-profile-skill-routing-index",
+        "aota-runtime-smoke-verification",
+        "workspace-file-access-strategy"
+      ],
       "expected_projection_paths": [
         "skills/aota-canonical-spec-contract/SKILL.md",
         "skills/aota-canonical-spec-pitfalls/SKILL.md",
+        "skills/aota-hermes-host-upgrade-recovery/SKILL.md",
         "skills/aota-multi-phase-doc-closure/SKILL.md",
+        "skills/aota-native-terminal-completion-runtime-verification/SKILL.md",
         "skills/aota-plugin-tool-development/SKILL.md",
+        "skills/aota-profile-skill-routing-index/SKILL.md",
         "skills/aota-profile-task-orchestration/SKILL.md",
         "skills/aota-runtime-smoke-verification/SKILL.md",
         "skills/aota-skill-development/SKILL.md",
@@ -94,20 +124,31 @@
         "aota-canonical-spec-pitfalls": [
           "task-main"
         ],
+        "aota-hermes-host-upgrade-recovery": [
+          "task-main"
+        ],
         "aota-multi-phase-doc-closure": [
+          "task-main"
+        ],
+        "aota-native-terminal-completion-runtime-verification": [
           "task-main"
         ],
         "aota-plugin-tool-development": [
           "coder",
           "task-main"
         ],
+        "aota-profile-skill-routing-index": [
+          "task-main"
+        ],
         "aota-profile-task-orchestration": [
+          "project-steward",
           "task-main"
         ],
         "aota-runtime-smoke-verification": [
           "task-main"
         ],
         "aota-skill-development": [
+          "coder",
           "project-steward",
           "task-main"
         ],
@@ -131,6 +172,11 @@
           "task-main"
         ],
         "workspace-file-access-strategy": [
+          "architect",
+          "coder",
+          "debugger",
+          "project-steward",
+          "reviewer",
           "task-main"
         ]
       },
@@ -141,14 +187,15 @@
         "aota-canonical-spec-contract",
         "aota-canonical-spec-pitfalls",
         "aota-multi-phase-doc-closure",
+        "aota-native-terminal-completion-runtime-verification",
         "aota-plugin-tool-development",
+        "aota-profile-task-orchestration",
         "aota-skill-development",
         "aota-task-lifecycle",
         "aota-tool-failure-fallback",
         "aota-work-classify-and-plan-gate",
         "aota-workspace-diagnostics",
-        "aota-workspace-model",
-        "workspace-file-access-strategy"
+        "aota-workspace-model"
       ],
       "registered_tools": [
         "aota_codegraph_explore",
@@ -173,6 +220,7 @@
         "aota_plan_update",
         "aota_profile_task_approve",
         "aota_profile_task_cancel",
+        "aota_profile_task_dispatch",
         "aota_profile_task_start",
         "aota_profile_task_status",
         "aota_read_file",
@@ -210,11 +258,32 @@
         "aota_work_intake",
         "aota_workspace_readonly"
       ],
+      "skill_allowlist": [
+        "aota-hermes-host-upgrade-recovery",
+        "aota-profile-skill-routing-index",
+        "aota-runtime-smoke-verification",
+        "workspace-file-access-strategy"
+      ],
+      "skill_reference_allowlist": [
+        "aota-canonical-spec-contract",
+        "aota-canonical-spec-pitfalls",
+        "aota-multi-phase-doc-closure",
+        "aota-native-terminal-completion-runtime-verification",
+        "aota-plugin-tool-development",
+        "aota-profile-task-orchestration",
+        "aota-skill-development",
+        "aota-task-lifecycle",
+        "aota-tool-failure-fallback",
+        "aota-work-classify-and-plan-gate",
+        "aota-workspace-diagnostics",
+        "aota-workspace-model"
+      ],
       "soul_path": "profiles/task-main/SOUL.md"
     },
     {
       "active_skills": [
-        "aota-architecture-review"
+        "aota-architecture-review",
+        "workspace-file-access-strategy"
       ],
       "config_path": "profiles/architect/config.yaml",
       "declared_toolsets": [
@@ -226,7 +295,8 @@
         "aota_project_readonly",
         "aota_repo_readonly",
         "aota_web_readonly",
-        "aota_worker_outcome"
+        "aota_worker_outcome",
+        "skills-readonly"
       ],
       "disabled_skills": [
         "aota-evidence-first-debugging",
@@ -285,12 +355,29 @@
         "file",
         "terminal"
       ],
+      "expected_exact_lookup_skills": [
+        "aota-architecture-review",
+        "workspace-file-access-strategy"
+      ],
+      "expected_model_visible_skills": [
+        "aota-architecture-review",
+        "workspace-file-access-strategy"
+      ],
       "expected_projection_paths": [
-        "skills/aota-architecture-review/SKILL.md"
+        "skills/aota-architecture-review/SKILL.md",
+        "skills/workspace-file-access-strategy/SKILL.md"
       ],
       "inventory_ownership": {
         "aota-architecture-review": [
           "architect"
+        ],
+        "workspace-file-access-strategy": [
+          "architect",
+          "coder",
+          "debugger",
+          "project-steward",
+          "reviewer",
+          "task-main"
         ]
       },
       "mismatches": [],
@@ -330,11 +417,17 @@
         "aota_web_readonly",
         "aota_worker_outcome"
       ],
+      "skill_allowlist": [
+        "aota-architecture-review",
+        "workspace-file-access-strategy"
+      ],
+      "skill_reference_allowlist": [],
       "soul_path": "profiles/architect/SOUL.md"
     },
     {
       "active_skills": [
-        "aota-implementation-review"
+        "aota-implementation-review",
+        "workspace-file-access-strategy"
       ],
       "config_path": "profiles/reviewer/config.yaml",
       "declared_toolsets": [
@@ -345,7 +438,8 @@
         "aota_project_readonly",
         "aota_repo_readonly",
         "aota_reviewer_artifact",
-        "aota_worker_outcome"
+        "aota_worker_outcome",
+        "skills-readonly"
       ],
       "disabled_skills": [
         "aota-architecture-review",
@@ -405,12 +499,29 @@
         "file",
         "terminal"
       ],
+      "expected_exact_lookup_skills": [
+        "aota-implementation-review",
+        "workspace-file-access-strategy"
+      ],
+      "expected_model_visible_skills": [
+        "aota-implementation-review",
+        "workspace-file-access-strategy"
+      ],
       "expected_projection_paths": [
-        "skills/aota-implementation-review/SKILL.md"
+        "skills/aota-implementation-review/SKILL.md",
+        "skills/workspace-file-access-strategy/SKILL.md"
       ],
       "inventory_ownership": {
         "aota-implementation-review": [
           "reviewer"
+        ],
+        "workspace-file-access-strategy": [
+          "architect",
+          "coder",
+          "debugger",
+          "project-steward",
+          "reviewer",
+          "task-main"
         ]
       },
       "mismatches": [],
@@ -448,11 +559,17 @@
         "aota_reviewer_artifact",
         "aota_worker_outcome"
       ],
+      "skill_allowlist": [
+        "aota-implementation-review",
+        "workspace-file-access-strategy"
+      ],
+      "skill_reference_allowlist": [],
       "soul_path": "profiles/reviewer/SOUL.md"
     },
     {
       "active_skills": [
-        "aota-spec-driven-implementation"
+        "aota-spec-driven-implementation",
+        "workspace-file-access-strategy"
       ],
       "config_path": "profiles/coder/config.yaml",
       "declared_toolsets": [
@@ -465,7 +582,8 @@
         "aota_fs_readonly",
         "aota_project_readonly",
         "aota_repo_readonly",
-        "aota_worker_outcome"
+        "aota_worker_outcome",
+        "skills-readonly"
       ],
       "disabled_skills": [
         "aota-architecture-review",
@@ -523,22 +641,45 @@
         "file",
         "terminal"
       ],
+      "expected_exact_lookup_skills": [
+        "aota-plugin-tool-development",
+        "aota-skill-development",
+        "aota-spec-driven-implementation",
+        "workspace-file-access-strategy"
+      ],
+      "expected_model_visible_skills": [
+        "aota-spec-driven-implementation",
+        "workspace-file-access-strategy"
+      ],
       "expected_projection_paths": [
         "skills/aota-plugin-tool-development/SKILL.md",
-        "skills/aota-spec-driven-implementation/SKILL.md"
+        "skills/aota-skill-development/SKILL.md",
+        "skills/aota-spec-driven-implementation/SKILL.md",
+        "skills/workspace-file-access-strategy/SKILL.md"
       ],
       "inventory_ownership": {
         "aota-plugin-tool-development": [
           "coder",
           "task-main"
         ],
+        "aota-skill-development": [
+          "coder",
+          "project-steward",
+          "task-main"
+        ],
         "aota-spec-driven-implementation": [
           "coder"
+        ],
+        "workspace-file-access-strategy": [
+          "architect",
+          "coder",
+          "debugger",
+          "project-steward",
+          "reviewer",
+          "task-main"
         ]
       },
-      "mismatches": [
-        "skills in assembly (active+reference) but NOT owned per lifecycle inventory: ['aota-skill-development']"
-      ],
+      "mismatches": [],
       "plugin": "plugin/aota-tools",
       "profile": "coder",
       "reference_skills": [
@@ -581,11 +722,20 @@
         "aota_repo_readonly",
         "aota_worker_outcome"
       ],
+      "skill_allowlist": [
+        "aota-spec-driven-implementation",
+        "workspace-file-access-strategy"
+      ],
+      "skill_reference_allowlist": [
+        "aota-plugin-tool-development",
+        "aota-skill-development"
+      ],
       "soul_path": "profiles/coder/SOUL.md"
     },
     {
       "active_skills": [
-        "aota-evidence-first-debugging"
+        "aota-evidence-first-debugging",
+        "workspace-file-access-strategy"
       ],
       "config_path": "profiles/debugger/config.yaml",
       "declared_toolsets": [
@@ -596,7 +746,8 @@
         "aota_fs_readonly",
         "aota_repo_readonly",
         "aota_web_readonly",
-        "aota_worker_outcome"
+        "aota_worker_outcome",
+        "skills-readonly"
       ],
       "disabled_skills": [
         "aota-architecture-review",
@@ -657,12 +808,29 @@
         "file",
         "terminal"
       ],
+      "expected_exact_lookup_skills": [
+        "aota-evidence-first-debugging",
+        "workspace-file-access-strategy"
+      ],
+      "expected_model_visible_skills": [
+        "aota-evidence-first-debugging",
+        "workspace-file-access-strategy"
+      ],
       "expected_projection_paths": [
-        "skills/aota-evidence-first-debugging/SKILL.md"
+        "skills/aota-evidence-first-debugging/SKILL.md",
+        "skills/workspace-file-access-strategy/SKILL.md"
       ],
       "inventory_ownership": {
         "aota-evidence-first-debugging": [
           "debugger"
+        ],
+        "workspace-file-access-strategy": [
+          "architect",
+          "coder",
+          "debugger",
+          "project-steward",
+          "reviewer",
+          "task-main"
         ]
       },
       "mismatches": [],
@@ -694,6 +862,11 @@
         "aota_web_readonly",
         "aota_worker_outcome"
       ],
+      "skill_allowlist": [
+        "aota-evidence-first-debugging",
+        "workspace-file-access-strategy"
+      ],
+      "skill_reference_allowlist": [],
       "soul_path": "profiles/debugger/SOUL.md"
     },
     {
@@ -702,7 +875,8 @@
         "aota-task-lifecycle",
         "aota-tool-failure-fallback",
         "aota-workspace-diagnostics",
-        "aota-workspace-model"
+        "aota-workspace-model",
+        "workspace-file-access-strategy"
       ],
       "config_path": "profiles/project-steward/config.yaml",
       "declared_toolsets": [
@@ -715,7 +889,8 @@
         "aota_project_steward_artifact",
         "aota_webui_attachment_read",
         "aota_worker_outcome",
-        "aota_workspace_readonly"
+        "aota_workspace_readonly",
+        "skills-readonly"
       ],
       "disabled_skills": [
         "aota-architecture-review",
@@ -750,19 +925,44 @@
         "file",
         "terminal"
       ],
+      "expected_exact_lookup_skills": [
+        "aota-pcf-project-steward",
+        "aota-profile-task-orchestration",
+        "aota-skill-development",
+        "aota-task-lifecycle",
+        "aota-tool-failure-fallback",
+        "aota-workspace-diagnostics",
+        "aota-workspace-model",
+        "workspace-file-access-strategy"
+      ],
+      "expected_model_visible_skills": [
+        "aota-pcf-project-steward",
+        "aota-task-lifecycle",
+        "aota-tool-failure-fallback",
+        "aota-workspace-diagnostics",
+        "aota-workspace-model",
+        "workspace-file-access-strategy"
+      ],
       "expected_projection_paths": [
         "skills/aota-pcf-project-steward/SKILL.md",
+        "skills/aota-profile-task-orchestration/SKILL.md",
         "skills/aota-skill-development/SKILL.md",
         "skills/aota-task-lifecycle/SKILL.md",
         "skills/aota-tool-failure-fallback/SKILL.md",
         "skills/aota-workspace-diagnostics/SKILL.md",
-        "skills/aota-workspace-model/SKILL.md"
+        "skills/aota-workspace-model/SKILL.md",
+        "skills/workspace-file-access-strategy/SKILL.md"
       ],
       "inventory_ownership": {
         "aota-pcf-project-steward": [
           "project-steward"
         ],
+        "aota-profile-task-orchestration": [
+          "project-steward",
+          "task-main"
+        ],
         "aota-skill-development": [
+          "coder",
           "project-steward",
           "task-main"
         ],
@@ -781,11 +981,17 @@
         "aota-workspace-model": [
           "project-steward",
           "task-main"
+        ],
+        "workspace-file-access-strategy": [
+          "architect",
+          "coder",
+          "debugger",
+          "project-steward",
+          "reviewer",
+          "task-main"
         ]
       },
-      "mismatches": [
-        "skills in assembly (active+reference) but NOT owned per lifecycle inventory: ['aota-profile-task-orchestration']"
-      ],
+      "mismatches": [],
       "plugin": "plugin/aota-tools",
       "profile": "project-steward",
       "reference_skills": [
@@ -828,6 +1034,18 @@
         "aota_webui_attachment_read",
         "aota_worker_outcome",
         "aota_workspace_readonly"
+      ],
+      "skill_allowlist": [
+        "aota-pcf-project-steward",
+        "aota-task-lifecycle",
+        "aota-tool-failure-fallback",
+        "aota-workspace-diagnostics",
+        "aota-workspace-model",
+        "workspace-file-access-strategy"
+      ],
+      "skill_reference_allowlist": [
+        "aota-profile-task-orchestration",
+        "aota-skill-development"
       ],
       "soul_path": "profiles/project-steward/SOUL.md"
     }

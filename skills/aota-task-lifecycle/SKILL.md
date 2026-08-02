@@ -36,6 +36,18 @@ mismatch is `profile_launch_binding_mismatch`; parent model/provider values are
 not a fallback. Early launcher failures always leave a bounded worker log,
 failure receipt, and failure handoff, even when no worker artifact exists.
 
+Project/artifact Phase 3 operations follow the same binding rule: current
+workspace/project/lifecycle/artifact subjects come from trusted context and
+canonical registry/declaration artifacts. Model calls use semantic refs only;
+paths, IDs, digests, and revisions are resolved internally. Ambiguity,
+registration conflicts, traversal, and symlink escape fail closed, while
+lifecycle mutation stops at the required operator checkpoint.
+
+All model-facing lifecycle/control calls follow the same rule: never invent,
+copy, or retry control-plane identifiers, paths, revisions, hashes, sessions,
+profiles, or lifecycle bindings. Use semantic current subjects and the
+deterministic `next_action` returned by the tool.
+
 ## Active worker context preflight
 
 Every worker reads its own frozen `SPEC`, `SCOPE`, and bounded `BINDING` through
@@ -121,35 +133,48 @@ The canonical wait mode rules are defined in
 The lifecycle inventory mirrors these as governance metadata. No second
 authority is created.
 
-## WebUI task-main session wait-mode classification
+New Profile Task starts have one completion gate: Hermes-native
+`terminal_background`, using result readiness plus trusted session binding.
+`completion_delivery_expected=false` means a missing or pending historical
+outbox does not block `handoff_open`. A finite/stateless caller with
+`async_delivery_supported() == false` is rejected before Worker launch with
+`terminal_background_required`; it is never downgraded to the retired
+`legacy_durable_delivery` rail. Missing or contradictory transport authority
+also fails closed.
 
-When task-main starts a Profile Task from a WebUI session, the wait mode is
-classified from runtime evidence — not from model self-inference about the
-transport.
+Historical legacy receipts remain readable so already-created tasks can be
+closed without rewriting durable history. This read compatibility is not a
+start mode and does not authorize producing a new legacy outbox event.
+
+## Profile Task start transport admission
+
+The start tool resolves transport support from trusted runtime evidence. The
+model does not choose, classify, or override the completion transport.
 
 ### Classification rules
 
 | Session context | Transport evidence | Wait mode |
 |---|---|---|
-| WebUI task-main session | Transport supports async delivery (wakeup) | `wakeup_capable_normal` |
-| WebUI task-main session | API Server (`supports_async_delivery=False`) | `non_wakeup_transport` |
-| CLI session | Hermes CLI with handoff wakeup | `wakeup_capable_normal` |
-| Any session | No wakeup channel available | `non_wakeup_transport` |
+| Persistent task-main session | `async_delivery_supported() == true` | Start with `terminal_background`; `wakeup_capable_normal` |
+| `hermes -z`, API, or other finite/stateless caller | `async_delivery_supported() == false` | Reject with `terminal_background_required`; do not launch Worker |
+| Any session | Capability missing or contradictory | Fail closed; do not launch Worker |
 | One-time check | Explicit isolated probe with marker | `isolated_probe` |
 | Post-failure retry | Explicit reason provided | `recovery` |
 
-The model must NOT self-classify the transport. The wait mode is resolved from
-runtime evidence during the orchestration preflight (see
-`aota-profile-task-orchestration` Skill, preflight step 1).
+The generic `non_wakeup_transport` wait mode remains available for bounded
+retrieval of historical tasks and non-Profile-Task workflows. It is not an
+admitted transport for a new Profile Task start.
 
 ### START_RESULT=running / WAIT_MODE=wakeup_capable_normal
 
 When `aota_profile_task_start` returns `running` and the wait mode is
 `wakeup_capable_normal`:
 
-- **NEXT_ALLOWED_ACTION**: Wait for the wakeup signal (handoff notification).
-  Do not call `aota_profile_task_status` unless a valid `retrieval_reason`
-  is provided.
+- **NEXT_ALLOWED_ACTION**: Wait for the completion delivery signal. Do not call
+  status, handoff list, process status, receipt, artifact, or operator-inbox
+  completion observations while `next_action=wait_for_completion_delivery`.
+  Those surfaces return `completion_delivery_pending` and the model must not
+  switch tools.
 - **FORBIDDEN_PROGRESS_ACTIONS** (all prohibited without `retrieval_reason`):
   1. Calling `aota_profile_task_status` without a `retrieval_reason`.
   2. Reading worker logs (`worker.<task_id>.log`) to check progress.
@@ -160,6 +185,16 @@ When `aota_profile_task_start` returns `running` and the wait mode is
   6. Reading output files or checking file sizes to gauge progress.
   7. Using `aota_path_info` or `aota_read_file` on task directories to poll
      for new artifacts.
+
+### Bounded completion recovery
+
+Only after the start response's `recovery_allowed_after` has passed, with no
+delivery, may the origin orchestrator perform one recovery. Its only reasons
+are `completion_notification_timeout` and `lost_completion_delivery`. The
+first recovery aggregates terminal/running state, receipt, outcome, process
+reconciliation, and handoff evidence. A terminal result points to
+`open_completion_handoff`; a running result returns to waiting. Any later
+recovery is rejected as `recovery_already_consumed`.
 
 ### Non-recovery conditions
 
@@ -173,14 +208,15 @@ polling:
 
 ### One authorized check does not authorize repeated polling
 
-A single status query with a valid `retrieval_reason` is an authorized
-recovery check. It does NOT authorize a second query. A second query within
-the minimum interval is rejected as `repeated_progress_poll_forbidden`.
+A single bounded recovery is an authorized completion check. It does NOT
+authorize a second query or a fixed-interval retry. Historical status queries
+on non-wakeup transports retain their typed retrieval-reason compatibility and
+the existing repeated-query rejection.
 
 ### non_wakeup_transport explicit retrieval conditions
 
-When the wait mode is `non_wakeup_transport` (e.g., API Server with
-`supports_async_delivery=False`), explicit retrieval via
+When observing a historical task already bound to `non_wakeup_transport`,
+explicit retrieval via
 `aota_profile_task_status` is allowed, but ONLY under these conditions:
 
 1. **External re-entry**: A new session or turn that is not a busy-wait
@@ -197,6 +233,32 @@ not busy-wait in the same turn — start the task, then exit and wait for
 re-entry.
 
 ## Binding, receipt, and handoff authority
+
+After completion delivery, the canonical task-main closure invocation is:
+
+```json
+{}
+```
+
+for `aota_handoff_open`, followed by:
+
+```json
+{"decision":"accepted","rationale":"..."}
+```
+
+for `aota_orchestration_decision_record`, `{}` for `aota_handoff_ack`, and
+`{"view":"closure"}` for `aota_profile_task_status`. The control plane
+resolves current handoff/task/receipt/decision identity from trusted delivery,
+origin session and durable artifacts. Missing subjects are deterministic;
+multiple subjects return bounded semantic choices. Internal IDs, paths,
+revisions and hashes are handler-only compatibility fields.
+
+`aota_handoff_open({})` is the completion facade on this path. Its canonical
+response includes a compact `completion` projection containing semantic
+`current_role_card` and `current_role_result` references, worker outcome, and
+authoritative completion-receipt facts. Task-main must consume that projection
+instead of listing/searching for handoffs or separately probing CARD/RESULT or
+receipt files.
 
 The completion receipt is the trusted finalizer / authoritative result.
 `done` requires exit code zero, a valid terminal worker outcome, and a
@@ -236,3 +298,18 @@ is never implied by ack.
   source.
 - No generic `/aota-runtime` access; use bounded runtime tools
   (`aota_runtime_info`, `aota_active_task_artifact_open`).
+## Trusted runtime minimal-invocation boundary
+
+The model supplies semantic intent and explicit human decisions only. Exact
+task/spec/start/revision/hash/session values are injected or resolved by the
+control plane. A missing trusted session during freeze is reported as
+`trusted_session_context_missing` with `retryable=false` and a bounded stop
+action; it is never a reason to retry with guessed identifiers.
+
+The lifecycle projection uses `session-state/` pointers for the current draft,
+active frozen SPEC, active task, completion, handoff, decision, and completed
+task. `profile-tasks/`, `handoffs/`, and `decisions/` remain durable history;
+their quantity cannot create current-reference ambiguity. Freeze consumes the
+exact draft pointer, finalization publishes completion/handoff pointers, and
+acknowledgement closes the current pointers while preserving every historical
+artifact.

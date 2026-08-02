@@ -1,0 +1,482 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-01T14:02:45+08:00",
+  "status": "DEPLOYED_AND_RERUN_COMPLETE_TARGET_NOT_MET",
+  "objective": "Measure deployed Hermes AOTA tool-use efficiency with five exact-prompt repetitions for each of the six profiles.",
+  "deployment": {
+    "method": "aota_forge_plan_package.py deploy --allow-known-secret-false-positive",
+    "runtime_root": "/home/latios/.hermes",
+    "source_version": "0.17.6",
+    "receipt": "/home/latios/workspace/aota-hermes-tools/.deploy-receipts/aota-forge-plan/20260801T051619Z/deployment.json",
+    "receipt_sha256": "423019ea887dcf749b1def160867b8427913b0d3e3ef4d0de12b84215e85fbb3",
+    "backup": "/home/latios/workspace/aota-hermes-tools/.deploy-backups/20260801T051617Z",
+    "managed_entries": 804,
+    "tools": 61,
+    "toolsets": 28,
+    "profiles": 6,
+    "restart_performed": false,
+    "deploy_verify": "pass",
+    "profile_assembly_pre_activation": "pass",
+    "profile_assembly_runtime": "pass"
+  },
+  "source_contract_evidence": {
+    "path": "/home/latios/workspace/aota-hermes-tools/deploy/evidence/aota-profile-efficiency-r5-contracts-20260801.json",
+    "sha256": "39f177034c3f813f61b02577b6d3167778a89260573d7899f05f2900dbb2fc1d",
+    "zero_llm_fixtures": "pass"
+  },
+  "sample_contract": {
+    "path": "/home/latios/workspace/aota-hermes-tools/fixtures/aota-profile-efficiency-r5-30-sample-plan.json",
+    "sha256": "f0cddfc224ef26d0852d334542c44a4d171367f56942484a29e069b98330fe4e",
+    "profiles": 6,
+    "repetitions_per_profile": 5,
+    "formal_samples": 30,
+    "new_session_per_sample": true,
+    "sequential_within_profile": true,
+    "model": "glm-5.2",
+    "prompts_unchanged_from_r4": true,
+    "weights_unchanged_from_r4": true,
+    "per_task_llm_plus_tool_limit": 100,
+    "score_transport_failures": false,
+    "retry_failed_scored_sessions": false,
+    "database_authority": "Hermes profile state.db sessions and messages tables"
+  },
+  "evaluation_contract": {
+    "outcome_completion": 0.3,
+    "correct_tool_and_parameter_path": 0.25,
+    "retry_stop_safety": 0.2,
+    "total_tool_budget": 0.1,
+    "minimal_skill_and_tool_description": 0.15,
+    "minimal_criterion": "skill_view <= 1 and tool_describe <= 1; redundant search/path calls are evaluated under correct_tool_and_parameter_path",
+    "tool_budget_authority": "session.tool_call_count, including meta-tool calls",
+    "call_cap_authority": "parent api_call_count + parent tool_call_count plus spawned Worker api_call_count + Worker tool_call_count when applicable"
+  },
+  "profiles": [
+    {
+      "profile": "project-steward",
+      "tool_limit_in_prompt": 3,
+      "score_percent": 75.0,
+      "aggregate": {
+        "api_calls": 21,
+        "tool_calls": 26,
+        "input_tokens": 172932,
+        "output_tokens": 6655
+      },
+      "samples": [
+        {
+          "repetition": 1,
+          "session": "20260801_131741_206540",
+          "model": "glm-5.2",
+          "api_calls": 4,
+          "tool_calls": 5,
+          "input_tokens": 32590,
+          "output_tokens": 1075,
+          "end_to_end_llm_plus_tool_calls": 9,
+          "tool_sequence": ["skill_view", "tool_describe", "tool_describe", "aota_project_registry_refresh", "aota_project_open"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 75.0
+        },
+        {
+          "repetition": 2,
+          "session": "20260801_133720_abb155",
+          "model": "glm-5.2",
+          "api_calls": 4,
+          "tool_calls": 5,
+          "input_tokens": 32501,
+          "output_tokens": 1644,
+          "end_to_end_llm_plus_tool_calls": 9,
+          "tool_sequence": ["skill_view", "tool_describe", "tool_describe", "aota_project_registry_refresh", "aota_project_open"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 75.0
+        },
+        {
+          "repetition": 3,
+          "session": "20260801_133753_ada568",
+          "model": "glm-5.2",
+          "api_calls": 5,
+          "tool_calls": 6,
+          "input_tokens": 42881,
+          "output_tokens": 1432,
+          "end_to_end_llm_plus_tool_calls": 11,
+          "tool_sequence": ["skill_view", "skill_view", "tool_describe", "tool_describe", "aota_project_registry_refresh", "aota_project_open"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 75.0
+        },
+        {
+          "repetition": 4,
+          "session": "20260801_133826_2ac800",
+          "model": "glm-5.2",
+          "api_calls": 4,
+          "tool_calls": 5,
+          "input_tokens": 32470,
+          "output_tokens": 1021,
+          "end_to_end_llm_plus_tool_calls": 9,
+          "tool_sequence": ["skill_view", "tool_describe", "tool_describe", "aota_project_registry_refresh", "aota_project_open"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 75.0
+        },
+        {
+          "repetition": 5,
+          "session": "20260801_133901_b9a033",
+          "model": "glm-5.2",
+          "api_calls": 4,
+          "tool_calls": 5,
+          "input_tokens": 32490,
+          "output_tokens": 1483,
+          "end_to_end_llm_plus_tool_calls": 9,
+          "tool_sequence": ["skill_view", "tool_describe", "tool_describe", "aota_project_registry_refresh", "aota_project_open"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 75.0
+        }
+      ],
+      "finding": "All five domain paths completed, but every sample described both domain tools before calling them; one sample also loaded the Skill twice."
+    },
+    {
+      "profile": "task-main",
+      "tool_limit_in_prompt": 12,
+      "score_percent": 29.0,
+      "aggregate": {
+        "parent_api_calls": 77,
+        "parent_tool_calls": 76,
+        "worker_api_calls": 44,
+        "worker_tool_calls": 89,
+        "parent_input_tokens": 1154359,
+        "parent_output_tokens": 22695,
+        "worker_input_tokens": 521216,
+        "worker_output_tokens": 10489
+      },
+      "samples": [
+        {
+          "repetition": 1,
+          "session": "20260801_131834_5f1269",
+          "worker_session": "20260801_131946_11e733",
+          "model": "glm-5.2",
+          "api_calls": 11,
+          "tool_calls": 11,
+          "worker_api_calls": 12,
+          "worker_tool_calls": 21,
+          "input_tokens": 149613,
+          "output_tokens": 3005,
+          "end_to_end_llm_plus_tool_calls": 55,
+          "tool_sequence": ["skill_view", "aota_workspace_open", "tool_describe", "aota_work_classify", "aota_task_spec_create", "aota_task_spec_freeze", "aota_profile_task_start", "aota_handoff_open", "aota_profile_task_status", "aota_profile_task_status", "aota_profile_task_status"],
+          "evaluation": {"outcome_completion": false, "correct_tool_and_parameter_path": false, "retry_stop_safety": false, "total_tool_budget": true, "minimal_skill_and_tool_description": true},
+          "score_percent": 25.0,
+          "note": "Opened handoff before native completion and repeated status three times after completion_subject_missing retryable=false."
+        },
+        {
+          "repetition": 2,
+          "session": "20260801_132512_363d13",
+          "worker_session": "20260801_132628_da7fe2",
+          "model": "glm-5.2",
+          "api_calls": 21,
+          "tool_calls": 20,
+          "worker_api_calls": 10,
+          "worker_tool_calls": 17,
+          "input_tokens": 327275,
+          "output_tokens": 5797,
+          "end_to_end_llm_plus_tool_calls": 68,
+          "tool_sequence": ["skill_view", "aota_workspace_open", "tool_describe", "aota_work_classify", "aota_task_spec_create", "aota_task_spec_freeze", "aota_profile_task_start", "aota_profile_task_status", "tool_describe", "aota_profile_task_status", "aota_profile_task_status", "aota_profile_task_status", "tool_describe", "aota_handoff_open", "aota_handoff_open", "tool_describe", "aota_orchestration_decision_record", "tool_describe", "aota_handoff_ack", "aota_profile_task_status"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": false, "retry_stop_safety": false, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 30.0,
+          "note": "Reached closure after native re-entry, but polled/retried rejected status and handoff calls and described five tools."
+        },
+        {
+          "repetition": 3,
+          "session": "20260801_134949_bad628",
+          "worker_session": "20260801_135040_278d0a",
+          "model": "glm-5.2",
+          "api_calls": 9,
+          "tool_calls": 9,
+          "worker_api_calls": 10,
+          "worker_tool_calls": 17,
+          "input_tokens": 118930,
+          "output_tokens": 2311,
+          "end_to_end_llm_plus_tool_calls": 45,
+          "tool_sequence": ["skill_view", "aota_workspace_open", "tool_describe", "aota_work_classify", "aota_task_spec_create", "aota_task_spec_freeze", "aota_profile_task_start", "tool_describe", "aota_profile_task_status"],
+          "evaluation": {"outcome_completion": false, "correct_tool_and_parameter_path": false, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": false},
+          "score_percent": 30.0,
+          "note": "Stopped after one completion_subject_missing rejection, but used status instead of waiting for native completion and did not close the task."
+        },
+        {
+          "repetition": 4,
+          "session": "20260801_135133_a45e50",
+          "worker_session": "20260801_135242_3e6ea0",
+          "model": "glm-5.2",
+          "api_calls": 18,
+          "tool_calls": 17,
+          "worker_api_calls": 6,
+          "worker_tool_calls": 16,
+          "input_tokens": 279660,
+          "output_tokens": 5810,
+          "end_to_end_llm_plus_tool_calls": 57,
+          "tool_sequence": ["skill_view", "aota_workspace_open", "tool_describe", "aota_work_classify", "aota_task_spec_create", "aota_task_spec_freeze", "aota_profile_task_start", "tool_describe", "aota_profile_task_status", "tool_search", "aota_profile_task_status", "aota_profile_task_status", "aota_handoff_open", "aota_orchestration_decision_record", "aota_orchestration_decision_record", "aota_handoff_ack", "aota_profile_task_status"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": false, "retry_stop_safety": false, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 30.0,
+          "note": "Reached closure, but continued after retryable=false status failures and corrected an invalid decision parameter from pass to accepted."
+        },
+        {
+          "repetition": 5,
+          "session": "20260801_135506_bd99e9",
+          "worker_session": "20260801_135610_8f49da",
+          "model": "glm-5.2",
+          "api_calls": 18,
+          "tool_calls": 19,
+          "worker_api_calls": 6,
+          "worker_tool_calls": 18,
+          "input_tokens": 278881,
+          "output_tokens": 5772,
+          "end_to_end_llm_plus_tool_calls": 61,
+          "tool_sequence": ["skill_view", "tool_describe", "tool_describe", "aota_workspace_open", "tool_describe", "aota_work_classify", "aota_task_spec_create", "aota_task_spec_freeze", "aota_profile_task_start", "tool_describe", "aota_profile_task_status", "aota_profile_task_status", "tool_describe", "aota_handoff_open", "tool_describe", "tool_describe", "aota_orchestration_decision_record", "aota_handoff_ack", "aota_profile_task_status"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": false, "retry_stop_safety": false, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 30.0,
+          "note": "Reached closure, but continued after completion_subject_reference_invalid and completion_subject_missing and described seven tools."
+        }
+      ],
+      "finding": "Semantic architecture start succeeded in all five samples, but completion subject resolution and the transition from native completion to card-first handoff remained nondeterministic and expensive."
+    },
+    {
+      "profile": "architect",
+      "tool_limit_in_prompt": 4,
+      "score_percent": 90.0,
+      "aggregate": {"api_calls": 16, "tool_calls": 20, "input_tokens": 115065, "output_tokens": 5013},
+      "samples": [
+        {
+          "repetition": 1,
+          "session": "20260801_132038_db66d7",
+          "model": "glm-5.2",
+          "api_calls": 3,
+          "tool_calls": 3,
+          "input_tokens": 19422,
+          "output_tokens": 841,
+          "end_to_end_llm_plus_tool_calls": 6,
+          "tool_sequence": ["tool_describe", "aota_read_file", "aota_read_file"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true},
+          "score_percent": 100.0
+        },
+        {
+          "repetition": 2,
+          "session": "20260801_133950_da1093",
+          "model": "glm-5.2",
+          "api_calls": 4,
+          "tool_calls": 4,
+          "input_tokens": 26191,
+          "output_tokens": 1241,
+          "end_to_end_llm_plus_tool_calls": 8,
+          "tool_sequence": ["tool_describe", "aota_read_file", "aota_read_file", "aota_worker_outcome_submit"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": false, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true},
+          "score_percent": 75.0,
+          "note": "Attempted the explicitly forbidden unbound worker outcome submission; it was rejected with unknown_report_field and not retried."
+        },
+        {
+          "repetition": 3,
+          "session": "20260801_134023_a8450c",
+          "model": "glm-5.2",
+          "api_calls": 3,
+          "tool_calls": 4,
+          "input_tokens": 24326,
+          "output_tokens": 830,
+          "end_to_end_llm_plus_tool_calls": 7,
+          "tool_sequence": ["skill_view", "tool_describe", "aota_read_file", "aota_read_file"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true},
+          "score_percent": 100.0
+        },
+        {
+          "repetition": 4,
+          "session": "20260801_134057_4217c6",
+          "model": "glm-5.2",
+          "api_calls": 3,
+          "tool_calls": 4,
+          "input_tokens": 22503,
+          "output_tokens": 1019,
+          "end_to_end_llm_plus_tool_calls": 7,
+          "tool_sequence": ["skill_view", "tool_describe", "aota_read_file", "aota_read_file"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true},
+          "score_percent": 100.0
+        },
+        {
+          "repetition": 5,
+          "session": "20260801_134132_111baf",
+          "model": "glm-5.2",
+          "api_calls": 3,
+          "tool_calls": 5,
+          "input_tokens": 22623,
+          "output_tokens": 1082,
+          "end_to_end_llm_plus_tool_calls": 8,
+          "tool_sequence": ["skill_view", "tool_describe", "tool_describe", "aota_read_file", "aota_read_file"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 75.0
+        }
+      ],
+      "finding": "The exact-path raw probe is at target; remaining variance is one forbidden outcome attempt and one redundant schema description."
+    },
+    {
+      "profile": "reviewer",
+      "tool_limit_in_prompt": 4,
+      "score_percent": 100.0,
+      "aggregate": {"api_calls": 15, "tool_calls": 16, "input_tokens": 97840, "output_tokens": 1976},
+      "samples": [
+        {"repetition": 1, "session": "20260801_132131_b7f990", "model": "glm-5.2", "api_calls": 3, "tool_calls": 3, "input_tokens": 18930, "output_tokens": 260, "end_to_end_llm_plus_tool_calls": 6, "tool_sequence": ["tool_describe", "aota_read_file", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0},
+        {"repetition": 2, "session": "20260801_134209_f9cd12", "model": "glm-5.2", "api_calls": 3, "tool_calls": 3, "input_tokens": 18930, "output_tokens": 267, "end_to_end_llm_plus_tool_calls": 6, "tool_sequence": ["tool_describe", "aota_read_file", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0},
+        {"repetition": 3, "session": "20260801_134226_5c0692", "model": "glm-5.2", "api_calls": 3, "tool_calls": 4, "input_tokens": 21986, "output_tokens": 502, "end_to_end_llm_plus_tool_calls": 7, "tool_sequence": ["skill_view", "tool_describe", "aota_read_file", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0},
+        {"repetition": 4, "session": "20260801_134248_9f9f6c", "model": "glm-5.2", "api_calls": 3, "tool_calls": 3, "input_tokens": 19000, "output_tokens": 378, "end_to_end_llm_plus_tool_calls": 6, "tool_sequence": ["tool_describe", "aota_read_file", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0},
+        {"repetition": 5, "session": "20260801_134305_286c08", "model": "glm-5.2", "api_calls": 3, "tool_calls": 3, "input_tokens": 18994, "output_tokens": 569, "end_to_end_llm_plus_tool_calls": 6, "tool_sequence": ["tool_describe", "aota_read_file", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0}
+      ],
+      "finding": "All five exact-path version comparisons used the intended bounded reads and stayed within every limit."
+    },
+    {
+      "profile": "coder",
+      "tool_limit_in_prompt": 4,
+      "score_percent": 86.0,
+      "aggregate": {"api_calls": 19, "tool_calls": 16, "input_tokens": 199757, "output_tokens": 5404},
+      "samples": [
+        {"repetition": 1, "session": "20260801_132208_68ad8d", "model": "glm-5.2", "api_calls": 3, "tool_calls": 2, "input_tokens": 29036, "output_tokens": 1429, "end_to_end_llm_plus_tool_calls": 5, "tool_sequence": ["tool_describe", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0},
+        {"repetition": 2, "session": "20260801_134433_16a8d9", "model": "glm-5.2", "api_calls": 3, "tool_calls": 2, "input_tokens": 29056, "output_tokens": 831, "end_to_end_llm_plus_tool_calls": 5, "tool_sequence": ["tool_describe", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0},
+        {"repetition": 3, "session": "20260801_134454_13c1a9", "model": "glm-5.2", "api_calls": 3, "tool_calls": 2, "input_tokens": 29031, "output_tokens": 556, "end_to_end_llm_plus_tool_calls": 5, "tool_sequence": ["tool_describe", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0},
+        {
+          "repetition": 4,
+          "session": "20260801_134511_d2ab80",
+          "model": "glm-5.2",
+          "api_calls": 7,
+          "tool_calls": 8,
+          "input_tokens": 83700,
+          "output_tokens": 1760,
+          "end_to_end_llm_plus_tool_calls": 15,
+          "tool_sequence": ["skill_view", "skill_view", "tool_search", "tool_describe", "aota_search_files", "tool_search", "tool_describe", "aota_read_file"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": false, "retry_stop_safety": false, "total_tool_budget": false, "minimal_skill_and_tool_description": false},
+          "score_percent": 30.0,
+          "note": "Searched despite an exact path, received path_not_authorized retryable=false, then switched to direct read instead of stopping."
+        },
+        {"repetition": 5, "session": "20260801_134559_b3771c", "model": "glm-5.2", "api_calls": 3, "tool_calls": 2, "input_tokens": 28934, "output_tokens": 828, "end_to_end_llm_plus_tool_calls": 5, "tool_sequence": ["tool_describe", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0}
+      ],
+      "finding": "Four samples were deterministic two-call reads; one model excursion loaded two Skills, searched an exact path, and continued after a non-retryable path rejection."
+    },
+    {
+      "profile": "debugger",
+      "tool_limit_in_prompt": 4,
+      "score_percent": 88.0,
+      "aggregate": {"api_calls": 14, "tool_calls": 13, "input_tokens": 100072, "output_tokens": 11006},
+      "samples": [
+        {"repetition": 1, "session": "20260801_132249_5d7a79", "model": "glm-5.2", "api_calls": 2, "tool_calls": 1, "input_tokens": 12173, "output_tokens": 997, "end_to_end_llm_plus_tool_calls": 3, "tool_sequence": ["aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0},
+        {"repetition": 2, "session": "20260801_134634_71619c", "model": "glm-5.2", "api_calls": 2, "tool_calls": 2, "input_tokens": 13872, "output_tokens": 2564, "end_to_end_llm_plus_tool_calls": 4, "tool_sequence": ["skill_view", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0},
+        {
+          "repetition": 3,
+          "session": "20260801_134712_b8036c",
+          "model": "glm-5.2",
+          "api_calls": 6,
+          "tool_calls": 6,
+          "input_tokens": 47574,
+          "output_tokens": 3373,
+          "end_to_end_llm_plus_tool_calls": 12,
+          "tool_sequence": ["skill_view", "aota_read_file", "aota_search_files", "aota_search_files", "tool_call", "aota_codegraph_query"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": false, "retry_stop_safety": true, "total_tool_budget": false, "minimal_skill_and_tool_description": true},
+          "score_percent": 65.0,
+          "note": "The exact file already proved the answer, but the model performed two empty searches and one CodeGraph query; the malformed meta call explicitly invited a corrected retry and was not a retryable=false domain error."
+        },
+        {
+          "repetition": 4,
+          "session": "20260801_134830_e30e6b",
+          "model": "glm-5.2",
+          "api_calls": 2,
+          "tool_calls": 2,
+          "input_tokens": 12609,
+          "output_tokens": 2429,
+          "end_to_end_llm_plus_tool_calls": 4,
+          "tool_sequence": ["aota_read_file", "aota_read_file"],
+          "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": false, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true},
+          "score_percent": 75.0,
+          "note": "Read the valid fixture in addition to the only path authorized by the prompt."
+        },
+        {"repetition": 5, "session": "20260801_134909_c765fc", "model": "glm-5.2", "api_calls": 2, "tool_calls": 2, "input_tokens": 13844, "output_tokens": 1643, "end_to_end_llm_plus_tool_calls": 4, "tool_sequence": ["skill_view", "aota_read_file"], "evaluation": {"outcome_completion": true, "correct_tool_and_parameter_path": true, "retry_stop_safety": true, "total_tool_budget": true, "minimal_skill_and_tool_description": true}, "score_percent": 100.0}
+      ],
+      "finding": "All diagnoses were substantively correct; two samples broadened a deterministic one-file probe into unnecessary search or comparison work."
+    }
+  ],
+  "worker_sessions": [
+    {"parent_session": "20260801_131834_5f1269", "session": "20260801_131946_11e733", "task_id": "pt_20260801T051900_962c8332", "api_calls": 12, "tool_calls": 21, "input_tokens": 140966, "output_tokens": 1390},
+    {"parent_session": "20260801_132512_363d13", "session": "20260801_132628_da7fe2", "task_id": "pt_20260801T052622_9b76c915", "api_calls": 10, "tool_calls": 17, "input_tokens": 124734, "output_tokens": 2099},
+    {"parent_session": "20260801_134949_bad628", "session": "20260801_135040_278d0a", "task_id": "pt_20260801T055034_9a56a3f8", "api_calls": 10, "tool_calls": 17, "input_tokens": 99941, "output_tokens": 2222},
+    {"parent_session": "20260801_135133_a45e50", "session": "20260801_135242_3e6ea0", "task_id": "pt_20260801T055235_9f087c65", "api_calls": 6, "tool_calls": 16, "input_tokens": 75372, "output_tokens": 1815},
+    {"parent_session": "20260801_135506_bd99e9", "session": "20260801_135610_8f49da", "task_id": "pt_20260801T055603_9f847e4d", "api_calls": 6, "tool_calls": 18, "input_tokens": 80203, "output_tokens": 2963}
+  ],
+  "aggregate": {
+    "formal_samples": 30,
+    "primary_api_calls": 162,
+    "primary_tool_calls": 167,
+    "primary_meta_tool_calls": 68,
+    "primary_domain_tool_calls": 99,
+    "worker_api_calls": 44,
+    "worker_tool_calls": 89,
+    "end_to_end_api_calls": 206,
+    "end_to_end_tool_calls": 256,
+    "end_to_end_llm_plus_tool_calls": 462,
+    "average_end_to_end_llm_plus_tool_calls_per_sample": 15.4,
+    "max_end_to_end_llm_plus_tool_calls_in_one_sample": 68,
+    "samples_over_100_call_cap": 0,
+    "primary_input_tokens": 1840025,
+    "primary_output_tokens": 52749,
+    "worker_input_tokens": 521216,
+    "worker_output_tokens": 10489,
+    "end_to_end_input_tokens": 2361241,
+    "end_to_end_output_tokens": 63238,
+    "outcome_completion_passes": 28,
+    "correct_tool_and_parameter_path_passes": 21,
+    "retry_stop_safety_passes": 25,
+    "total_tool_budget_passes": 19,
+    "minimal_skill_and_tool_description_passes": 19
+  },
+  "score": {
+    "outcome_completion_rate_percent": 93.3,
+    "correct_tool_and_parameter_path_rate_percent": 70.0,
+    "retry_stop_safety_rate_percent": 83.3,
+    "total_tool_budget_pass_rate_percent": 63.3,
+    "minimal_skill_and_tool_description_rate_percent": 63.3,
+    "weights": {
+      "outcome_completion": 0.3,
+      "correct_tool_and_parameter_path": 0.25,
+      "retry_stop_safety": 0.2,
+      "total_tool_budget": 0.1,
+      "minimal_skill_and_tool_description": 0.15
+    },
+    "composite_efficiency_percent": 78.0,
+    "target_percent": 90.0,
+    "target_met": false,
+    "delta_to_target_points": -12.0,
+    "r4_single_sample_composite_percent": 84.2,
+    "delta_from_r4_points": -6.2
+  },
+  "excluded_transport_sessions": {
+    "reason": "The initial batch runner used RTK-compressed jq output, storing only the first 120 prompt characters. The exact prompt contract was not delivered, so these are setup/transport failures and are not scored.",
+    "count": 11,
+    "sessions": [
+      "20260801_132912_e00866",
+      "20260801_132939_920987",
+      "20260801_133012_18bec7",
+      "20260801_133049_2dbbb6",
+      "20260801_133155_ca0ca2",
+      "20260801_133223_1cb08a",
+      "20260801_133251_cc11be",
+      "20260801_133330_a8acc6",
+      "20260801_133419_cf61ee",
+      "20260801_133520_f88b78",
+      "20260801_133547_72cab9"
+    ],
+    "corrective_action": "Changed prompt extraction to rtk proxy jq -r and reran only transport-invalid, never-scored repetitions with verified full prompt lengths."
+  },
+  "conclusion": {
+    "target_met": false,
+    "primary_bottleneck": "task-main completion subject and native completion to card-first handoff transition",
+    "secondary_bottleneck": "project-steward repeatedly describes both known next tools and cannot meet a three-call budget",
+    "model_variance_evidence": "Coder and debugger each had one or two exploratory outliers despite deterministic exact-path instructions; reviewer was stable at 100 percent.",
+    "control_plane_evidence": "The semantic P0 architecture start gate worked in all five task-main samples, but completion reference binding still produced completion_subject_reference_invalid or completion_subject_missing in multiple samples.",
+    "recommended_next_scope": [
+      "Return a canonical current-completion semantic reference and the complete card-first closure schemas directly in native completion delivery.",
+      "Remove the need for task-main to call status after a wakeup-capable start; status should remain bounded recovery only.",
+      "Make project-steward routing self-sufficient for register_current_project then project_open without two tool_describe calls.",
+      "Keep model-led orchestration: provide explicit semantic state and next schemas, but do not add a global hard same-tool runtime latch."
+    ]
+  },
+  "limitations": [
+    "Five repetitions reduce single-run variance but still exercise only one fixed task class per profile.",
+    "The score measures this bounded AOTA tool-use contract, not general profile intelligence or all production workloads.",
+    "Hermes state.db token and call counters are authoritative for this report; provider-side billing totals were not independently reconciled."
+  ]
+}

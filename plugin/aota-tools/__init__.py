@@ -1,4 +1,4 @@
-"""AOTA Tools plugin for Hermes — P2 read-only narrow tools + P3 web/fetch + file copy + P4 task spec artifact + P5 profile task start + P6 profile task status + P7 profile task cancel + P8-D durable handoff + P10 operator inbox + PF-WI-05 Plan→SPEC traceability.
+"""AOTA Forge bounded control-plane tools for workspace, Plan/SPEC, Profile Task, handoff, and project lifecycle contracts.
 
 Provides:
   aota_core:          aota_runtime_info
@@ -7,7 +7,7 @@ Provides:
   aota_web_readonly:  aota_web_fetch
   aota_fs_copy:       aota_file_copy
   aota_task_spec:     aota_task_spec_create, aota_task_spec_update
-  aota_profile_task:  aota_profile_task_start, aota_profile_task_status, aota_profile_task_cancel, aota_profile_task_approve
+  aota_profile_task:  aota_profile_task_dispatch (P0 semantic facade), aota_profile_task_start (semantic frozen-SPEC reference plus legacy handler compatibility), aota_profile_task_status, aota_profile_task_cancel, aota_profile_task_approve
   aota_handoff:       aota_handoff_list, aota_handoff_open, aota_handoff_ack
   aota_orchestration: aota_orchestration_decision_record, aota_followup_task_create
   aota_operator:      aota_operator_inbox_list, aota_operator_inbox_open, aota_operator_consistency_check
@@ -73,6 +73,11 @@ from ._profile_task_start import (
     handle as _handle_profile_task_start,
     SCHEMA as _profile_task_start_schema,
     TOOL_NAME as _profile_task_start_name,
+)
+from ._profile_task_dispatch import (
+    handle as _handle_profile_task_dispatch,
+    SCHEMA as _profile_task_dispatch_schema,
+    TOOL_NAME as _profile_task_dispatch_name,
 )
 
 # P6 tools
@@ -232,6 +237,8 @@ from ._codegraph_rebuild import handle as _handle_codegraph_rebuild, SCHEMA as _
 from ._project_file_mutation import handle_read as _handle_project_file_read, handle_write as _handle_project_file_write, handle_patch as _handle_project_file_patch, READ_SCHEMA as _project_file_read_schema, WRITE_SCHEMA as _project_file_write_schema, PATCH_SCHEMA as _project_file_patch_schema, READ_TOOL_NAME as _project_file_read_name, WRITE_TOOL_NAME as _project_file_write_name, PATCH_TOOL_NAME as _project_file_patch_name, TOOLSET_NAME as TOOLSET_CODER_FILE_MUTATION
 from ._project_command_run import handle as _handle_project_command_run, SCHEMA as _project_command_run_schema, TOOL_NAME as _project_command_run_name, TOOLSET_NAME as TOOLSET_CODER_COMMAND
 from ._project_initializer import handle_initialize_core as _handle_project_initialize_core, INITIALIZE_SCHEMA as _project_initialize_schema, TOOL_NAME as _project_initialize_name
+from ._phase3_control_plane import PHASE3_SCHEMAS as _phase3_schemas, phase3_handler as _phase3_handler
+from ._phase4_control_plane import PHASE4_SCHEMAS as _phase4_schemas, phase4_handler as _phase4_handler
 
 PLUGIN_NAME = "aota-tools"
 
@@ -337,23 +344,23 @@ def register(ctx) -> None:
     ctx.register_tool(
         name=_path_info_name,
         toolset=TOOLSET_FS_READONLY,
-        schema=_path_info_schema,
-        handler=_handle_path_info,
-        description=_path_info_schema["description"],
+        schema=_phase4_schemas[_path_info_name],
+        handler=_phase4_handler(_path_info_name, _handle_path_info),
+        description=_phase4_schemas[_path_info_name]["description"],
     )
     ctx.register_tool(
         name=_read_file_name,
         toolset=TOOLSET_FS_READONLY,
-        schema=_read_file_schema,
-        handler=_handle_read_file,
-        description=_read_file_schema["description"],
+        schema=_phase4_schemas[_read_file_name],
+        handler=_phase4_handler(_read_file_name, _handle_read_file),
+        description=_phase4_schemas[_read_file_name]["description"],
     )
     ctx.register_tool(
         name=_search_name,
         toolset=TOOLSET_FS_READONLY,
-        schema=_search_schema,
-        handler=_handle_search,
-        description=_search_schema["description"],
+        schema=_phase4_schemas[_search_name],
+        handler=_phase4_handler(_search_name, _handle_search),
+        description=_phase4_schemas[_search_name]["description"],
     )
     # WebUI attachments are conversation context, not registered workspace files.
     ctx.register_tool(
@@ -374,25 +381,25 @@ def register(ctx) -> None:
     ctx.register_tool(
         name=_subject_task_artifact_open_name,
         toolset=_subject_task_artifact_open_toolset,
-        schema=_subject_task_artifact_open_schema,
-        handler=_handle_subject_task_artifact_open,
-        description=_subject_task_artifact_open_schema["description"],
+        schema=_phase3_schemas[_subject_task_artifact_open_name],
+        handler=_phase3_handler(_subject_task_artifact_open_name, _handle_subject_task_artifact_open),
+        description=_phase3_schemas[_subject_task_artifact_open_name]["description"],
     )
 
     # P2: aota_repo_readonly
     ctx.register_tool(
         name=_repo_status_name,
         toolset=TOOLSET_REPO_READONLY,
-        schema=_repo_status_schema,
-        handler=_handle_repo_status,
-        description=_repo_status_schema["description"],
+        schema=_phase4_schemas[_repo_status_name],
+        handler=_phase4_handler(_repo_status_name, _handle_repo_status),
+        description=_phase4_schemas[_repo_status_name]["description"],
     )
     ctx.register_tool(
         name=_repo_diff_name,
         toolset=TOOLSET_REPO_READONLY,
-        schema=_repo_diff_schema,
-        handler=_handle_repo_diff,
-        description=_repo_diff_schema["description"],
+        schema=_phase4_schemas[_repo_diff_name],
+        handler=_phase4_handler(_repo_diff_name, _handle_repo_diff),
+        description=_phase4_schemas[_repo_diff_name]["description"],
     )
 
     # P3: aota_web_readonly
@@ -408,9 +415,9 @@ def register(ctx) -> None:
     ctx.register_tool(
         name=_file_copy_name,
         toolset=TOOLSET_FS_COPY,
-        schema=_file_copy_schema,
-        handler=_handle_file_copy,
-        description=_file_copy_schema["description"],
+        schema=_phase4_schemas[_file_copy_name],
+        handler=_phase4_handler(_file_copy_name, _handle_file_copy),
+        description=_phase4_schemas[_file_copy_name]["description"],
     )
 
     # P4: aota_task_spec
@@ -438,6 +445,13 @@ def register(ctx) -> None:
 
     # P5: aota_profile_task
     ctx.register_tool(
+        name=_profile_task_dispatch_name,
+        toolset=TOOLSET_PROFILE_TASK,
+        schema=_profile_task_dispatch_schema,
+        handler=_handle_profile_task_dispatch,
+        description=_profile_task_dispatch_schema["description"],
+    )
+    ctx.register_tool(
         name=_profile_task_start_name,
         toolset=TOOLSET_PROFILE_TASK,
         schema=_profile_task_start_schema,
@@ -458,9 +472,9 @@ def register(ctx) -> None:
     ctx.register_tool(
         name=_profile_task_cancel_name,
         toolset=TOOLSET_PROFILE_TASK,
-        schema=_profile_task_cancel_schema,
-        handler=_handle_profile_task_cancel,
-        description=_profile_task_cancel_schema["description"],
+        schema=_phase4_schemas[_profile_task_cancel_name],
+        handler=_phase4_handler(_profile_task_cancel_name, _handle_profile_task_cancel),
+        description=_phase4_schemas[_profile_task_cancel_name]["description"],
     )
 
     # P8-C: aota_profile_task_approve (same toolset)
@@ -519,9 +533,9 @@ def register(ctx) -> None:
     ctx.register_tool(
         name=_project_steward_report_name,
         toolset=TOOLSET_PROJECT_STEWARD_ARTIFACT,
-        schema=_project_steward_report_schema,
-        handler=_handle_project_steward_report,
-        description=_project_steward_report_schema["description"],
+        schema=_phase3_schemas[_project_steward_report_name],
+        handler=_phase3_handler(_project_steward_report_name, _handle_project_steward_report),
+        description=_phase3_schemas[_project_steward_report_name]["description"],
     )
 
     # P8-D: aota_handoff
@@ -556,14 +570,15 @@ def register(ctx) -> None:
         description=_orchestration_decision_record_schema["description"],
     )
     ctx.register_tool(name=_workspace_selection_record_name, toolset=TOOLSET_ORCHESTRATION,
-                      schema=_workspace_selection_record_schema, handler=_handle_workspace_selection_record,
-                      description=_workspace_selection_record_schema["description"])
+                      schema=_phase3_schemas[_workspace_selection_record_name],
+                      handler=_phase3_handler(_workspace_selection_record_name, _handle_workspace_selection_record),
+                      description=_phase3_schemas[_workspace_selection_record_name]["description"])
     ctx.register_tool(
         name=_followup_task_create_name,
         toolset=TOOLSET_ORCHESTRATION,
-        schema=_followup_task_create_schema,
-        handler=_handle_followup_task_create,
-        description=_followup_task_create_schema["description"],
+        schema=_phase4_schemas[_followup_task_create_name],
+        handler=_phase4_handler(_followup_task_create_name, _handle_followup_task_create),
+        description=_phase4_schemas[_followup_task_create_name]["description"],
     )
 
     # P9: aota_orchestration (additional tools, same toolset)
@@ -591,9 +606,9 @@ def register(ctx) -> None:
     ctx.register_tool(
         name=_orchestration_lineage_name,
         toolset=TOOLSET_ORCHESTRATION,
-        schema=_orchestration_lineage_schema,
-        handler=_handle_orchestration_lineage,
-        description=_orchestration_lineage_schema["description"],
+        schema=_phase4_schemas[_orchestration_lineage_name],
+        handler=_phase4_handler(_orchestration_lineage_name, _handle_orchestration_lineage),
+        description=_phase4_schemas[_orchestration_lineage_name]["description"],
     )
 
     # PF-WI-02: aota_plan_read (registered but intentionally profile-disabled)
@@ -625,9 +640,9 @@ def register(ctx) -> None:
     ctx.register_tool(
         name=_work_classify_name,
         toolset=TOOLSET_WORK_INTAKE,
-        schema=_work_classify_schema,
-        handler=_handle_work_classify,
-        description=_work_classify_schema["description"],
+        schema=_phase4_schemas[_work_classify_name],
+        handler=_phase4_handler(_work_classify_name, _handle_work_classify),
+        description=_phase4_schemas[_work_classify_name]["description"],
     )
 
     # P10: aota_operator
@@ -648,49 +663,51 @@ def register(ctx) -> None:
     ctx.register_tool(
         name=_operator_consistency_check_name,
         toolset=TOOLSET_OPERATOR,
-        schema=_operator_consistency_check_schema,
-        handler=_handle_operator_consistency_check,
-        description=_operator_consistency_check_schema["description"],
+        schema=_phase4_schemas[_operator_consistency_check_name],
+        handler=_phase4_handler(_operator_consistency_check_name, _handle_operator_consistency_check),
+        description=_phase4_schemas[_operator_consistency_check_name]["description"],
     )
 
     for name, schema, handler in ((_workspace_list_name, _workspace_list_schema, _handle_workspace_list),
-                                  (_workspace_open_name, _workspace_open_schema, _handle_workspace_open)):
+                                  (_workspace_open_name, _phase3_schemas[_workspace_open_name], _phase3_handler(_workspace_open_name, _handle_workspace_open))):
         ctx.register_tool(name=name, toolset=TOOLSET_WORKSPACE_READONLY, schema=schema, handler=handler, description=schema["description"])
 
     # PCF-WI-01: project continuity read-only discovery/card projection.
     # Registry refresh is excluded because it writes projects.json.
     for name, schema, handler in (
-        (_project_scan_name, _project_scan_schema, _handle_project_scan),
-        (_project_search_name, _project_search_schema, _handle_project_search),
-        (_project_open_name, _project_open_schema, _handle_project_open),
-        (_project_registry_open_name, _project_registry_open_schema, _handle_project_registry_open),
-        (_project_relationship_name, _project_relationship_schema, _handle_project_relationship),
-        (_project_prepare_name, _project_prepare_schema, _handle_project_prepare),
+        (_project_scan_name, _phase3_schemas[_project_scan_name], _phase3_handler(_project_scan_name, _handle_project_scan)),
+        (_project_search_name, _phase3_schemas[_project_search_name], _phase3_handler(_project_search_name, _handle_project_search)),
+        (_project_open_name, _phase3_schemas[_project_open_name], _phase3_handler(_project_open_name, _handle_project_open)),
+        (_project_registry_open_name, _phase3_schemas[_project_registry_open_name], _phase3_handler(_project_registry_open_name, _handle_project_registry_open)),
+        (_project_relationship_name, _phase3_schemas[_project_relationship_name], _phase3_handler(_project_relationship_name, _handle_project_relationship)),
+        (_project_prepare_name, _phase3_schemas[_project_prepare_name], _phase3_handler(_project_prepare_name, _handle_project_prepare)),
     ):
         ctx.register_tool(name=name, toolset=TOOLSET_PROJECT_READONLY, schema=schema, handler=handler, description=schema["description"])
     for name, schema, handler in (
-        (_project_registry_refresh_name, _project_registry_refresh_schema, _handle_project_registry_refresh),
-        (_project_docs_update_name, _project_docs_update_schema, _handle_project_docs_update),
-        (_project_artifact_link_name, _project_artifact_link_schema, _handle_project_artifact_link),
-        (_project_initialize_name, _project_initialize_schema, _handle_project_initialize_core),
+        (_project_registry_refresh_name, _phase3_schemas[_project_registry_refresh_name], _phase3_handler(_project_registry_refresh_name, _handle_project_registry_refresh)),
+        (_project_docs_update_name, _phase3_schemas[_project_docs_update_name], _phase3_handler(_project_docs_update_name, _handle_project_docs_update)),
+        (_project_artifact_link_name, _phase3_schemas[_project_artifact_link_name], _phase3_handler(_project_artifact_link_name, _handle_project_artifact_link)),
+        (_project_initialize_name, _phase3_schemas[_project_initialize_name], _phase3_handler(_project_initialize_name, _handle_project_initialize_core)),
     ):
         ctx.register_tool(name=name, toolset=TOOLSET_PROJECT_STEWARD, schema=schema, handler=handler, description=schema["description"])
     # PCF-WI-08: the public CodeGraph surface is exactly status/query/explore/rebuild.
     for name, schema, handler in (
-        (_codegraph_status_name, _codegraph_status_schema, _handle_codegraph_status),
-        (_codegraph_query_name, _codegraph_query_schema, _handle_codegraph_query),
-        (_codegraph_explore_name, _codegraph_explore_schema, _handle_codegraph_explore),
+        (_codegraph_status_name, _phase3_schemas[_codegraph_status_name], _phase3_handler(_codegraph_status_name, _handle_codegraph_status)),
+        (_codegraph_query_name, _phase3_schemas[_codegraph_query_name], _phase3_handler(_codegraph_query_name, _handle_codegraph_query)),
+        (_codegraph_explore_name, _phase3_schemas[_codegraph_explore_name], _phase3_handler(_codegraph_explore_name, _handle_codegraph_explore)),
     ):
         ctx.register_tool(name=name, toolset=TOOLSET_CODEGRAPH_READONLY, schema=schema, handler=handler, description=schema["description"])
     ctx.register_tool(name=_codegraph_rebuild_name, toolset=TOOLSET_CODEGRAPH_REBUILD,
-                      schema=_codegraph_rebuild_schema, handler=_handle_codegraph_rebuild,
-                      description=_codegraph_rebuild_schema["description"])
+                      schema=_phase3_schemas[_codegraph_rebuild_name],
+                      handler=_phase3_handler(_codegraph_rebuild_name, _handle_codegraph_rebuild),
+                      description=_phase3_schemas[_codegraph_rebuild_name]["description"])
     for name, schema, handler in (
-        (_project_file_read_name, _project_file_read_schema, _handle_project_file_read),
-        (_project_file_write_name, _project_file_write_schema, _handle_project_file_write),
-        (_project_file_patch_name, _project_file_patch_schema, _handle_project_file_patch),
+        (_project_file_read_name, _phase3_schemas[_project_file_read_name], _phase3_handler(_project_file_read_name, _handle_project_file_read)),
+        (_project_file_write_name, _phase3_schemas[_project_file_write_name], _phase3_handler(_project_file_write_name, _handle_project_file_write)),
+        (_project_file_patch_name, _phase3_schemas[_project_file_patch_name], _phase3_handler(_project_file_patch_name, _handle_project_file_patch)),
     ):
         ctx.register_tool(name=name, toolset=TOOLSET_CODER_FILE_MUTATION, schema=schema, handler=handler, description=schema["description"])
     ctx.register_tool(name=_project_command_run_name, toolset=TOOLSET_CODER_COMMAND,
-                      schema=_project_command_run_schema, handler=_handle_project_command_run,
-                      description=_project_command_run_schema["description"])
+                      schema=_phase3_schemas[_project_command_run_name],
+                      handler=_phase3_handler(_project_command_run_name, _handle_project_command_run),
+                      description=_phase3_schemas[_project_command_run_name]["description"])

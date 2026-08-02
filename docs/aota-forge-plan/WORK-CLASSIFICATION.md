@@ -3,16 +3,21 @@
 ## Scope
 
 `aota_work_classify` is a source-level, deterministic decision-support tool in
-the `aota_work_intake` toolset. The toolset is registered but deliberately not
-enabled by any profile.
+the `aota_work_intake` toolset. After a complete successful result, the trusted
+task-main/coordinator host materializes that result as the session-scoped
+`current_work_classification` pointer in the existing `session-state` authority.
+The classifier still does not create a Plan, SPEC, task, or other durable
+administrative artifact.
 
 It accepts a registered `workspace_id`, bounded title and summary, and a strict
 intake-facts object. `workspace_id` is verified only; classifier code does not
 read workspace content, accept paths, scan files, or write artifacts.
 
 The classifier never creates or updates a Plan, Architect review, SPEC, task,
-handoff, Todo item, or runtime action. It has no LLM, network, clock,
-randomness, filesystem mutation, or profile-activation dependency.
+handoff, Todo item, or runtime action. Its session binding contains only the
+bounded P/A/path result and trusted identity/digest evidence; it excludes raw
+messages, reasoning, and secrets. Classification failure or needs-input never
+writes the binding.
 
 ## Independent axes
 
@@ -28,6 +33,12 @@ as P0/A2/deep. P2 does not imply A2: a large low-risk documentation migration
 can classify as P2/A0/standard. A2 always derives `deep`; `fast` requires
 P0/A0 plus local-or-none writes, non-runtime impact, no human checkpoint, and
 none/syntax/isolated validation.
+
+For a P0/A2 architecture task, `aota_task_spec_create` may consume the active
+classification pointer as the semantic `current_work_classification` subject.
+The control plane records its digest as an internal reference; task-main does
+not create a Plan or supply an artifact ID merely to make the Architect route
+addressable.
 
 ## Deterministic rules
 
@@ -88,8 +99,8 @@ workflow actions by task-main, not classifier side effects.
 ## Deferred work
 
 Canonical task-main source configuration now lists the classifier and Plan
-toolsets, but trusted-principal runtime integration, deployment,
-reload/restart, runtime profile activation, live worker, live Plan mutation,
-and live E2E verification remain deferred. Source registration/configuration is
-not runtime activation. The classifier itself remains independent of the
-optional task-spec traceability contract.
+toolsets. Runtime deployment, reload/restart, runtime profile activation, live
+worker, live Plan mutation, and live E2E verification remain deferred. Source
+registration/configuration is not runtime activation. SPEC creation consumes
+the active classification binding only after the durable SPEC and current-draft
+pointer both succeed; a failed create remains eligible for reclassification.

@@ -24,6 +24,12 @@ from ._orchestration_common import (
     validate_decision_id,
     validate_workspace_id,
 )
+from ._completion_subject_resolver import (
+    CompletionSubjectError,
+    _result_error,
+    resolve_current_completion_subject,
+    resolved_context,
+)
 
 TOOL_NAME = "aota_orchestration_decision_resume"
 TOOLSET_NAME = "aota_orchestration"
@@ -40,13 +46,9 @@ SCHEMA = {
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
+            "decision_ref": {
                 "type": "string",
-                "description": "Registered workspace identifier (e.g. 'aota-runtime')",
-            },
-            "decision_id": {
-                "type": "string",
-                "description": "Exact orchestration decision ID to resume",
+                "description": "Semantic selector; omit for the current awaiting-user decision.",
             },
             "user_input_summary": {
                 "type": "string",
@@ -66,7 +68,7 @@ SCHEMA = {
                 ),
             },
         },
-        "required": ["workspace_id", "decision_id", "user_input_summary", "followup_task_kind"],
+        "required": ["user_input_summary", "followup_task_kind"],
         "additionalProperties": False,
     },
 }
@@ -75,8 +77,31 @@ SCHEMA = {
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_orchestration_decision_resume tool invocation."""
     try:
+        if not {"workspace_id", "decision_id"} & set(args):
+            subject = resolve_current_completion_subject(
+                args,
+                _kwargs,
+                ref=args.get("decision_ref", "current_awaiting_user_decision"),
+                require_decision=True,
+            )
+            normalized = dict(args)
+            normalized.update({
+                "workspace_id": subject["workspace_id"],
+                "decision_id": subject["decision"]["decision_id"],
+            })
+            result = _do_resume(normalized)
+            result.update({
+                "operation_result": "decision_resumed",
+                "resolved_context": resolved_context(subject, selector=args.get("decision_ref", "current_awaiting_user_decision")),
+                "retryable": False,
+                "human_action_required": False,
+                "next_action": "continue_orchestration",
+            })
+            return json.dumps(result, sort_keys=True)
         result = _do_resume(args)
         return json.dumps(result, sort_keys=True)
+    except CompletionSubjectError as exc:
+        return json.dumps(_result_error(exc, operation="decision_resume"), sort_keys=True)
     except Exception as e:
         return json.dumps({"status": "error", "error": str(e)}, sort_keys=True)
 

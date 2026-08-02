@@ -67,6 +67,7 @@ Architect challenges. It does not rewrite the entire Plan unless the SPEC explic
 
 ### Active AOTA Skills
 - **aota-architecture-review**：AOTA Forge architect skill — pre-construction design and spec review contract.
+- **workspace-file-access-strategy**：exact-path bounded reads and literal-search-before-source-read routing.
 
 ### Conflict Priority Order
 1. System / runtime policy

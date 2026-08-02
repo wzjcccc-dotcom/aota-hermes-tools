@@ -306,7 +306,13 @@ def main() -> int:
         assert (reconcile_dir / f"completion.{reconcile_id}.json").is_file()
         marker("AOTA_STATUS_RECONCILIATION_FALLBACK_PASS")
         approval_result = json.loads(approve.handle({"workspace_id": "fixture", "task_id": reconcile_id, "expected_revision": 1, "expected_spec_sha256": spec_sha}))
-        assert approval_result["status"] == "rejected" and "approval_not_required" in approval_result["error"]
+        assert (
+            approval_result.get("status") == "not_required"
+            and approval_result.get("operation_result") == "approval_not_required"
+        ) or (
+            approval_result.get("status") == "rejected"
+            and "approval_not_required" in approval_result.get("error", "")
+        )
         assert task_common.HUMAN_CHECKPOINT_POLICY_MAP["diagnosis"].startswith("not_required")
         assert task_common.HUMAN_CHECKPOINT_POLICY_MAP["implementation"] == "required_before_start"
         marker("AOTA_APPROVAL_POLICY_ROUTING_PASS")

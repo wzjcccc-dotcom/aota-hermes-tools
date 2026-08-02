@@ -418,17 +418,16 @@ def case_j_legacy_skills_unaffected(contract, fixture: dict) -> None:
                 source_path.is_file(),
                 f"Case J: source for {skill} must still exist",
             )
-    # Verify coder active skills unchanged
+    # Bounded file routing is active for every profile; legacy role Skill stays active.
     coder_skills = set(str(s) for s in profiles["coder"].get("active_skills", []))
     _check(
-        coder_skills == {"aota-spec-driven-implementation"},
-        f"Case J: coder active_skills must be unchanged, got {coder_skills}",
+        coder_skills == {"aota-spec-driven-implementation", "workspace-file-access-strategy"},
+        f"Case J: coder active_skills must match bounded runtime assembly, got {coder_skills}",
     )
-    # Verify reviewer active skills unchanged
     reviewer_skills = set(str(s) for s in profiles["reviewer"].get("active_skills", []))
     _check(
-        reviewer_skills == {"aota-implementation-review"},
-        f"Case J: reviewer active_skills must be unchanged, got {reviewer_skills}",
+        reviewer_skills == {"aota-implementation-review", "workspace-file-access-strategy"},
+        f"Case J: reviewer active_skills must match bounded runtime assembly, got {reviewer_skills}",
     )
     print("CASE_J_PASS")
 
@@ -456,9 +455,11 @@ def check_assembly_reference_skills() -> None:
     """Verify the assembly declares reference_skills for task-main."""
     assembly = _load_yaml(ASSEMBLY_PATH)
     task_main = assembly.get("profiles", {}).get("task-main", {})
-    ref_skills = set(str(s) for s in task_main.get("reference_skills", []))
-    # All 5 new reference skills should be declared
-    expected_refs = {
+    routed_skills = set(str(s) for s in task_main.get("reference_skills", [])) | set(
+        str(s) for s in task_main.get("active_skills", [])
+    )
+    # All compact-routing Skills must be declared as active or exact-lookup references.
+    expected_routed = {
         "aota-canonical-spec-contract",
         "aota-canonical-spec-pitfalls",
         "aota-work-classify-and-plan-gate",
@@ -466,8 +467,8 @@ def check_assembly_reference_skills() -> None:
         "aota-multi-phase-doc-closure",
     }
     _check(
-        expected_refs.issubset(ref_skills),
-        f"Assembly: task-main reference_skills must include all 5 new references, got {ref_skills}",
+        expected_routed.issubset(routed_skills),
+        f"Assembly: task-main routed Skills must include all 5 contracts, got {routed_skills}",
     )
 
 
@@ -729,14 +730,20 @@ def check_wi1_development_skill_projection() -> None:
             f"WI1-H: {profile} must have {expected_skills}, got {active}",
         )
     coder_active_check = set(str(s) for s in profiles_data.get("coder", {}).get("active_skills", []))
-    _check(coder_active_check == {"aota-spec-driven-implementation"}, f"WI1-H: coder active_skills changed: {coder_active_check}")
+    _check(
+        coder_active_check == {
+            "aota-spec-driven-implementation",
+            "workspace-file-access-strategy",
+        },
+        f"WI1-H: coder active_skills changed: {coder_active_check}",
+    )
     print("WI1_H_PASS")
 
-    # WI1-I: tool count is plugin.yaml actual count, not hardcoded 59
+    # WI1-I: tool count is plugin.yaml actual count, not the historical 61
     plugin_yaml = _load_yaml(ROOT / "plugin" / "aota-tools" / "plugin.yaml")
     tools = plugin_yaml.get("provides_tools", [])
     actual_count = len(tools)
-    _check(actual_count == 61, f"WI1-I: tool count must be 61, got {actual_count}")
+    _check(actual_count == 62, f"WI1-I: tool count must be 62, got {actual_count}")
     _check(actual_count != 59, "WI1-I: must not use hardcoded 59")
     _check("aota_profile_task_status" in tools, "WI1-I: aota_profile_task_status must be in provides_tools")
     print("WI1_I_PASS")
@@ -802,7 +809,7 @@ def check_skill_tree_expansion_and_count_parity() -> None:
         asm_counts == pkg_counts,
         f"Count resolver mismatch: assembly={asm_counts}, package={pkg_counts}",
     )
-    _check(asm_counts["tools"] == 61, f"Canonical tools count must be 61, got {asm_counts['tools']}")
+    _check(asm_counts["tools"] == 62, f"Canonical tools count must be 62, got {asm_counts['tools']}")
     _check(asm_counts["toolsets"] == 28, f"Canonical toolsets count must be 28, got {asm_counts['toolsets']}")
     _check(asm_counts["profiles"] == 6, f"Canonical profiles count must be 6, got {asm_counts['profiles']}")
     _check(asm_counts["tools"] != 59, "Must detect old 59 baseline")

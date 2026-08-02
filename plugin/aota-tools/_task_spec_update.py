@@ -42,6 +42,9 @@ from ._task_spec_common import (
 )
 from ._spec_traceability import build_trusted_snapshot, validate_snapshot_for_freeze, validate_traceability_input
 from ._spec_contract import ContractError, canonical_hash, validate_spec
+from ._session_active_spec_binding import trusted_session_context
+from ._reference_resolver import ReferenceError, resolve_current_draft_spec
+from ._session_state_authority import SessionStateError, write_current_draft_spec_pointer
 
 TOOL_NAME = "aota_task_spec_update"
 TOOLSET_NAME = "aota_task_spec"
@@ -195,8 +198,11 @@ SCHEMA["parameters"]["properties"].update({
     "spec_id": {"type": "string", "description": "Canonical SPEC ID (for canonical update path). Replaces task_id for WI-09C SPECs."},
     "patch": {"type": "object", "description": "Closed canonical draft patch. Allowed keys: objective, summary, context_refs, related_artifacts, acceptance_criteria, constraints, forbidden_actions, expected_artifacts, capability_contract, payload, supersedes_spec_id. Immutable keys (schema_version, artifact_type, spec_id, project_id, work_item_id, created_at, created_by, resolved_profile, spec_hash, status, revision, frozen_at) are rejected with error."},
 })
-SCHEMA["description"] += " Canonical updates require spec_id, expected_revision, and closed patch."
-SCHEMA["parameters"]["required"] = ["workspace_id"]
+SCHEMA["description"] += " Canonical updates resolve the exact draft, revision, workspace and project from trusted current context. Legacy exact fields remain handler-only compatibility."
+for _field in ("workspace_id", "task_id", "spec_id", "expected_revision", "process_path", "validation_tier", "human_checkpoints", "freeze"):
+    SCHEMA["parameters"]["properties"].pop(_field, None)
+SCHEMA["parameters"]["properties"]["spec_ref"] = {"type": "string", "enum": ["current_draft_spec"], "description": "Bounded semantic reference to the unique current draft SPEC."}
+SCHEMA["parameters"]["required"] = ["patch"]
 
 
 # ---------------------------------------------------------------------------
@@ -205,20 +211,48 @@ SCHEMA["parameters"]["required"] = ["workspace_id"]
 
 def handle(args: dict, **_kwargs) -> str:
     try:
-        return _do_update(args)
+        trusted_context = None
+        semantic_call = "spec_ref" in args or ("patch" in args and not any(key in args for key in ("workspace_id", "spec_id", "task_id", "expected_revision")))
+        if semantic_call:
+            context = trusted_session_context(_kwargs)
+            trusted_context = context
+            if not context.workspace_id:
+                return json.dumps({"status": "rejected", "operation_result": "spec_update", "error": "trusted_session_context_missing", "retryable": False, "human_action_required": False, "next_action": "stop_and_report_runtime_context_missing"}, sort_keys=True)
+            args = {**args, **_resolve_current_draft(context.workspace_id, context, args.get("spec_ref", "current_draft_spec")), "workspace_id": context.workspace_id}
+        return _do_update(args, trusted_context=trusted_context)
     except WorkspaceError as e:
+        text = str(e)
+        code = text.split(":", 1)[0]
+        if code in {"current_draft_spec_missing", "reference_missing"}:
+            return json.dumps({"status": "rejected", "operation_result": "spec_update", "error": "current_draft_spec_missing", "retryable": False, "human_action_required": False, "next_action": "create_spec"}, sort_keys=True)
+        if code in {"reference_stale", "current_draft_spec_binding_stale"}:
+            return json.dumps({"status": "rejected", "operation_result": "spec_update", "error": "current_draft_spec_binding_stale", "retryable": False, "human_action_required": False, "next_action": "reconcile_session_state"}, sort_keys=True)
+        if code in {"binding_mismatch", "workspace_binding_mismatch", "current_draft_spec_binding_mismatch"}:
+            return json.dumps({"status": "rejected", "operation_result": "spec_update", "error": "current_draft_spec_binding_mismatch", "retryable": False, "human_action_required": False, "next_action": "stop_and_report_control_plane_inconsistency"}, sort_keys=True)
+        if code == "reference_consumed":
+            return json.dumps({"status": "rejected", "operation_result": "spec_update", "error": "current_draft_spec_consumed", "retryable": False, "human_action_required": False, "next_action": "create_spec"}, sort_keys=True)
         return json.dumps(
-            {"status": "rejected", "error": str(e)}, sort_keys=True
+            {"status": "rejected", "operation_result": "spec_update", "error": text, "retryable": False, "human_action_required": "ambiguous" in text, "next_action": "select_draft_spec" if "ambiguous" in text else ("refresh_current_subject" if "revision_conflict" in text else "stop_and_report_spec_update_failure")}, sort_keys=True
         )
     except Exception as e:
         return json.dumps(
-            {"status": "failed", "error": str(e)}, sort_keys=True
+            {"status": "failed", "operation_result": "spec_update", "error": str(e), "retryable": False, "human_action_required": False, "next_action": "stop_and_report_spec_update_failure"}, sort_keys=True
         )
 
 
-def _do_update(args: dict) -> str:
+def _resolve_current_draft(workspace_id: str, context, spec_ref: str) -> dict[str, object]:
+    if spec_ref != "current_draft_spec":
+        raise WorkspaceError("reference_invalid: unsupported_spec_ref")
+    try:
+        resolved = resolve_current_draft_spec(workspace_id, context)
+    except ReferenceError as exc:
+        raise WorkspaceError(f"{exc.code}: {exc.detail}") from exc
+    return {"spec_id": resolved["spec_id"], "expected_revision": resolved["revision"]}
+
+
+def _do_update(args: dict, *, trusted_context=None) -> str:
     if "patch" in args or "spec_id" in args:
-        return _do_update_contract(args)
+        return _do_update_contract(args, trusted_context=trusted_context)
     # ------------------------------------------------------------------
     # Extract params
     # ------------------------------------------------------------------
@@ -611,7 +645,7 @@ def _do_update(args: dict) -> str:
     )
 
 
-def _do_update_contract(args: dict) -> str:
+def _do_update_contract(args: dict, *, trusted_context=None) -> str:
     """Update one WI-09C draft with optimistic revision concurrency."""
     workspace_id = args.get("workspace_id", "")
     task_id = args.get("spec_id") or args.get("task_id", "")
@@ -654,7 +688,16 @@ def _do_update_contract(args: dict) -> str:
                      "spec_sha256": compute_sha256(spec_md), "frozen_revision": None})
         atomic_write(task_dir / "SPEC.md", spec_md)
         write_json(task_dir / "meta.json", meta)
-        return json.dumps({"status": "updated", "spec_id": task_id, "revision": spec["revision"], "spec_hash": None}, sort_keys=True)
+        result = {"status": "updated", "spec_id": task_id, "revision": spec["revision"], "spec_hash": None}
+        if trusted_context is not None and trusted_context.usable_for_active_spec:
+            try:
+                pointer, pointer_path = write_current_draft_spec_pointer(trusted_context, meta)
+                result["current_draft_binding"] = {"status": "written", "pointer_path": str(pointer_path), "artifact_digest": pointer["artifact_digest"]}
+                result["current_draft_ready"] = True
+            except SessionStateError as exc:
+                result["current_draft_binding"] = {"status": "failed", "error": exc.code, "detail": exc.detail, "retryable": False, "next_action": "stop_and_report_control_plane_inconsistency"}
+                result["current_draft_ready"] = False
+        return json.dumps(result, sort_keys=True)
     finally:
         release_lock(lock_fd)
 

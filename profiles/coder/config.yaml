@@ -38,6 +38,7 @@ toolsets:
   - aota_worker_outcome
   - aota_coder_artifact
   - aota_active_task_context
+  - skills-readonly
 platform_toolsets:
   api_server:
     - aota_core
@@ -50,6 +51,7 @@ platform_toolsets:
     - aota_worker_outcome
     - aota_coder_artifact
     - aota_active_task_context
+    - skills-readonly
   cli:
     - aota_core
     - aota_fs_readonly
@@ -61,6 +63,7 @@ platform_toolsets:
     - aota_worker_outcome
     - aota_coder_artifact
     - aota_active_task_context
+    - skills-readonly
 plugins:
   enabled:
     - aota-tools
@@ -94,6 +97,12 @@ memory:
 compression:
   enabled: false
 skills:
+  allowlist:
+    - aota-spec-driven-implementation
+    - workspace-file-access-strategy
+  reference_allowlist:
+    - aota-plugin-tool-development
+    - aota-skill-development
   disabled:
     - aota-evidence-first-debugging
     - aota-implementation-review
@@ -141,6 +150,15 @@ security:
 tool_loop_guardrails:
   warnings_enabled: true
   hard_stop_enabled: false
+tools:
+  tool_search:
+    # Coder's exact-file schema-probe route receives these two AOTA schemas
+    # directly. Other plugin tools remain progressively disclosed through the
+    # normal bridge, so implementation sessions do not receive the full
+    # plugin catalog eagerly.
+    always_visible_tools:
+      - aota_read_file
+      - aota_search_files
 tool_output:
   max_bytes: 50000
   max_lines: 2000

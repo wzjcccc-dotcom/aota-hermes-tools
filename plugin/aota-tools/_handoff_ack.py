@@ -16,6 +16,7 @@ from ._handoff_common import (
     acquire_handoff_lock,
     find_handoff_path,
     get_handoff_ack_dir,
+    get_ack_filename,
     get_handoff_filename,
     get_handoff_pending_dir,
     move_handoff_to_ack,
@@ -28,6 +29,22 @@ from ._handoff_common import (
     write_ack_artifact,
 )
 from ._orchestration_common import get_decision_dir, read_decision
+from ._completion_subject_resolver import (
+    CompletionSubjectError,
+    _result_error,
+    resolve_current_completion_subject,
+    resolved_context,
+)
+from ._session_active_spec_binding import trusted_session_context
+from ._session_state_authority import (
+    POINTER_KIND_ACTIVE_TASK,
+    POINTER_KIND_CURRENT_COMPLETION,
+    POINTER_KIND_CURRENT_DECISION,
+    POINTER_KIND_CURRENT_HANDOFF,
+    SessionStateError,
+    consume_pointer,
+)
+from ._next_tool_contract import attach_next_tool_option
 
 TOOL_NAME = "aota_handoff_ack"
 TOOLSET_NAME = "aota_handoff"
@@ -55,11 +72,13 @@ def utc_now_iso() -> str:
     return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _has_matching_decision(workspace_id: str, handoff_id: str, decision: str) -> bool:
-    """An ack records consumption of an already durable task-main decision."""
+def _matching_decision(
+    workspace_id: str, handoff_id: str, decision: str
+) -> dict[str, Any] | None:
+    """Return the exact durable task-main decision consumed by this ack."""
     directory = get_decision_dir(workspace_id)
     if not directory.is_dir():
-        return False
+        return None
     try:
         for path in directory.glob("DECISION.*.json"):
             try:
@@ -67,16 +86,55 @@ def _has_matching_decision(workspace_id: str, handoff_id: str, decision: str) ->
             except (OSError, json.JSONDecodeError):
                 continue
             if recorded.get("handoff_id") == handoff_id and recorded.get("decision") == decision:
-                return True
+                return recorded
     except OSError:
-        return False
-    return False
+        return None
+    return None
+
+
+def _closure_response(
+    *,
+    workspace_id: str,
+    handoff_id: str,
+    decision: str,
+    handoff_data: dict[str, Any],
+    decision_data: dict[str, Any] | None,
+    ack_data: dict[str, Any],
+    idempotent: bool,
+) -> dict[str, Any]:
+    """Build one bounded control-plane closure projection."""
+    receipt_ref = (
+        f"handoffs/{workspace_id}/acknowledged/{get_ack_filename(handoff_id)}"
+    )
+    return {
+        "status": "ok",
+        "handoff_id": handoff_id,
+        "workspace_id": workspace_id,
+        "decision": decision,
+        "ack_id": f"ack:{handoff_id}",
+        "task_id": ack_data.get("task_id") or handoff_data.get("task_id"),
+        "start_id": ack_data.get("start_id") or handoff_data.get("start_id"),
+        "decision_id": ack_data.get("decision_id") or (decision_data or {}).get("decision_id"),
+        "terminal_status": ack_data.get("terminal_status") or handoff_data.get("terminal_status"),
+        "terminal_outcome": ack_data.get("terminal_outcome") or handoff_data.get("outcome"),
+        "acknowledged_at": ack_data.get("acknowledged_at"),
+        "acknowledged": True,
+        "idempotent": idempotent,
+        "closure_state": ack_data.get("closure_state", "closed"),
+        "closure_receipt": receipt_ref,
+        "closure_receipt_ref": receipt_ref,
+        "closed_pointers": ack_data.get("closed_pointers", {}),
+        "closed_at": ack_data.get("closed_at") or ack_data.get("acknowledged_at"),
+        "next_action": "closure_complete",
+    }
 
 
 SCHEMA = {
     "name": TOOL_NAME,
     "description": (
-        "Acknowledge consumption of a durable handoff. "
+        "Acknowledge the current decided durable handoff. Canonical invocation is {}: "
+        "the control plane resolves handoff and decision identity from trusted "
+        "completion/session/artifact bindings. "
         "Moves the handoff from pending/ to acknowledged/ and creates an ack "
         "artifact alongside it. Atomic and idempotent for the same decision; "
         "rejects conflicting second ack. "
@@ -87,33 +145,9 @@ SCHEMA = {
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
+            "ack_ref": {
                 "type": "string",
-                "description": "Registered workspace identifier (e.g. 'aota-runtime')",
-            },
-            "handoff_id": {
-                "type": "string",
-                "description": "Exact handoff ID to acknowledge",
-            },
-            "decision": {
-                "type": "string",
-                "description": (
-                    "Orchestration decision for this handoff. "
-                    "accepted=task completed normally and result is satisfactory; "
-                    "needs_followup=minor issues need follow-up; "
-                    "needs_user_input=user intervention required before proceeding; "
-                    "review_required=formal review needed; "
-                    "reopen_required=task should be re-opened; "
-                    "no_action=handoff consumed but no further action needed"
-                ),
-                "enum": [
-                    "accepted",
-                    "needs_followup",
-                    "needs_user_input",
-                    "review_required",
-                    "reopen_required",
-                    "no_action",
-                ],
+                "description": "Semantic selector; omit for the current decided handoff.",
             },
             "note": {
                 "type": "string",
@@ -124,7 +158,7 @@ SCHEMA = {
                 "maxLength": _NOTE_MAX_LENGTH,
             },
         },
-        "required": ["workspace_id", "handoff_id", "decision"],
+        "required": [],
         "additionalProperties": False,
     },
 }
@@ -133,13 +167,66 @@ SCHEMA = {
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_handoff_ack tool invocation."""
     try:
-        result = _do_ack(args)
+        trusted_context = trusted_session_context(_kwargs)
+        if not {"workspace_id", "handoff_id", "decision"} & set(args):
+            subject = resolve_current_completion_subject(
+                args,
+                _kwargs,
+                ref=args.get("ack_ref", "current_decided_handoff"),
+                require_decision=True,
+            )
+            decision = subject["decision"].get("decision", "")
+            result = _do_ack(
+                {
+                    "workspace_id": subject["workspace_id"],
+                    "handoff_id": subject["handoff_id"],
+                    "decision": decision,
+                    "note": args.get("note"),
+                }
+                , trusted_context=trusted_context
+            )
+            result.update(
+                {
+                    "operation_result": "handoff_acknowledged"
+                    if result.get("acknowledged")
+                    else "handoff_ack_failed",
+                    "resolved_context": resolved_context(
+                        subject, selector=args.get("ack_ref", "current_decided_handoff")
+                    ),
+                    "next_action": "closure_complete"
+                    if result.get("acknowledged") and result.get("closure_state") == "closed"
+                    else "read_terminal_closure"
+                    if result.get("acknowledged")
+                    else "stop_and_report_ack_failure",
+                    "retryable": False,
+                    "human_action_required": False,
+                }
+            )
+            if result.get("acknowledged") and result.get("closure_state") == "closed":
+                result["flow_disposition"] = "complete"
+            elif result.get("acknowledged"):
+                from ._profile_task_status import SCHEMA as profile_task_status_schema
+
+                attach_next_tool_option(
+                    result,
+                    profile_task_status_schema,
+                    arguments={"view": "closure"},
+                    include=("view",),
+                    reason="The handoff is acknowledged; read one aggregated terminal closure projection.",
+                )
+                result["flow_disposition"] = "continue"
+            else:
+                result["flow_disposition"] = "stop"
+            return json.dumps(result, sort_keys=True)
+        result = _do_ack(args, trusted_context=trusted_context)
         return json.dumps(result, sort_keys=True)
+    except CompletionSubjectError as exc:
+        return json.dumps(_result_error(exc, operation="handoff_ack"), sort_keys=True)
     except Exception as e:
         return json.dumps({"status": "error", "error": str(e)}, sort_keys=True)
 
 
-def _do_ack(args: dict) -> dict[str, Any]:
+def _do_ack(args: dict, *, trusted_context=None) -> dict[str, Any]:
     """Core ack logic: validate, lock, move, write ack."""
     workspace_id: str = args.get("workspace_id", "")
     handoff_id: str = args.get("handoff_id", "")
@@ -178,7 +265,8 @@ def _do_ack(args: dict) -> dict[str, Any]:
             "error": f"handoff not found: {handoff_id}",
         }
 
-    if not _has_matching_decision(workspace_id, handoff_id, decision):
+    decision_data = _matching_decision(workspace_id, handoff_id, decision)
+    if decision_data is None:
         return {
             "status": "error",
             "error": "decision_required_before_ack",
@@ -193,16 +281,19 @@ def _do_ack(args: dict) -> dict[str, Any]:
         if existing_ack is not None:
             existing_decision = existing_ack.get("decision", "")
             if existing_decision == decision:
-                # Idempotent: same decision repeated → OK
-                return {
-                    "status": "ok",
-                    "handoff_id": handoff_id,
-                    "workspace_id": workspace_id,
-                    "decision": decision,
-                    "previous_decision": existing_decision,
-                    "acknowledged": True,
-                    "idempotent": True,
-                }
+                # A fully closed receipt is idempotent.  A receipt that was
+                # durably acknowledged but not yet projected must continue
+                # through pointer closure rather than falsely returning done.
+                if existing_ack.get("closure_state", "closed") == "closed":
+                    return _closure_response(
+                        workspace_id=workspace_id,
+                        handoff_id=handoff_id,
+                        decision=decision,
+                        handoff_data=read_handoff(handoff_path),
+                        decision_data=decision_data,
+                        ack_data=existing_ack,
+                        idempotent=True,
+                    )
             else:
                 # Conflicting decision → reject
                 return {
@@ -229,7 +320,8 @@ def _do_ack(args: dict) -> dict[str, Any]:
 
     try:
         # --- Double-check under lock ---
-        # Re-read handoff data
+        # Re-read handoff data.  Ack evidence is written before the handoff is
+        # moved and before any session-state pointer is consumed.
         if pending_path.exists():
             try:
                 handoff_data = read_handoff(pending_path)
@@ -244,30 +336,29 @@ def _do_ack(args: dict) -> dict[str, Any]:
                     "status": "error",
                     "error": "workspace_id mismatch in handoff data",
                 }
-
-            # Move handoff from pending/ to acknowledged/
-            moved_path = move_handoff_to_ack(workspace_id, handoff_id)
-            if moved_path is None:
-                return {
-                    "status": "error",
-                    "error": f"handoff {handoff_id} not found in pending directory",
-                }
+        else:
+            try:
+                handoff_data = read_handoff(ack_dir / get_handoff_filename(handoff_id))
+            except (OSError, json.JSONDecodeError) as e:
+                return {"status": "error", "error": f"failed to read handoff: {str(e)}"}
 
         # Check ack artifact again under lock
         existing_ack = read_ack_artifact(workspace_id, handoff_id)
         if existing_ack is not None:
             existing_decision = existing_ack.get("decision", "")
             if existing_decision == decision:
-                # Idempotent — handoff was moved by another caller
-                return {
-                    "status": "ok",
-                    "handoff_id": handoff_id,
-                    "workspace_id": workspace_id,
-                    "decision": decision,
-                    "previous_decision": existing_decision,
-                    "acknowledged": True,
-                    "idempotent": True,
-                }
+                if existing_ack.get("closure_state", "closed") == "closed":
+                    # Idempotent — the complete closure was written by
+                    # another caller.
+                    return _closure_response(
+                        workspace_id=workspace_id,
+                        handoff_id=handoff_id,
+                        decision=decision,
+                        handoff_data=handoff_data,
+                        decision_data=decision_data,
+                        ack_data=existing_ack,
+                        idempotent=True,
+                    )
             else:
                 return {
                     "status": "error",
@@ -280,14 +371,36 @@ def _do_ack(args: dict) -> dict[str, Any]:
                 }
 
         # Write ack artifact
-        acknowledged_at = utc_now_iso()
+        acknowledged_at = (existing_ack or {}).get("acknowledged_at") or utc_now_iso()
         write_ack_artifact(
             workspace_id=workspace_id,
             handoff_id=handoff_id,
             decision=decision,
-            note=note,
+            note=note if note is not None else (existing_ack or {}).get("note"),
             acknowledged_at=acknowledged_at,
+            task_id=handoff_data.get("task_id", ""),
+            start_id=handoff_data.get("start_id", ""),
+            decision_id=(decision_data or {}).get("decision_id", ""),
+            terminal_status=handoff_data.get("terminal_status", ""),
+            terminal_outcome=handoff_data.get("outcome", ""),
+            project_id=handoff_data.get("project_id", ""),
+            origin_session_id=handoff_data.get("origin_session_id", ""),
+            receipt_ref=handoff_data.get("receipt_ref", ""),
+            closure_state="acknowledged",
+            closure_history=(existing_ack or {}).get("closure_history", []),
         )
+
+        # Only after the durable ack evidence exists may the visible handoff
+        # move to acknowledged/.  A failed move leaves the evidence durable
+        # and the current pointers untouched for deterministic retry.
+        if pending_path.exists() and move_handoff_to_ack(workspace_id, handoff_id) is None:
+            return {
+                "status": "error",
+                "error": f"handoff {handoff_id} not found in pending directory",
+                "acknowledged": False,
+                "closure_state": "acknowledged",
+                "retryable": True,
+            }
 
     finally:
         if lock_fd is not None:
@@ -318,12 +431,77 @@ def _do_ack(args: dict) -> dict[str, Any]:
         except (OSError, json.JSONDecodeError):
             pass
 
-    return {
-        "status": "ok",
+    session_state_closure: dict[str, Any] = {"status": "not_attempted", "pointers": {}}
+    if trusted_context is not None and trusted_context.usable_for_active_spec:
+        project_id = handoff_data.get("project_id")
+        closure = {}
+        for kind in (
+            POINTER_KIND_CURRENT_HANDOFF,
+            POINTER_KIND_CURRENT_DECISION,
+            POINTER_KIND_CURRENT_COMPLETION,
+            POINTER_KIND_ACTIVE_TASK,
+        ):
+            try:
+                closure[kind] = "closed" if consume_pointer(
+                    kind, workspace_id, project_id, trusted_context.session_id,
+                    consumed_at=acknowledged_at,
+                ).get("state") == "consumed" else "unchanged"
+            except SessionStateError as exc:
+                if exc.code == "session_state_pointer_missing":
+                    closure[kind] = "missing"
+                else:
+                    closure[kind] = {"status": "failed", "error": exc.code, "detail": exc.detail}
+        session_state_closure = {"status": "closed", "pointers": closure}
+
+    # Persist the final pointer projection as an append-only closure history on
+    # the same durable ack record.  The first write above is the ordering gate;
+    # this second atomic write makes post-ack status self-describing.
+    final_ack = read_ack_artifact(workspace_id, handoff_id) or {
         "handoff_id": handoff_id,
         "workspace_id": workspace_id,
         "decision": decision,
         "acknowledged_at": acknowledged_at,
-        "acknowledged": True,
-        "idempotent": False,
     }
+    final_ack["closure_state"] = "closed"
+    final_ack["closed_at"] = acknowledged_at
+    final_ack["closed_pointers"] = session_state_closure.get("pointers", {})
+    history = final_ack.get("closure_history")
+    if not isinstance(history, list):
+        history = []
+    history.append({"state": "closed", "at": acknowledged_at})
+    final_ack["closure_history"] = history
+    final_ack["closure_receipt_ref"] = (
+        f"handoffs/{workspace_id}/acknowledged/{get_ack_filename(handoff_id)}"
+    )
+    # Reuse the existing atomic writer contract and preserve all trusted fields.
+    write_ack_artifact(
+        workspace_id=workspace_id,
+        handoff_id=handoff_id,
+        decision=decision,
+        note=final_ack.get("note"),
+        acknowledged_at=final_ack.get("acknowledged_at", acknowledged_at),
+        task_id=final_ack.get("task_id", handoff_data.get("task_id", "")),
+        start_id=final_ack.get("start_id", handoff_data.get("start_id", "")),
+        decision_id=final_ack.get("decision_id", (decision_data or {}).get("decision_id", "")),
+        terminal_status=final_ack.get("terminal_status", handoff_data.get("terminal_status", "")),
+        terminal_outcome=final_ack.get("terminal_outcome", handoff_data.get("outcome", "")),
+        project_id=final_ack.get("project_id", handoff_data.get("project_id", "")),
+        origin_session_id=final_ack.get("origin_session_id", handoff_data.get("origin_session_id", "")),
+        receipt_ref=final_ack.get("receipt_ref", handoff_data.get("receipt_ref", "")),
+        closure_receipt_ref=final_ack.get("closure_receipt_ref", ""),
+        closure_state="closed",
+        closed_at=acknowledged_at,
+        closed_pointers=session_state_closure.get("pointers", {}),
+        closure_history=final_ack.get("closure_history", []),
+    )
+    response = _closure_response(
+        workspace_id=workspace_id,
+        handoff_id=handoff_id,
+        decision=decision,
+        handoff_data=handoff_data,
+        decision_data=decision_data,
+        ack_data={**final_ack, "closure_state": "closed", "closed_at": acknowledged_at},
+        idempotent=False,
+    )
+    response["session_state_closure"] = session_state_closure
+    return response

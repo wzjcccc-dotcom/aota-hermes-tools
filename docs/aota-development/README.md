@@ -36,6 +36,15 @@ parity is never proof that an importing process reloaded.
 
 `AOTA_DEVELOPMENT_DOC_INDEX_PASS`
 
+## Current efficiency validation record
+
+For the latest task-main/Profile routing, coder schema-probe projection, native
+completion, deployment/reload, and 30-sample evidence, see
+[`AOTA-PROFILE-EFFICIENCY-MODIFICATION-HISTORY-20260802.md`](AOTA-PROFILE-EFFICIENCY-MODIFICATION-HISTORY-20260802.md).
+
+The repeatable runner is
+[`skills/aota-profile-efficiency-rerun/SKILL.md`](../../skills/aota-profile-efficiency-rerun/SKILL.md).
+
 For worker task context, use `aota_active_task_artifact_open` first for the
 own SPEC, SCOPE, and BINDING. Do not inject the full frozen SPEC into the child
 prompt, expose generic `/aota-runtime` filesystem access, or use a terminal

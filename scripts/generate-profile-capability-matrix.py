@@ -52,6 +52,10 @@ PROFILE_NAMES = [
     "project-steward",
 ]
 
+# Hermes-native toolsets projected by Profile config are outside the AOTA
+# lifecycle inventory and must not be reported as undeclared AOTA toolsets.
+HERMES_PLATFORM_TOOLSETS = frozenset({"skills-readonly"})
+
 HEADER_TEXT = (
     "此檔案由 scripts/generate-profile-capability-matrix.py 自動生成，不可手動編輯。"
     "Source authority 為 deploy/profile-runtime-assembly.yaml, "
@@ -99,7 +103,7 @@ def load_assembly() -> dict[str, dict[str, Any]]:
 # ── Source 2: profiles/<profile>/config.yaml ──────────────────────────────
 
 def load_profile_config(profile_name: str) -> dict[str, Any]:
-    """Return {toolsets, disabled_toolsets, disabled_skills} for one profile."""
+    """Return model-visible tool/Skill configuration for one profile."""
     config_path = PROFILES_DIR / profile_name / "config.yaml"
     raw = _load_yaml(config_path)
     agent = raw.get("agent", {})
@@ -108,11 +112,15 @@ def load_profile_config(profile_name: str) -> dict[str, Any]:
     toolsets: list[str] = raw.get("toolsets", [])
     disabled_toolsets: list[str] = agent.get("disabled_toolsets", [])
     disabled_skills: list[str] = skills.get("disabled", [])
+    skill_allowlist: list[str] = skills.get("allowlist", [])
+    skill_reference_allowlist: list[str] = skills.get("reference_allowlist", [])
 
     return {
         "toolsets": _sorted_list(toolsets),
         "disabled_toolsets": _sorted_list(disabled_toolsets),
         "disabled_skills": _sorted_list(disabled_skills),
+        "skill_allowlist": _sorted_list(skill_allowlist),
+        "skill_reference_allowlist": _sorted_list(skill_reference_allowlist),
     }
 
 
@@ -233,7 +241,7 @@ def compute_mismatches(
     """Return a list of mismatch descriptions (empty = no mismatch)."""
     mismatches: list[str] = []
 
-    declared_ts = set(config["toolsets"])
+    declared_ts = set(config["toolsets"]) - HERMES_PLATFORM_TOOLSETS
     runtime_ts = set(runtime_toolsets)
 
     # 1. Toolsets declared in config but NOT visible per lifecycle inventory
@@ -268,6 +276,25 @@ def compute_mismatches(
         mismatches.append(
             f"skills owned per lifecycle inventory but NOT in assembly active/reference: "
             f"{_sorted_list(list(inventory_not_in_assembly))}"
+        )
+
+    # 5. Active Skills are prompt-visible; reference Skills remain available
+    # only to exact skill_view lookups. Both config lists must match assembly.
+    configured_allowlist = set(config["skill_allowlist"])
+    configured_reference_allowlist = set(config["skill_reference_allowlist"])
+    expected_active = set(assembly["active_skills"])
+    expected_references = set(assembly["reference_skills"])
+    if configured_allowlist != expected_active:
+        mismatches.append(
+            "profile active Skill allowlist does not exactly match assembly active: "
+            f"expected={_sorted_list(list(expected_active))}, "
+            f"actual={_sorted_list(list(configured_allowlist))}"
+        )
+    if configured_reference_allowlist != expected_references:
+        mismatches.append(
+            "profile reference Skill allowlist does not exactly match assembly reference: "
+            f"expected={_sorted_list(list(expected_references))}, "
+            f"actual={_sorted_list(list(configured_reference_allowlist))}"
         )
 
     # 5. Tool count for this profile vs plugin provides_tools
@@ -329,6 +356,12 @@ def generate() -> dict[str, Any]:
             "active_skills": prof_assembly["active_skills"],
             "reference_skills": prof_assembly["reference_skills"],
             "disabled_skills": prof_config["disabled_skills"],
+            "skill_allowlist": prof_config["skill_allowlist"],
+            "skill_reference_allowlist": prof_config["skill_reference_allowlist"],
+            "expected_model_visible_skills": prof_assembly["active_skills"],
+            "expected_exact_lookup_skills": _sorted_list(
+                list(set(prof_assembly["active_skills"]) | set(prof_assembly["reference_skills"]))
+            ),
             "expected_projection_paths": projection_paths,
             "inventory_ownership": inventory_ownership,
             "mismatches": mismatches,

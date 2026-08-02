@@ -18,8 +18,10 @@ import os
 import re
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Optional
 
 # ---------------------------------------------------------------------------
@@ -56,10 +58,59 @@ _ROLE_RESULT_NAMES = {
     "project-steward": "STEWARD_RESULT.md",
 }
 _LIST_SEPARATOR = ";"
+_REGISTERED_MODULE_COMPLETE = "_aota_registered_module_complete"
+_SESSION_STATE_AUTHORITY_MODULE_NAME = "aota_tools._session_state_authority_finalizer"
+_REGISTERED_MODULE_LOCK = threading.RLock()
 
 # ---------------------------------------------------------------------------
 # Validation helpers  (stdlib-only, usable standalone)
 # ---------------------------------------------------------------------------
+
+
+def _load_module_from_path_registered(module_name: str, path: Path) -> Any:
+    with _REGISTERED_MODULE_LOCK:
+        return _load_module_from_path_registered_unlocked(module_name, path)
+
+
+def _load_module_from_path_registered_unlocked(module_name: str, path: Path) -> Any:
+    """Load one deterministic module name under the import registration contract."""
+    module_path = path.resolve()
+    spec = importlib.util.spec_from_file_location(module_name, str(module_path))
+    if not spec or not spec.loader:
+        raise ImportError(f"cannot load module: {module_name}")
+
+    prior = sys.modules.get(spec.name)
+    if prior is not None:
+        prior_path = getattr(prior, "__file__", None)
+        if (
+            prior_path
+            and Path(prior_path).resolve() == module_path
+            and getattr(prior, _REGISTERED_MODULE_COMPLETE, False)
+        ):
+            return prior
+        raise ImportError(f"module name already registered: {spec.name}")
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        if sys.modules.get(spec.name) is module:
+            sys.modules.pop(spec.name, None)
+        raise
+    setattr(module, _REGISTERED_MODULE_COMPLETE, True)
+    return module
+
+
+def _projection_failure(stage: str, exc: BaseException, **evidence: Any) -> dict[str, Any]:
+    return {
+        "status": "failed",
+        "failure_stage": stage,
+        "exception_type": type(exc).__name__,
+        "exception_message": str(exc)[:300],
+        "retryable": False,
+        **evidence,
+    }
 
 
 def _validate_task_id(task_id: str) -> Optional[str]:
@@ -112,6 +163,25 @@ def _validate_profile(profile: str) -> Optional[str]:
     if len(profile) > 128:
         return "profile exceeds 128 characters"
     return None
+
+
+def _legacy_delivery_outbox_required(meta: dict[str, Any]) -> bool:
+    """Keep outbox writes only for already-started legacy executions.
+
+    New starts are terminal-background-only.  This compatibility predicate
+    lets an in-flight task created by an older runtime finish consistently
+    without making the retired WebUI/outbox rail part of the native path.
+    """
+    execution = meta.get("execution")
+    if not isinstance(execution, dict):
+        return False
+    completion_transport = execution.get(
+        "completion_transport", execution.get("transport", "")
+    )
+    return bool(
+        completion_transport == "legacy_durable_delivery"
+        and execution.get("completion_delivery_expected") is True
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -192,6 +262,81 @@ def _completion_pointers(
         if marker_path.is_file() and not marker_path.is_symlink():
             handoff_pointer = f"{workspace_id}/{task_id}/{marker_name}"
     return result_pointer, handoff_pointer
+
+
+def _write_session_state_pointers(
+    *, workspace_id: str, task_id: str, start_id: str, profile: str,
+    meta: dict[str, Any], task_dir: Path, handoff_id: str | None,
+    terminal_status: str, completed_at: str,
+) -> dict[str, Any]:
+    """Project terminal lifecycle into the originating trusted session.
+
+    The finalizer is launched from the control plane.  Its durable task meta
+    carries the already-validated parent session binding captured at start;
+    no model-provided id is consulted here.
+    """
+    origin = (
+        meta.get("origin_session_id")
+        or meta.get("parent_session_ref")
+        or (meta.get("execution") or {}).get("parent_session_ref")
+    )
+    if not origin:
+        return {
+            "status": "failed",
+            "failure_stage": "trusted_session_context",
+            "error": "trusted_session_context_missing",
+            "retryable": False,
+        }
+    authority_path = Path(__file__).resolve().parent / "_session_state_authority.py"
+    try:
+        authority = _load_module_from_path_registered(
+            _SESSION_STATE_AUTHORITY_MODULE_NAME, authority_path
+        )
+    except BaseException as exc:
+        return _projection_failure("authority_module_load", exc)
+
+    context = SimpleNamespace(
+        session_id=origin, principal="task-main", profile="task-main",
+        workspace_id=workspace_id, worker_context=False,
+    )
+    receipt_name = f"completion.{start_id}.json"
+    subject = {
+        "workspace_id": workspace_id, "project_id": meta.get("project_id"),
+        "task_id": task_id, "start_id": start_id, "handoff_id": handoff_id,
+        "spec_revision": meta.get("revision") or (meta.get("execution") or {}).get("spec_revision"),
+        "spec_hash": meta.get("spec_hash") or (meta.get("execution") or {}).get("spec_hash"),
+        "spec_sha256": meta.get("spec_sha256") or (meta.get("execution") or {}).get("spec_sha256"),
+        "profile": profile, "terminal_status": terminal_status,
+        "outcome": (meta.get("execution") or {}).get("outcome") or terminal_status,
+        "completed_at": completed_at, "receipt_ref": f"{workspace_id}/{task_id}/{receipt_name}",
+        "card_ref": f"{workspace_id}/{task_id}/{_ROLE_RESULT_NAMES.get(profile, 'RESULT.md')}",
+        "full_report_ref": f"{workspace_id}/{task_id}/COMPLETION.md",
+        "origin_session_id": origin,
+    }
+    task_meta = dict(meta)
+    task_meta["execution"] = dict(meta.get("execution") or {})
+    task_meta["execution"]["outcome"] = subject["outcome"]
+    completed_steps: dict[str, str] = {}
+    try:
+        active, active_path = authority.write_active_task_pointer(
+            context, task_meta, start_id=start_id, state="terminal"
+        )
+        completed_steps["active_task_terminal"] = str(active_path)
+        completion, completion_path = authority.write_current_completion_pointer(context, subject)
+        completed_steps["current_completion_written"] = str(completion_path)
+        handoff, handoff_path = authority.write_current_handoff_pointer(context, subject)
+        completed_steps["current_handoff_written"] = str(handoff_path)
+        completed, completed_path = authority.write_current_completed_task_pointer(context, subject)
+        completed_steps["current_completed_task_written"] = str(completed_path)
+        return {
+            "status": "written", "current_completion": str(completion_path),
+            "current_handoff": str(handoff_path), "current_completed_task": str(completed_path),
+            "artifact_digest": completion["artifact_digest"],
+            "active_task_terminal": True, "current_completion_written": True,
+            "current_handoff_written": True, "completion_subject_ready": True,
+        }
+    except BaseException as exc:
+        return _projection_failure("pointer_projection", exc, completed_steps=completed_steps)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -349,6 +494,12 @@ def run_finalize(
         binding_meta = _read_json(task_dir / "meta.json")
     except (OSError, json.JSONDecodeError):
         binding_meta = {}
+    meta_execution = binding_meta.get("execution") if isinstance(binding_meta.get("execution"), dict) else {}
+    completion_transport = (
+        meta_execution.get("completion_transport")
+        or meta_execution.get("transport")
+        or "terminal_background"
+    )
     canonical_spec_hash = spec_hash or binding_meta.get("spec_hash") or spec_sha256
     if not isinstance(canonical_spec_hash, str) or len(canonical_spec_hash) != 64:
         print(f"ERROR: invalid canonical spec_hash: {canonical_spec_hash!r}", file=sys.stderr)
@@ -428,7 +579,7 @@ def run_finalize(
         "outcome": outcome,
         "status": "needs_input" if outcome in {"needs_input", "partial"} else ("done" if exit_code == 0 and outcome == "completed" else "failed"),
         "completed_at": completed_at,
-        "transport": "terminal_background",
+        "transport": completion_transport,
         "failure_stage": failure_stage or None,
         "error_classification": error_classification or (
             "worker_failed" if exit_code != 0 and not failure_stage else failure_stage or None
@@ -899,54 +1050,77 @@ def run_finalize(
                     task_dir=task_dir,
                     handoff_id=handoff_id_for_outbox,
                 )
-
-                # ------------------------------------------------------------------
-                # P11-L.1B: Produce delivery outbox event AFTER terminal state +
-                # handoff are both durable.  Best-effort — failure does NOT revert
-                # terminal state or handoff.
-                # ------------------------------------------------------------------
-                try:
-                    # Load _delivery_outbox via importlib (standalone CLI compat)
-                    _outbox_mod_path = (
-                        Path(__file__).resolve().parent / "_delivery_outbox.py"
-                    )
-                    _ob_spec = importlib.util.spec_from_file_location(
-                        "_delivery_outbox", str(_outbox_mod_path)
-                    )
-                    if _ob_spec and _ob_spec.loader:
-                        _ob_mod = importlib.util.module_from_spec(_ob_spec)
-                        _ob_spec.loader.exec_module(_ob_mod)
-                        _origin_sid: str | None = meta.get("origin_session_id")
-                        _ob_mod.write_outbox_event(
-                            workspace_id=workspace_id,
-                            task_id=task_id,
-                            start_id=start_id,
-                            profile=profile,
-                            terminal_status=new_status,
-                            handoff_id=handoff_id_for_outbox,
-                            origin_session_id=_origin_sid,
-                            needs_input_reason=needs_input_reason,
-                            completed_at=completed_at,
-                            parent_profile=(
-                                meta.get("parent_profile")
-                                or meta.get("execution", {}).get("parent_profile")
-                                or ""
-                            ),
-                            parent_session_ref=(
-                                meta.get("parent_session_ref")
-                                or meta.get("execution", {}).get("parent_session_ref")
-                                or _origin_sid
-                                or ""
-                            ),
-                            result_pointer=_result_pointer,
-                            handoff_pointer=_handoff_pointer,
-                        )
-                except Exception as e:
-                    # Outbox failure is non-fatal — task state is already durable.
+                _session_state_result = _write_session_state_pointers(
+                    workspace_id=workspace_id, task_id=task_id, start_id=start_id,
+                    profile=profile, meta=new_meta, task_dir=task_dir,
+                    handoff_id=handoff_id_for_outbox, terminal_status=new_status,
+                    completed_at=completed_at,
+                )
+                if _session_state_result.get("status") != "written":
                     print(
-                        f"OUTBOX_EVENT_FAILED: {e}",
+                        "SESSION_STATE_PROJECTION_FAILED "
+                        f"failure_stage={_session_state_result.get('failure_stage', 'unknown')} "
+                        f"exception_type={_session_state_result.get('exception_type', 'none')} "
+                        f"exception_message={json.dumps(_session_state_result.get('exception_message', _session_state_result.get('error', '')), ensure_ascii=False)} "
+                        "retryable=false "
+                        f"worker_exit_code={exit_code} session_state_projection=failed "
+                        "overall_completion_delivery=failed evidence="
+                        + json.dumps(_session_state_result, sort_keys=True),
                         file=sys.stderr,
                     )
+
+                # ------------------------------------------------------------------
+                # Historical compatibility only: an execution that was already
+                # started on the retired legacy rail may finish its outbox write.
+                # Native terminal_background completion is owned by Hermes
+                # ProcessRegistry and never emits a WebUI/outbox wake event.
+                # ------------------------------------------------------------------
+                if (
+                    _session_state_result.get("status") == "written"
+                    and _legacy_delivery_outbox_required(new_meta)
+                ):
+                    try:
+                        # Load _delivery_outbox via importlib (standalone CLI compat)
+                        _outbox_mod_path = (
+                            Path(__file__).resolve().parent / "_delivery_outbox.py"
+                        )
+                        _ob_spec = importlib.util.spec_from_file_location(
+                            "_delivery_outbox", str(_outbox_mod_path)
+                        )
+                        if _ob_spec and _ob_spec.loader:
+                            _ob_mod = importlib.util.module_from_spec(_ob_spec)
+                            _ob_spec.loader.exec_module(_ob_mod)
+                            _origin_sid: str | None = meta.get("origin_session_id")
+                            _ob_mod.write_outbox_event(
+                                workspace_id=workspace_id,
+                                task_id=task_id,
+                                start_id=start_id,
+                                profile=profile,
+                                terminal_status=new_status,
+                                handoff_id=handoff_id_for_outbox,
+                                origin_session_id=_origin_sid,
+                                needs_input_reason=needs_input_reason,
+                                completed_at=completed_at,
+                                parent_profile=(
+                                    meta.get("parent_profile")
+                                    or meta.get("execution", {}).get("parent_profile")
+                                    or ""
+                                ),
+                                parent_session_ref=(
+                                    meta.get("parent_session_ref")
+                                    or meta.get("execution", {}).get("parent_session_ref")
+                                    or _origin_sid
+                                    or ""
+                                ),
+                                result_pointer=_result_pointer,
+                                handoff_pointer=_handoff_pointer,
+                            )
+                    except Exception as e:
+                        # Outbox failure is non-fatal — task state is already durable.
+                        print(
+                            f"OUTBOX_EVENT_FAILED: {e}",
+                            file=sys.stderr,
+                        )
             except Exception as e:
                 # Handoff write failure → task remains terminal, log but don't revert
                 print(
@@ -1003,6 +1177,12 @@ def write_failure_artifacts(
         binding_meta = _read_json(task_dir / "meta.json")
     except (OSError, json.JSONDecodeError):
         binding_meta = {}
+    meta_execution = binding_meta.get("execution") if isinstance(binding_meta.get("execution"), dict) else {}
+    completion_transport = (
+        meta_execution.get("completion_transport")
+        or meta_execution.get("transport")
+        or "terminal_background"
+    )
     canonical_spec_hash = spec_hash or binding_meta.get("spec_hash") or spec_sha256
     receipt_path = task_dir / f"completion.{start_id}.json"
     existing_receipt: dict[str, Any] | None = None
@@ -1052,7 +1232,7 @@ def write_failure_artifacts(
         "outcome": "failed",
         "status": "failed",
         "completed_at": completed_at,
-        "transport": "terminal_background",
+        "transport": completion_transport,
         "failure_stage": failure_stage,
         "error_classification": error_classification or failure_stage,
         "diagnostics": bounded_diag,
@@ -1126,41 +1306,61 @@ def write_failure_artifacts(
             task_dir=_failure_task_dir,
             handoff_id=_failure_handoff_id,
         )
-        _outbox_path = Path(__file__).resolve().parent / "_delivery_outbox.py"
-        _outbox_spec = importlib.util.spec_from_file_location(
-            "_delivery_outbox_failure", str(_outbox_path)
+        _failure_session_state_result = _write_session_state_pointers(
+            workspace_id=workspace_id, task_id=task_id, start_id=start_id,
+            profile=profile, meta=meta, task_dir=_failure_task_dir,
+            handoff_id=_failure_handoff_id, terminal_status="failed",
+            completed_at=completed_at,
         )
-        if _outbox_spec and _outbox_spec.loader:
-            _outbox_mod = importlib.util.module_from_spec(_outbox_spec)
-            _outbox_spec.loader.exec_module(_outbox_mod)
-            _outbox_mod.write_outbox_event(
-                workspace_id=workspace_id,
-                task_id=task_id,
-                start_id=start_id,
-                profile=profile,
-                terminal_status="failed",
-                handoff_id=_failure_handoff_id,
-                origin_session_id=(
-                    meta.get("parent_session_ref")
-                    or meta.get("execution", {}).get("parent_session_ref")
-                    or meta.get("origin_session_id")
-                    or ""
-                ),
-                completed_at=completed_at,
-                parent_profile=(
-                    meta.get("parent_profile")
-                    or meta.get("execution", {}).get("parent_profile")
-                    or ""
-                ),
-                parent_session_ref=(
-                    meta.get("parent_session_ref")
-                    or meta.get("execution", {}).get("parent_session_ref")
-                    or meta.get("origin_session_id")
-                    or ""
-                ),
-                result_pointer=_failure_result_pointer,
-                handoff_pointer=_failure_handoff_pointer,
+        if _failure_session_state_result.get("status") != "written":
+            print(
+                "SESSION_STATE_PROJECTION_FAILED "
+                f"failure_stage={_failure_session_state_result.get('failure_stage', 'unknown')} "
+                f"exception_type={_failure_session_state_result.get('exception_type', 'none')} "
+                f"exception_message={json.dumps(_failure_session_state_result.get('exception_message', _failure_session_state_result.get('error', '')), ensure_ascii=False)} "
+                "retryable=false "
+                f"worker_exit_code={exit_code} session_state_projection=failed "
+                "overall_completion_delivery=failed evidence="
+                + json.dumps(_failure_session_state_result, sort_keys=True),
+                file=sys.stderr,
             )
+            raise RuntimeError("session_state_projection_failed")
+        if _legacy_delivery_outbox_required(meta):
+            _outbox_path = Path(__file__).resolve().parent / "_delivery_outbox.py"
+            _outbox_spec = importlib.util.spec_from_file_location(
+                "_delivery_outbox_failure", str(_outbox_path)
+            )
+            if _outbox_spec and _outbox_spec.loader:
+                _outbox_mod = importlib.util.module_from_spec(_outbox_spec)
+                _outbox_spec.loader.exec_module(_outbox_mod)
+                _outbox_mod.write_outbox_event(
+                    workspace_id=workspace_id,
+                    task_id=task_id,
+                    start_id=start_id,
+                    profile=profile,
+                    terminal_status="failed",
+                    handoff_id=_failure_handoff_id,
+                    origin_session_id=(
+                        meta.get("parent_session_ref")
+                        or meta.get("execution", {}).get("parent_session_ref")
+                        or meta.get("origin_session_id")
+                        or ""
+                    ),
+                    completed_at=completed_at,
+                    parent_profile=(
+                        meta.get("parent_profile")
+                        or meta.get("execution", {}).get("parent_profile")
+                        or ""
+                    ),
+                    parent_session_ref=(
+                        meta.get("parent_session_ref")
+                        or meta.get("execution", {}).get("parent_session_ref")
+                        or meta.get("origin_session_id")
+                        or ""
+                    ),
+                    result_pointer=_failure_result_pointer,
+                    handoff_pointer=_failure_handoff_pointer,
+                )
     except Exception:
         pass
     return True

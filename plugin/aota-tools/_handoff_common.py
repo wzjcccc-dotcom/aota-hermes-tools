@@ -513,21 +513,61 @@ def write_ack_artifact(
     decision: str,
     note: Optional[str] = None,
     acknowledged_at: str = "",
+    *,
+    task_id: str = "",
+    start_id: str = "",
+    decision_id: str = "",
+    terminal_status: str = "",
+    terminal_outcome: str = "",
+    project_id: str = "",
+    origin_session_id: str = "",
+    receipt_ref: str = "",
+    closure_receipt_ref: str = "",
+    closure_state: str = "acknowledged",
+    closed_at: str = "",
+    closed_pointers: Optional[dict[str, Any]] = None,
+    closure_history: Optional[list[dict[str, Any]]] = None,
 ) -> Path:
-    """Write an ack artifact alongside the (already moved) handoff.
+    """Write the durable ack/closure receipt atomically.
 
-    The ack artifact is written to the same directory as the acknowledged handoff.
-    Returns the Path of the written ack file.
+    The receipt may be written before the handoff is moved.  This ordering is
+    intentional: the control-plane evidence must exist before current session
+    pointers are consumed.  Binding fields are internal control-plane data and
+    are copied only from trusted handoff/decision artifacts.
     """
     ack_dir = get_handoff_ack_dir(workspace_id)
+    ack_dir.mkdir(parents=True, exist_ok=True)
 
     ack_data: dict[str, Any] = {
+        "schema_version": 2,
         "handoff_id": handoff_id,
         "workspace_id": workspace_id,
         "acknowledged_at": acknowledged_at,
         "decision": decision,
+        "acknowledged": True,
+        "closure_state": closure_state,
         "source": "explicit_tool_invocation",
     }
+    for key, value in {
+        "task_id": task_id,
+        "start_id": start_id,
+        "decision_id": decision_id,
+        "terminal_status": terminal_status,
+        "terminal_outcome": terminal_outcome,
+        "project_id": project_id,
+        "origin_session_id": origin_session_id,
+        "receipt_ref": receipt_ref,
+        "closure_receipt_ref": closure_receipt_ref,
+        "closed_at": closed_at,
+    }.items():
+        if value not in (None, ""):
+            ack_data[key] = value
+    if closed_pointers is not None:
+        ack_data["closed_pointers"] = dict(closed_pointers)
+    ack_data["closure_history"] = list(closure_history or [])
+    transition = {"state": closure_state, "at": closed_at or acknowledged_at}
+    if not ack_data["closure_history"] or ack_data["closure_history"][-1] != transition:
+        ack_data["closure_history"].append(transition)
     if note:
         ack_data["note"] = note
 
@@ -610,6 +650,7 @@ def list_pending_handoffs(
     limit: int = 10,
     terminal_status: Optional[str] = None,
     profile: Optional[str] = None,
+    task_id: Optional[str] = None,
 ) -> list[dict[str, Any]]:
     """List pending handoffs sorted oldest-first, with optional filters.
 
@@ -618,6 +659,7 @@ def list_pending_handoffs(
         limit: Max results (default 10, max 50).
         terminal_status: Optional filter by terminal_status.
         profile: Optional filter by profile.
+        task_id: Optional filter by exact task ID.
 
     Returns:
         List of compact handoff dicts sorted by created_at (oldest first).
@@ -643,6 +685,8 @@ def list_pending_handoffs(
             if terminal_status and data.get("terminal_status") != terminal_status:
                 continue
             if profile and data.get("profile") != profile:
+                continue
+            if task_id and data.get("task_id") != task_id:
                 continue
 
             # Build compact entry

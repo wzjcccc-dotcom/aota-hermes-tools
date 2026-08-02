@@ -53,6 +53,13 @@ must declare:
 
 A frozen SPEC never modifies a referenced artifact; it only reads it.
 
+For model-visible artifact/project operations, use the bounded semantic
+vocabulary (`current_plan`, `current_spec`, `current_completion_card`,
+`current_completion_report`, `current_project_declaration`,
+`current_project_observed_state`, `current_lifecycle_evidence`, and
+`current_stewardship_subject`). Internal IDs, paths, hashes, digests, and
+revisions are control-plane fields and are not canonical invocation inputs.
+
 ## Validation tiers
 
 | Tier | Name | Examples |
@@ -71,13 +78,24 @@ current live PASS.
 
 - Only task-main may freeze a SPEC via `aota_task_spec_freeze`.
 - Freeze captures the exact `spec_hash` and `spec_sha256` (legacy binding).
+- A create response's `draft_spec_sha256` (with compatibility alias
+  `spec_sha256`) hashes draft content only; it is not the frozen binding.
+- When trusted session metadata is available, freeze also atomically writes the
+  runtime session-active binding for `active_frozen_spec`; it does not write the
+  project workspace or create a second task registry.
+- `active_frozen_spec` is relative to the current trusted task-main/coordinator
+  session. A session binding is revalidated against status, exact revision,
+  canonical hash, raw SHA, workspace/project digests, resolved Profile, and
+  approval policy; stale bindings fail closed. Workspace-wide unique resolution
+  is fallback only.
 - Both `spec_hash` and `spec_sha256` are separate frozen bindings and must
   both remain intact in receipts and handoffs.
 - After freeze, no field may be modified. Fixes require a new revision or
   a new SPEC.
 - `approval_status` is `not_required` for diagnosis, review, architecture,
   and stewardship. Only `implementation` uses the approval API after freeze.
-- `aota_profile_task_approve` binds to the exact revision + hash; a SPEC
+- `aota_profile_task_approve` accepts only the human `decision` and `rationale`
+  on the model surface, then binds to the exact revision + hash; a SPEC
   update invalidates a prior approval.
 
 ## Pre-submit Checklist
@@ -131,6 +149,11 @@ contract itself (`_spec_contract.py`) remains the single authoritative source.
     `spec_hash` computed by `canonical_hash()`. `expected_spec_sha256`
     (legacy) is the raw file-content SHA-256. Both are separate frozen
     bindings and must both remain intact. Do not confuse them.
+
+The canonical Profile Task start path accepts the bounded semantic reference
+`task_ref=active_frozen_spec`; the resolver supplies both exact bindings and
+validates them before the existing start lifecycle runs. Legacy explicit start
+fields may remain handler-compatible, but are not a second model-facing schema.
 14. **`human_checkpoints` enum values**: Any declared human checkpoint must
     be one of the canonical values: `deploy`, `restart`, `reload`,
     `runtime_write`, `host_write`, `docker`, `migration`,
@@ -247,3 +270,39 @@ itself.
   commit, no CodeGraph mutation performed by this Skill.
 
 `AOTA_CANONICAL_SPEC_CONTRACT_SKILL_PASS`
+## Minimal model invocation
+
+The canonical model surface carries semantic fields only. For example:
+
+```json
+{"spec_kind":"diagnosis","objective":"唯讀確認 README.md","read_scope":["README.md"],"write_scope":[]}
+```
+
+P0 architecture uses a semantic subject rather than an artifact ID:
+
+```json
+{"spec_kind":"architecture","objective":"唯讀審查 README.md","subject_ref":"current_work_classification","read_scope":["README.md"],"write_scope":[]}
+```
+
+The handler resolves that subject to the trusted classification digest and
+stores it as an internal `work_classification` reference. The model never
+copies or invents that digest.
+
+Workspace/project/Plan/Work Item/task/SPEC IDs, session identity, Profile,
+approval binding, revision, canonical hash, raw SHA, and derived defaults come
+from trusted runtime context and canonical artifacts. Legacy exact-field
+handlers may remain for migration, but those fields are not canonical model
+schema inputs.
+
+The draft SPEC is bound to the current trusted session by a
+`current-draft-spec` pointer after creation and update. Freeze resolves that
+exact pointer, publishes `active-frozen-spec`, and consumes the draft pointer;
+historical draft count must not create ambiguity. Pointer failures are
+fail-closed and do not justify searching `profile-tasks/` or choosing an
+explicit internal ID.
+
+Canonical semantic creation first resolves the active session-scoped
+`current_work_classification` binding and consumes it only after the durable
+SPEC and current-draft pointer are written. The binding records the existing
+classifier result and digest as control-plane evidence; it is not a new model
+field or tool.

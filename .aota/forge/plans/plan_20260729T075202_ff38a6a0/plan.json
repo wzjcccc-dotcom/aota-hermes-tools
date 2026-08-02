@@ -1,0 +1,54 @@
+{
+  "active_milestone_id": "ms_7b83d2e733e1c394",
+  "active_work_item_id": "wi_832f396ec5616b35",
+  "architect_gate": "A1",
+  "created_at": "2026-07-29T07:52:02Z",
+  "current_state": "",
+  "decisions": [],
+  "delivery_path": "standard",
+  "goal": "Read the first line of README.md to verify worker dispatch and task-main wake-up flow",
+  "milestones": [
+    {
+      "acceptance_criteria": [],
+      "architect_review_id": null,
+      "created_at": "2026-07-29T07:52:08Z",
+      "dependencies": [],
+      "evidence": [],
+      "milestone_id": "ms_7b83d2e733e1c394",
+      "objective": "Verify worker dispatch and wake-up by reading README first line",
+      "status": "planned",
+      "title": "Wake test milestone",
+      "updated_at": "2026-07-29T07:52:08Z"
+    }
+  ],
+  "next_action": null,
+  "non_goals": [],
+  "plan_id": "plan_20260729T075202_ff38a6a0",
+  "plan_sha256": "1c3ff5b9c1dac2edcbf740d493ce65d39d56ff5c4126cf43d7835c728341de6d",
+  "planning_depth": "P1",
+  "revision": 6,
+  "schema_version": 1,
+  "status": "approved",
+  "title": "Wake test: read README first line",
+  "updated_at": "2026-07-29T07:52:26Z",
+  "work_items": [
+    {
+      "architect_gate": "A1",
+      "architect_review_id": null,
+      "created_at": "2026-07-29T07:52:20Z",
+      "dependencies": [],
+      "evidence": [],
+      "goal": "Read the first line of /home/latios/workspace/aota-hermes-tools/README.md and report its exact text content",
+      "linked_task_ids": [],
+      "milestone_id": "ms_7b83d2e733e1c394",
+      "next_action": null,
+      "risk_level": "medium",
+      "spec_preflight": "optional",
+      "status": "planned",
+      "title": "Read README first line (wake test)",
+      "updated_at": "2026-07-29T07:52:20Z",
+      "work_item_id": "wi_832f396ec5616b35"
+    }
+  ],
+  "workspace_context": null
+}

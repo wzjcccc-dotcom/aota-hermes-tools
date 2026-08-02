@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import datetime as _dt
 import os
 import shlex
 import subprocess
@@ -24,7 +25,7 @@ from ._profile_task_common import (
     validate_task_id,
     derive_profile,
     resolve_runner,
-    generate_worker_prompt,
+    generate_worker_execution_envelope_prompt,
 )
 from ._profile_task_runner import runner_contract
 from ._task_spec_common import (
@@ -53,6 +54,15 @@ from ._profile_task_paths import (
 )
 from ._profile_task_env import PROVIDER_METADATA
 from ._task_spec_scope import CanonicalScopeError, compute_scope_digest, extract_canonical_scope
+from ._reference_resolver import ReferenceError, resolve_for_start
+from ._session_active_spec_binding import trusted_session_context
+from ._session_state_authority import SessionStateError, write_active_task_pointer
+from ._completion_observation import (
+    CompletionTransportContextError,
+    build_completion_wait_contract,
+    resolve_completion_transport,
+)
+from ._trusted_runtime_context import missing_context_result
 
 TOOL_NAME = "aota_profile_task_start"
 TOOLSET_NAME = "aota_profile_task"
@@ -68,35 +78,30 @@ _TRUSTED_ORCHESTRATOR_ENV_KEYS = (
 SCHEMA = {
     "name": TOOL_NAME,
     "description": (
-        "Start one existing validated frozen AOTA task using its fixed derived Named Profile. "
-        "This tool verifies exact revision and SPEC SHA-256, derives profile from task_kind, "
-        "and uses the existing Hermes background completion rail. "
-        "It does not accept arbitrary commands or profiles. "
-        "For implementation tasks: call only after explicit human approval of the exact revision/hash. "
-        "This tool does not create a SPEC, approve a task, query status, cancel, or retry."
+        "Start the frozen AOTA Profile Task bound to the current trusted task-main/coordinator "
+        "session when task_ref='active_frozen_spec' is used. Without a session binding, the "
+        "control plane uses the workspace-wide unique frozen-SPEC fallback. It reads "
+        "workspace, task, revision, canonical spec_hash, raw spec_sha256, approval, and fixed "
+        "Profile bindings. It fails closed on missing, ambiguous, stale, or mismatched references. "
+        "It does not create or approve a SPEC, accept arbitrary profiles or commands, or retry a task. "
+        "When the start returns running, it also returns the control-plane completion contract: "
+        "completion_transport, completion_delivery_expected, next_action, and recovery_allowed_after. "
+        "For wakeup-capable delivery, task-main must wait for completion delivery and must not switch "
+        "to status, handoff list, process, receipt, artifact, or operator-inbox completion observation. "
+        "Only the origin orchestrator may perform one bounded recovery after recovery_allowed_after. "
+        "Legacy explicit fields remain accepted by the handler for compatibility but are not part "
+        "of the model-facing schema.\n\n"
+        "HASH BINDINGS: expected_spec_hash is canonical_hash() / frozen spec_hash; "
+        "expected_spec_sha256 is raw SPEC.md content SHA-256. They are distinct and never aliased. "
+        "Valid example: {\"task_ref\":\"active_frozen_spec\",\"timeout_seconds\":600}."
     ),
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
+            "task_ref": {
                 "type": "string",
-                "description": "Registered workspace identifier (e.g. 'aota-runtime')",
-            },
-            "task_id": {
-                "type": "string",
-                "description": "Existing AOTA task ID to start",
-            },
-            "expected_revision": {
-                "type": "integer",
-                "description": "Expected SPEC revision number for optimistic concurrency",
-            },
-            "expected_spec_sha256": {
-                "type": "string",
-                "description": "Expected SHA-256 hex digest of the exact SPEC.md content",
-            },
-            "expected_spec_hash": {
-                "type": "string",
-                "description": "Canonical frozen SPEC hash (WI-09C).",
+                "enum": ["active_frozen_spec"],
+                "description": "Bounded semantic reference; resolves the current trusted session's validated frozen SPEC, or the workspace-wide unique fallback when no session binding exists.",
             },
             "timeout_seconds": {
                 "type": "integer",
@@ -109,22 +114,11 @@ SCHEMA = {
                     "Default: null (no timeout)."
                 ),
             },
-            "origin_session_id": {
-                "type": "string",
-                "maxLength": 200,
-                "description": "Optional originating Hermes session ID when trusted invocation context is unavailable.",
-            },
         },
-        "required": [
-            "workspace_id",
-            "task_id",
-            "expected_revision",
-            "expected_spec_sha256",
-        ],
+        "required": ["task_ref"],
         "additionalProperties": False,
     },
 }
-SCHEMA["parameters"]["required"] = ["workspace_id", "task_id", "expected_revision"]
 
 
 def build_profile_task_worker_env(
@@ -188,14 +182,45 @@ def run_worker_env_sanitization_smoke() -> dict[str, str]:
 
 def handle(args: dict, **kwargs) -> str:
     try:
-        return _do_start(args, trusted_session_id=kwargs.get("session_id"))
-    except WorkspaceError as e:
+        trusted_context = trusted_session_context(kwargs)
+        if "task_ref" in args:
+            if not trusted_context.usable_for_active_spec:
+                return json.dumps(missing_context_result(operation="profile_task_start"), sort_keys=True)
+            binding = resolve_for_start(
+                trusted_context.workspace_id or kwargs.get("workspace_id") or os.environ.get("AOTA_TRUSTED_WORKSPACE_ID"),
+                args.get("task_ref"),
+                trusted_session_id=trusted_context.session_id,
+                trusted_principal=trusted_context.principal,
+            )
+            resolved_args = {
+                **binding,
+                "timeout_seconds": args.get("timeout_seconds"),
+            }
+            return _do_start(resolved_args, trusted_session_id=trusted_context.session_id or None, trusted_context=trusted_context)
+        # Compatibility path for trusted/internal callers using the former
+        # explicit binding fields. The public schema intentionally hides it.
+        return _do_start(args, trusted_session_id=trusted_context.session_id or None)
+    except ReferenceError as e:
         return json.dumps(
-            {"status": "rejected", "error": str(e)}, sort_keys=True
+            {"status": "rejected", "error": e.code, "detail": e.detail,
+             "retryable": False,
+             "human_action_required": e.code == "reference_ambiguous",
+             "next_action": "select_active_frozen_spec" if e.code == "reference_ambiguous" else "stop_and_report_reference_failure"}, sort_keys=True
+        )
+    except WorkspaceError as e:
+        error = str(e)
+        return json.dumps(
+            {"status": "rejected", "error": error, "retryable": False,
+             "next_action": (
+                 "continue_in_persistent_task_main_session"
+                 if error == "terminal_background_required"
+                 else "stop_and_report_profile_task_start_failure"
+             )}, sort_keys=True
         )
     except Exception as e:
         return json.dumps(
-            {"status": "failed", "error": str(e)}, sort_keys=True
+            {"status": "failed", "error": str(e), "retryable": False,
+             "next_action": "stop_and_report_profile_task_start_failure"}, sort_keys=True
         )
 
 
@@ -209,20 +234,35 @@ def _validate_origin_session_id(value: object) -> str | None:
     return value
 
 
-def _do_start(args: dict, trusted_session_id: object = None) -> str:
+def _do_start(args: dict, trusted_session_id: object = None, trusted_context=None) -> str:
     # ------------------------------------------------------------------
     # Extract parameters
     # ------------------------------------------------------------------
     workspace_id: str = args.get("workspace_id", "")
     task_id: str = args.get("task_id", "")
     expected_revision: int = args.get("expected_revision", 0)
-    expected_spec_sha256: str = args.get("expected_spec_hash") or args.get("expected_spec_sha256", "")
+    # The two hash bindings are distinct and never aliased:
+    #   expected_spec_hash   = canonical frozen SPEC hash (canonical_hash())
+    #   expected_spec_sha256 = raw SHA-256 of the SPEC.md file content
+    # The canonical WI-09C path validates expected_spec_hash against meta.spec_hash
+    # and reads spec_sha256 from frozen meta. The legacy path validates
+    # expected_spec_sha256 against the on-disk file. Do not merge them.
+    expected_spec_hash: str = args.get("expected_spec_hash", "") or ""
+    expected_spec_sha256: str = args.get("expected_spec_sha256", "") or ""
     timeout_seconds_raw = args.get("timeout_seconds")
     origin_session_id = _validate_origin_session_id(trusted_session_id)
     origin_source: str | None = "hermes_session" if origin_session_id else None
     if origin_session_id is None:
         origin_session_id = _validate_origin_session_id(args.get("origin_session_id"))
         origin_source = "explicit_argument" if origin_session_id else None
+
+    # Transport is a trusted host capability, never a model-facing start
+    # argument.  Bind it once and carry the same contract through the launch
+    # manifest, meta projection, terminal watcher, and start response.
+    try:
+        completion_transport = resolve_completion_transport()
+    except CompletionTransportContextError as exc:
+        raise WorkspaceError(str(exc)) from exc
 
     # Validate timeout_seconds
     timeout_seconds: int | None = None
@@ -271,6 +311,7 @@ def _do_start(args: dict, trusted_session_id: object = None) -> str:
                 workspace_id=workspace_id,
                 task_id=task_id,
                 expected_revision=expected_revision,
+                expected_spec_hash=expected_spec_hash,
                 expected_spec_sha256=expected_spec_sha256,
                 timeout_seconds=timeout_seconds,
                 workspace_root=workspace_root,
@@ -280,6 +321,8 @@ def _do_start(args: dict, trusted_session_id: object = None) -> str:
                 lock_fd=lock_fd,
                 origin_session_id=origin_session_id,
                 origin_source=origin_source,
+                completion_transport=completion_transport,
+                trusted_context=trusted_context,
             )
         except Exception as exc:
             _record_start_failure(workspace_id, task_id, task_dir, exc)
@@ -352,6 +395,7 @@ def _do_start_locked(
     workspace_id: str,
     task_id: str,
     expected_revision: int,
+    expected_spec_hash: str,
     expected_spec_sha256: str,
     timeout_seconds: int | None,
     workspace_root: Path,
@@ -361,6 +405,8 @@ def _do_start_locked(
     lock_fd: int,
     origin_session_id: str | None,
     origin_source: str | None,
+    completion_transport: dict[str, object],
+    trusted_context=None,
 ) -> str:
     # ------------------------------------------------------------------
     # 5. Load meta.json + SPEC.md
@@ -371,19 +417,28 @@ def _do_start_locked(
 
     # WI-09C uses the canonical frozen JSON envelope and its canonical hash,
     # while the older launch rail still needs the on-disk SPEC.md checksum.
-    # Convert only the in-memory lifecycle view after strict validation.
+    # The two hashes are distinct bindings: expected_spec_hash is the canonical
+    # canonical_hash() output; expected_spec_sha256 is the raw file-content
+    # SHA-256. They are never aliased or substituted for one another.
     if existing_meta.get("contract_version") == 1:
+        # Canonical SPECs require the canonical hash binding from the caller.
+        if not expected_spec_hash:
+            raise WorkspaceError(
+                "expected_spec_hash_required: canonical WI-09C SPECs require "
+                "expected_spec_hash (the frozen spec_hash from aota_task_spec_freeze), "
+                "not expected_spec_sha256 (the legacy raw file hash)."
+            )
         spec = existing_meta.get("spec", {})
         if spec.get("workspace_context") is not None:
             from ._workspace_context import validate_workspace_context
             validate_workspace_context(spec["workspace_context"])
         try:
-            validate_task_binding(existing_meta, expected_revision, expected_spec_sha256)
+            validate_task_binding(existing_meta, expected_revision, expected_spec_hash)
         except ContractError as exc:
             raise WorkspaceError(str(exc)) from exc
         if existing_meta.get("status") != "frozen" or existing_meta.get("revision") != expected_revision:
             raise WorkspaceError("task_not_startable: SPEC must be frozen at the requested revision")
-        if expected_spec_sha256 != existing_meta.get("spec_hash") or canonical_hash(spec) != existing_meta.get("spec_hash"):
+        if expected_spec_hash != existing_meta.get("spec_hash") or canonical_hash(spec) != existing_meta.get("spec_hash"):
             raise WorkspaceError("spec_hash_conflict")
         canonical_approval_hash = existing_meta.get("spec_hash")
         kind = existing_meta.get("spec_kind")
@@ -392,7 +447,10 @@ def _do_start_locked(
         existing_meta = dict(existing_meta)
         existing_meta["status"] = STATUS_DRAFT
         existing_meta["frozen_revision"] = existing_meta.get("revision")
-        # All remaining legacy launcher checks apply to the immutable file hash.
+        # The legacy launch rail validates the raw on-disk SPEC.md checksum.
+        # For canonical SPECs that raw binding is read from the frozen meta and
+        # verified against the file below; it is never taken from the caller's
+        # expected_spec_hash.
         expected_spec_sha256 = existing_meta.get("spec_sha256", "")
 
     # ------------------------------------------------------------------
@@ -480,7 +538,10 @@ def _do_start_locked(
                 "Re-approve the task with aota_profile_task_approve."
             )
         approval_rev = approval.get("revision")
-        approval_hash = approval.get("spec_sha256")
+        # Canonical approvals use spec_hash. Older canonical approvals wrote
+        # the canonical value under spec_sha256; accept that bounded legacy
+        # shape while preserving the raw SHA as a separate binding.
+        approval_hash = approval.get("spec_hash") or approval.get("spec_sha256")
         expected_approval_hash = canonical_approval_hash or actual_spec_sha256
         if approval_rev != current_revision or approval_hash != expected_approval_hash:
             raise WorkspaceError(
@@ -526,6 +587,18 @@ def _do_start_locked(
             "failure_stage=launcher_initialization redaction_applied=true\n"
         )
     launch_started_at = utc_now_iso()
+    timeout_iso_deadline: str | None = None
+    if timeout_seconds is not None:
+        deadline_dt = _dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(
+            seconds=timeout_seconds
+        )
+        timeout_iso_deadline = deadline_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    initial_wait_contract = build_completion_wait_contract(
+        started_at=launch_started_at,
+        completion_transport=str(completion_transport["completion_transport"]),
+        completion_delivery_expected=bool(completion_transport["completion_delivery_expected"]),
+        timeout_deadline_at=timeout_iso_deadline or "",
+    )
     launch_meta = dict(existing_meta)
     launch_meta["status"] = "running"
     launch_meta["execution"] = {
@@ -536,8 +609,11 @@ def _do_start_locked(
         "spec_revision": current_revision,
         "spec_hash": existing_meta.get("spec_hash") or actual_spec_sha256,
         "spec_sha256": actual_spec_sha256,
-        "transport": "terminal_background",
-        "notify_on_complete": True,
+        "transport": completion_transport["completion_transport"],
+        **initial_wait_contract,
+        "delivery_state": "pending" if completion_transport["completion_delivery_expected"] else "not_expected",
+        "recovery_consumed": False,
+        "notify_on_complete": completion_transport["notify_on_complete"],
         "lifecycle_reconciliation": "pending",
         "completion_receipt_path": f"completion.{task_id}.json",
         "finalizer_expected_version": 1,
@@ -637,14 +713,17 @@ def _do_start_locked(
                 )
 
     if task_kind == "architecture":
-        if not subject_task_id:
-            raise WorkspaceError(
-                "architecture_missing_subject: architecture task requires subject_task_id"
-            )
-        _verify_subject_exists(workspace_id, subject_task_id)
+        if subject_task_id:
+            _verify_subject_exists(workspace_id, subject_task_id)
+        else:
+            _verify_p0_work_classification_subject(existing_meta)
         # P11-J.1-A: For spec_preflight, verify subject SPEC binding
         architecture_mode = existing_meta.get("architecture_mode")
         if architecture_mode == "spec_preflight":
+            if not subject_task_id:
+                raise WorkspaceError(
+                    "preflight_binding_missing: spec_preflight requires a subject task binding"
+                )
             bound_revision = existing_meta.get("subject_spec_revision")
             bound_sha256 = existing_meta.get("subject_spec_sha256")
             if bound_revision is None or not bound_sha256:
@@ -683,28 +762,25 @@ def _do_start_locked(
     write_scope_list: list[str] = scope_info["write_scope"]
     forbidden_scope_list: list[str] = scope_info["forbidden_scope"]
     architecture_mode: str | None = existing_meta.get("architecture_mode")
-    role_contract: dict = spec.get("role_contract", {})
-    process_path: str | None = spec.get("process_path")
-    validation_tier: int | None = spec.get("validation_tier")
-    human_checkpoints: list[str] = spec.get("human_checkpoints", [])
 
-    worker_prompt = generate_worker_prompt(
-        task_id=task_id,
-        workspace_id=workspace_id,
+    worker_prompt, execution_envelope_digest, _execution_envelope = generate_worker_execution_envelope_prompt(
+        spec=spec,
         task_kind=task_kind,
         derived_profile=derived_profile,
-        meta_path=str(meta_path),
-        spec_path=str(spec_path),
         read_scope=read_scope_list,
         write_scope=write_scope_list,
         forbidden_scope=forbidden_scope_list,
-        subject_task_id=subject_task_id,
         architecture_mode=architecture_mode,
-        role_contract=role_contract,
-        process_path=process_path,
-        validation_tier=validation_tier,
-        human_checkpoints=human_checkpoints,
     )
+    # The digest binds the model-visible projection to this frozen start.  The
+    # semantic content is already in the prompt file; durable metadata stores
+    # only the digest so control-plane identity never becomes prompt content.
+    existing_meta["execution"]["execution_envelope"] = {
+        "schema_version": 1,
+        "sha256": execution_envelope_digest,
+        "projection": "semantic",
+    }
+    write_json(meta_path, existing_meta)
 
     # --------------------------------------------------------------------------
     # 17. Write scope.json — immutable scope manifest
@@ -756,14 +832,12 @@ def _do_start_locked(
     _auth_type, _key_env, _base_url_env, _configured_base_url = _resolve_profile_credentials(
         _provider_name, _provider_config
     )
-    timeout_iso_deadline: str | None = None
-    if timeout_seconds is not None:
-        import datetime as _dt
-        deadline_dt = _dt.datetime.now(_dt.timezone.utc)
-        deadline_ts = deadline_dt.timestamp() + timeout_seconds
-        timeout_iso_deadline = _dt.datetime.fromtimestamp(
-            deadline_ts, tz=_dt.timezone.utc
-        ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    wait_contract = build_completion_wait_contract(
+        started_at=launch_started_at,
+        completion_transport=str(completion_transport["completion_transport"]),
+        completion_delivery_expected=bool(completion_transport["completion_delivery_expected"]),
+        timeout_deadline_at=timeout_iso_deadline or "",
+    )
     worker_log_path = task_dir / f"worker.{task_id}.log"
     profile_config_path = _resolve_named_profile_config_path(derived_profile, runtime_context)
     profile_config_bytes = profile_config_path.read_bytes()
@@ -836,7 +910,10 @@ def _do_start_locked(
             "host_mode": True,
             "argv": [runner, "-p", derived_profile, "-z", "<prompt-file>"],
             "argv_template": [runner, "-p", derived_profile, "-z", "<prompt-file>"],
-            "prompt_path": str(prompt_path), "cwd": str(workspace_root),
+            "prompt_path": str(prompt_path),
+            "prompt_sha256": hashlib.sha256(worker_prompt.encode("utf-8")).hexdigest(),
+            "execution_envelope_sha256": execution_envelope_digest,
+            "cwd": str(workspace_root),
             "timeout_seconds": timeout_seconds or 0, "timeout_deadline_at": timeout_iso_deadline or "",
         },
         "runner_contract": frozen_runner,
@@ -851,6 +928,11 @@ def _do_start_locked(
             "profile_config_digest": profile_config_digest, "credential_source_type": "global_hermes_home",
         },
         "origin": {"session_id": origin_session_id or "", "source": origin_source or ""},
+        "completion": {
+            "transport": completion_transport["completion_transport"],
+            "delivery_expected": completion_transport["completion_delivery_expected"],
+            "notify_on_complete": completion_transport["notify_on_complete"],
+        },
         "created_at": utc_now_iso(),
     }
     write_json(launch_manifest_path, launch_manifest)
@@ -874,7 +956,7 @@ def _do_start_locked(
     result_json = terminal_tool(
         command=command,
         background=True,
-        notify_on_complete=True,
+        notify_on_complete=bool(completion_transport["notify_on_complete"]),
         workdir=str(workspace_root),
     )
 
@@ -909,7 +991,17 @@ def _do_start_locked(
                 "spec_sha256": actual_spec_sha256,
                 "process_session_id": process_session_id or latest_execution.get("process_session_id", ""),
                 "started_at": latest_execution.get("started_at", launch_started_at),
-                "completion_transport": "terminal_background",
+                "completion_transport": latest_execution.get(
+                    "completion_transport", completion_transport["completion_transport"]
+                ),
+                "completion_delivery_expected": latest_execution.get(
+                    "completion_delivery_expected", completion_transport["completion_delivery_expected"]
+                ),
+                "next_action": "open_completion_handoff",
+                "recovery_allowed_after": latest_execution.get(
+                    "recovery_allowed_after",
+                    initial_wait_contract["recovery_allowed_after"],
+                ),
                 "human_checkpoint_policy": existing_meta.get("human_checkpoint_policy", ""),
                 "approval_status": "required" if task_kind == "implementation" else "not_required",
             }, sort_keys=True
@@ -937,8 +1029,11 @@ def _do_start_locked(
         "scope_source": scope_info["scope_source"],
         "scope_schema_version": scope_info["scope_schema_version"],
         "scope_process_session_id": scope_process_session_id,
-        "transport": "terminal_background",
-        "notify_on_complete": True,
+        "transport": completion_transport["completion_transport"],
+        **wait_contract,
+        "delivery_state": "pending" if completion_transport["completion_delivery_expected"] else "not_expected",
+        "recovery_consumed": False,
+        "notify_on_complete": completion_transport["notify_on_complete"],
         "lifecycle_reconciliation": "pending",
         "completion_receipt_path": f"completion.{task_id}.json",
         "finalizer_version": 1,
@@ -1032,8 +1127,7 @@ def _do_start_locked(
     # ------------------------------------------------------------------
     human_checkpoint_policy = existing_meta.get("human_checkpoint_policy", "")
 
-    return json.dumps(
-        {
+    result = {
             "status": "running",
             "task_id": task_id,
             "workspace_id": workspace_id,
@@ -1043,12 +1137,23 @@ def _do_start_locked(
             "spec_sha256": actual_spec_sha256,
             "process_session_id": process_session_id,
             "started_at": now,
-            "completion_transport": "terminal_background",
+            "completion_transport": completion_transport["completion_transport"],
+            **wait_contract,
             "human_checkpoint_policy": human_checkpoint_policy,
             "approval_status": "required" if task_kind == "implementation" else "not_required",
-        },
-        sort_keys=True,
-    )
+        }
+    try:
+        if trusted_context is None or not trusted_context.usable_for_active_spec:
+            result["active_task_binding"] = {"status": "failed", "error": "trusted_session_context_missing", "retryable": False, "next_action": "stop_and_report_runtime_context_missing"}
+            result["active_task_ready"] = False
+        else:
+            pointer, pointer_path = write_active_task_pointer(trusted_context, existing_meta)
+            result["active_task_binding"] = {"status": "written", "pointer_path": str(pointer_path), "artifact_digest": pointer["artifact_digest"]}
+            result["active_task_ready"] = True
+    except SessionStateError as exc:
+        result["active_task_binding"] = {"status": "failed", "error": exc.code, "detail": exc.detail, "retryable": False, "next_action": "stop_and_report_control_plane_inconsistency"}
+        result["active_task_ready"] = False
+    return json.dumps(result, sort_keys=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1205,6 +1310,56 @@ def _verify_subject_exists(workspace_id: str, subject_task_id: str) -> None:
             f"subject_not_found: subject task '{subject_task_id}' "
             f"not found in workspace '{workspace_id}'"
         )
+
+
+def _verify_p0_work_classification_subject(meta: dict) -> dict:
+    """Accept one control-plane-derived P0 architecture subject.
+
+    The model supplies only ``subject_ref=current_work_classification`` at
+    SPEC creation.  Start trusts that semantic subject only when the frozen
+    canonical SPEC, its context refs, and the stored classification binding
+    all identify the same control-plane artifact.  Review and spec-preflight
+    tasks continue to require their existing subject-task bindings.
+    """
+    if meta.get("contract_version") != 1:
+        raise WorkspaceError(
+            "architecture_missing_subject: architecture task requires subject_task_id"
+        )
+    spec = meta.get("spec")
+    if not isinstance(spec, dict) or spec.get("spec_kind") != "architecture":
+        raise WorkspaceError("architecture_subject_binding_invalid")
+    payload = spec.get("payload")
+    subject = payload.get("subject_work_classification_ref") if isinstance(payload, dict) else None
+    if not isinstance(subject, dict):
+        raise WorkspaceError(
+            "architecture_missing_subject: architecture task requires a trusted semantic subject or subject_task_id"
+        )
+    artifact_id = subject.get("artifact_id")
+    if subject.get("ref_type") != "work_classification" or not isinstance(artifact_id, str) or not artifact_id:
+        raise WorkspaceError("architecture_subject_binding_invalid")
+    context_refs = spec.get("context_refs")
+    if not isinstance(context_refs, list) or subject not in context_refs:
+        raise WorkspaceError("architecture_subject_binding_invalid")
+    classification_binding = meta.get("classification_binding")
+    if not isinstance(classification_binding, dict):
+        raise WorkspaceError("architecture_subject_binding_invalid")
+    if classification_binding.get("classification") != "P0" or classification_binding.get("artifact_digest") != artifact_id:
+        raise WorkspaceError("architecture_subject_binding_invalid")
+    workspace_id = meta.get("workspace_id")
+    task_id = meta.get("task_id")
+    project_id = meta.get("project_id")
+    work_item_id = meta.get("work_item_id")
+    if (
+        not isinstance(workspace_id, str)
+        or not isinstance(task_id, str)
+        or classification_binding.get("workspace_id") != workspace_id
+        or project_id != f"standalone:{workspace_id}"
+        or work_item_id != f"standalone:{task_id}"
+        or spec.get("project_id") != project_id
+        or spec.get("work_item_id") != work_item_id
+    ):
+        raise WorkspaceError("architecture_subject_binding_invalid")
+    return subject
 
 
 def _rollback_kill(process_session_id: str) -> None:

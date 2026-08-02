@@ -1,0 +1,42 @@
+{
+  "baseline": "HOST-WI-03B source and static-verification baseline at Hermes commit 689b51bef68f9ec95b638121bb9c7fefa3703fb2",
+  "rows": [
+    {
+      "surface": "gateway/aota_parent_wake.py",
+      "current_state": "present in canonical host source and resolved by editable runtime",
+      "update_effect": "preserved",
+      "result": "ADAPTER_PRESERVED"
+    },
+    {
+      "surface": "GatewayRunner.start/stop wiring",
+      "current_state": "feature-gated supervised start plus graceful stop",
+      "update_effect": "present in current dirty gateway/run.py",
+      "result": "LIFECYCLE_WIRING_PRESENT"
+    },
+    {
+      "surface": "gateway/wake.py:deliver_wake",
+      "current_state": "signature and behavior compatible with baseline",
+      "update_effect": "unchanged across baseline-to-current commit range",
+      "result": "NATIVE_WAKE_COMPATIBLE"
+    },
+    {
+      "surface": "AOTA producer and terminal event schema",
+      "current_state": "source/runtime hash parity; schema v2 event observed",
+      "update_effect": "compatible",
+      "result": "OUTBOX_SCHEMA_PRESERVED"
+    },
+    {
+      "surface": "AOTA workspace selector versus adapter default",
+      "current_state": "producer writes aota-hermes-tools; adapter defaults to aota-runtime",
+      "update_effect": "configuration mismatch remains",
+      "result": "PATH_DRIFT_REQUIRES_RECONCILIATION"
+    },
+    {
+      "surface": "legacy WebUI overlay",
+      "current_state": "not treated as active host runtime path",
+      "update_effect": "obsolete for this assessment",
+      "result": "OUT_OF_SCOPE_LEGACY_PATH"
+    }
+  ],
+  "overall": "SOURCE_AND_LIFECYCLE_PRESERVED_WITH_CONFIGURATION_DRIFT"
+}

@@ -8,7 +8,7 @@ This repository is the **canonical source of truth** for AOTA Forge — a contro
 
 | Path | Content |
 |------|---------|
-| `plugin/aota-tools/` | 60 Python files + `plugin.yaml` — the AOTA narrow-tools plugin |
+| `plugin/aota-tools/` | AOTA narrow-tools plugin (`plugin.yaml` is the canonical tool list) |
 | `profiles/task-main/` | Task-Main (architect/orchestrator) profile config + SOUL.md |
 | `profiles/coder/` | Coder worker profile config + SOUL.md |
 | `profiles/debugger/` | Debugger worker profile config + SOUL.md |
@@ -22,6 +22,43 @@ This repository is the **canonical source of truth** for AOTA Forge — a contro
 | `scripts/verify-deploy.sh` | Read-only deploy verification (no modifications) |
 | `scripts/cleanup-controlled-run.py` | Controlled run cleanup utility |
 | `VERSION` | Canonical version (`0.17.6`) |
+
+Workspace identity is bounded by the control plane: `workspace_id` is the
+registered filesystem-authority key, while `project_id` is the project identity
+validated by `.aota/project.yaml` inside that workspace. A workspace may hold
+multiple projects; neither value is a filesystem path. For example,
+`workspace_id=main-workspace` and `project_id=aota-hermes-tools` are intentionally
+different values. `spec_hash` is the canonical frozen SPEC hash and
+`spec_sha256` is the raw `SPEC.md` content SHA-256; they are separate bindings.
+`active_frozen_spec` means the active frozen SPEC for the current trusted
+task-main/coordinator session. A freeze records that session-local binding in
+the runtime control-plane context when trusted session metadata is available;
+the workspace-wide unique frozen SPEC is only the bounded fallback. A stale
+session binding fails closed and never switches to another session's SPEC.
+
+### Canonical model-facing invocation rule
+
+Never invent, copy, or retry control-plane identifiers, paths, revisions,
+hashes, sessions, profiles, or lifecycle bindings. Use semantic references and
+the deterministic `next_action` returned by a tool. Explicit legacy fields may
+remain accepted by handlers for compatibility, but they are not canonical
+model-facing inputs.
+
+### Latest Profile-efficiency validation
+
+The current repeatable validation path is the
+[`aota-profile-efficiency-rerun` Skill](skills/aota-profile-efficiency-rerun/SKILL.md).
+The authorized 30-sample run on 2026-08-02 reached **92.8% composite
+efficiency** (R7 baseline: 80.7%), with 100% completion, 93.3% correct
+tool/parameter routing, 100% retry-stop safety, and zero samples over the
+100-call cap. Per-Profile scores were: project-steward 90%, task-main 91%,
+architect 90%, reviewer 98%, coder 95%, debugger 93%.
+
+The complete modification history, deployment receipt, limitations, and
+evidence path are recorded in
+[`AOTA-PROFILE-EFFICIENCY-MODIFICATION-HISTORY-20260802.md`](docs/aota-development/AOTA-PROFILE-EFFICIENCY-MODIFICATION-HISTORY-20260802.md).
+The JSON evidence is kept under `deploy/evidence/`; source/runtime activation
+and live validation remain separate states.
 
 ---
 
@@ -132,8 +169,8 @@ The rollback script:
 | **reviewer** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_worker_outcome, aota_reviewer_artifact | Read-only review, no mutation |
 | **architect** | aota_core, aota_fs_readonly, aota_repo_readonly, aota_web_readonly, aota_worker_outcome, aota_architect_artifact | Read-only design review & spec preflight |
 
-- **59 tools** provided by the plugin (listed in `plugin.yaml` `provides_tools`)
-- **28 toolsets** defined in `__init__.py`, including Coder frozen-SPEC file mutation and fixed command-runner surfaces.
+- **Tools** provided by the plugin are derived from `plugin/aota-tools/plugin.yaml`
+  `provides_tools`; toolset membership is derived from the lifecycle inventory.
 - task-main source config includes `aota_work_intake`, `aota_plan_read`, and `aota_plan_write`; Plan mutation remains fail-closed until deployment-owned trusted principal/authority injection is explicitly approved and performed.
 - `aota_work_classify` deterministically classifies bounded facts only and never creates a Plan, SPEC, task, or artifact. See `docs/aota-forge-plan/WORK-CLASSIFICATION.md`.
 - **6 profiles** (task-main, project-steward, architect, coder, reviewer, debugger)
@@ -350,7 +387,7 @@ After a deployment that changes tool, Profile, or Skill definitions, refresh
 the CodeGraph index:
 
 ```bash
-aota_codegraph_rebuild(workspace_id="aota-hermes-tools", project_id="aota-hermes-tools")
+aota_codegraph_rebuild(workspace_id="main-workspace", project_id="aota-hermes-tools")
 ```
 
 This is a **Human/Host Checkpoint** — it is never executed by an automated
@@ -360,7 +397,7 @@ is restricted to task-main only.
 After rebuild, verify by querying a known symbol:
 
 ```bash
-aota_codegraph_query(workspace_id="aota-hermes-tools", project_id="aota-hermes-tools", search="<known_tool_or_class>")
+aota_codegraph_query(workspace_id="main-workspace", project_id="aota-hermes-tools", search="<known_tool_or_class>")
 ```
 
 CodeGraph reads (`aota_codegraph_status`, `aota_codegraph_query`,
@@ -389,9 +426,9 @@ attributed to it.
 
 ---
 
-## 工具功能中文使用說明（59 個工具）
+## 工具功能中文使用說明（以 `plugin.yaml` 為準）
 
-AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工具（narrow tools），分屬於 28 個工具集（toolsets），支援 6 個 Hermes 設定檔（task-main、project-steward、architect、coder、reviewer、debugger）。以下依工具集分組說明每個工具的功能、參數與使用時機。
+AOTA（Architect-Overseer Task Automation）外掛程式提供的狹義工具（narrow tools）與工具集（toolsets）分別以 `plugin/aota-tools/plugin.yaml` 的 `provides_tools` 和 lifecycle inventory 為準，支援 6 個 Hermes 設定檔（task-main、project-steward、architect、coder、reviewer、debugger）。以下依工具集分組說明每個工具的功能、參數與使用時機。
 
 ---
 
@@ -486,51 +523,99 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 
 ### aota_task_spec（任務規格工具集）
 
+### Phase 1 minimal governance invocations
+
+Plan、Work Item、SPEC 與 approval 的 canonical model surface 只提交語意；workspace、project、Plan/Work Item/SPEC ID、revision、hash、Profile 與 approval binding 由 trusted current context 和 canonical artifact 解析。多候選一律 bounded fail-closed，不選最新或第一筆。
+
+### Phase 3 artifact/project minimal invocation
+
+Artifact、workspace/project governance、registration/initialization、observed
+state、lifecycle checkpoint、stewardship 與 project evidence 工具共用同一
+control-plane resolver。模型只提交 semantic reference、查詢、operation、
+rationale 或必要的人類選擇；canonical schema 不要求 workspace/project ID、
+root、path、registry/manifest location、hash 或 revision。常用 reference
+包括 `current_project_declaration`、`current_project_observed_state`、
+`current_completion_report` 與 `current_stewardship_subject`。
+
+```json
+{"artifact_ref":"current_project_declaration"}
+{"operation":"refresh_current_project_observed_state"}
+{"operation":"reconcile_current_project","rationale":"確認 declaration、registry 與 observed state 一致"}
+{"action":"archive","rationale":"專案已完成，請先由 operator 確認"}
+```
+
+Resolver 不使用 cwd、basename、mtime、第一筆或最新 fallback；零匹配、多
+匹配、stale binding、path traversal 與 symlink escape 均 fail-closed。project
+initialization 在本 source phase 僅產生 bounded plan/fixture evidence，不建立
+真實專案。
+
+### Phase 4 remaining-tools minimal invocation
+
+The final eleven tools use the same trusted projection. The model provides
+semantic paths/queries, bounded view preferences, copy intent, task intent,
+human decisions, or intake facts:
+
+```json
+{"path":"README.md"}
+{"query":"control-plane","file_glob":"*.py"}
+{}
+{"source":"src/a.txt","destination":"docs/a.txt"}
+{"title":"Bounded intake","summary":"Read-only fixture classification","facts":{}}
+```
+
+The control plane resolves current workspace/repository/task/decision/handoff
+and injects the legacy handler envelope. Missing or ambiguous current subjects
+return deterministic `current_subject_missing` or
+`current_subject_ambiguous`; read/query results are bounded and every result
+provides a `next_action`. Legacy explicit fields remain handler-only
+compatibility inputs.
+
+- 建立 current Plan：`{title: "README 診斷", objective: "確認 README 可正確讀取"}`
+- 建立 current Work Item：`{operation: "add_work_item", payload: {title: "唯讀診斷", objective: "完成 README 檢查", acceptance_criteria: ["產出診斷證據"]}}`
+- 建立／凍結 current SPEC：`{spec_kind: "diagnosis", objective: "唯讀確認 README.md"}` → `{spec_ref: "current_draft_spec"}`
+- 提交 approval decision：`{decision: "approve", rationale: "範圍與驗收條件已確認"}`
+
+更新使用 `plan_ref=current_plan`、`spec_ref=current_draft_spec` 或 trusted current context；不得要求模型搬運長 ID、revision 或 digest。P0 diagnosis 在沒有 Plan authority 時維持 standalone，不被強迫建立行政 Plan。
+
 #### 9. aota_task_spec_create
-- **功能**：建立一個有限制的 AOTA 任務規格成品（draft SPEC）。可選擇以嚴格、經驗證的 Plan／milestone／work item 引用建立 `plan_linked` SPEC；未提供時為 P0 相容的 `standalone`。僅建立草稿，不核准也不開始執行。應在任何設定檔執行任務之前使用。支援三種任務類型：implementation（實作）、diagnosis（診斷）、review（審查）。含完整的範圍表示式驗證、語意規則檢查、欄位長度限制等。
-- **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `task_kind`（必填）：implementation / diagnosis / review。
-  - `title`（必填）：標題（上限 200 字元）。
-  - `goal`（必填）：目標描述（上限 8000 字元）。
-  - `risk_level`（必填）：low / medium / high。
-  - `known_inputs`（選填）：已知輸入/上下文參考陣列。
-  - `read_scope`（必填）：定義可讀路徑的 glob 模式陣列。
-  - `write_scope`（選填）：定義可寫路徑的 glob 模式陣列。
-  - `forbidden_scope`（選填）：明確禁止的 glob 模式陣列。
-  - `acceptance_criteria`（必填）：可衡量的驗收標準陣列。
-  - `validation_policy`（選填）：驗證/審查政策項目陣列。
-  - `stop_conditions`（必填）：停止任務執行的條件陣列。
-  - `evidence_required`（必填）：完成所需的證據項目陣列。
-  - `subject_task_id`（選填）：受檢任務 ID（審查任務必填）。
-  - `parent_task_id`（選填）：父任務 ID。
-- **回傳**：JSON，包含 `task_id`、`status`、`profile_hint`、`spec_sha256` 等。
+- **功能**：建立 draft SPEC。模型只提交語意與必要 scope；workspace/project/Work Item、Profile、revision、hash、approval 與 defaults 由 trusted context、resolver 和 canonical artifacts 產生。P0 standalone 不建立行政 Plan，也不要求模型發明 Work Item ID；P1/P2 或 subject-bound work 若無唯一 authority 會 bounded fail-closed。
+- **最小 P0 diagnosis invocation**：`{spec_kind: "diagnosis", objective: "唯讀確認 README.md", read_scope: ["README.md"], write_scope: []}`。`workspace_id` 不在 canonical model schema；由 trusted runtime context 注入。
+- **P0 architecture subject**：模型可提交 `subject_ref: "current_work_classification"`，或讓 P0 architecture 使用此預設；控制面把 trusted classification digest 綁成內部 `work_classification` reference，不要求模型提供 artifact ID。
+- **回傳**：JSON，包含 `task_id`、`status`、`next_action=freeze_current_spec`、`allowed_next_tool_schema`、`next_options`、`draft_spec_sha256`；draft SHA 與 frozen `spec_hash`/`spec_sha256` 永遠分離。
 
 #### 10. aota_task_spec_update
-- **功能**：修改現有的草稿 AOTA 任務規格。需要樂觀修訂版號比對（optimistic revision matching）。不核准也不開始執行。可更新所有可變規格欄位，或以受限操作設定／清除／重新驗證 Plan traceability；freeze 會重新驗證 Plan 後凍結精確 revision，後續修改被拒絕。
-- **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `task_id`（必填）：要更新的現有任務 ID。
-  - `expected_revision`（必填）：預期的目前修訂版號（樂觀鎖定用）。
-  - `title` / `goal` / `risk_level` / `known_inputs` / `read_scope` / `write_scope` / `forbidden_scope` / `acceptance_criteria` / `validation_policy` / `stop_conditions` / `evidence_required`（均為選填）：要更新的欄位。
-- **回傳**：JSON，包含 `status`、`revision`、`spec_sha256` 等。
+- **功能**：更新 current draft 的語意欄位。canonical model invocation 不提交 task ID 或 expected revision；控制面從唯一 current draft 取得 optimistic revision。舊 exact fields 僅保留 handler compatibility。
+- **最小 invocation**：`{spec_ref: "current_draft_spec", patch: {objective: "更新後的診斷目標"}}`。
+- **回傳**：JSON，包含 `status`、`revision`、`next_action`、`draft_spec_sha256`。
 
 ---
 
 ### aota_profile_task（設定檔任務工具集）
 
 #### 11. aota_profile_task_start
-- **功能**：使用衍生自任務類型的固定命名設定檔，啟動一個現有的已驗證且已freeze AOTA 草稿任務。驗證精確的修訂版號與 SPEC SHA-256，並僅從 frozen SPEC 傳遞有界 Plan lineage；不會更新 Plan。
+- **功能**：以 bounded `task_ref` 啟動目前 trusted task-main/coordinator session 綁定且已驗證的 frozen AOTA Profile Task；沒有 session binding 時才使用 workspace-wide unique fallback。控制面自動取得 workspace/task/revision、canonical `spec_hash`、raw `spec_sha256`、approval 與固定 Profile binding；stale binding 會 fail-closed，不會切換到其他 SPEC，也不會更新 Plan。回傳 `completion_transport`、`completion_delivery_expected`、固定 `next_action` 與控制面計算的 `recovery_allowed_after`；wakeup-capable task 必須等待 completion delivery，不可改查 status/handoff list。舊的明確 binding 欄位仍只在 handler 相容層接受，不再暴露給模型 schema。
 - **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `task_id`（必填）：要啟動的現有 AOTA 任務 ID。
-  - `expected_revision`（必填）：預期的 SPEC 修訂版號。
-  - `expected_spec_sha256`（必填）：預期的 SPEC.md 完整 SHA-256 雜湊。
+  - `task_ref`（必填）：固定 enum，目前為 `active_frozen_spec`。
   - `timeout_seconds`（選填）：工作者程序的超時秒數（30–86400）。
-- **回傳**：JSON，包含 `status`、`start_id`、`profile`、`process_session_id` 等。
+- **雜湊定義**：`expected_spec_hash` 是 `canonical_hash()` 的 frozen `spec_hash`；`expected_spec_sha256` 是 raw `SPEC.md` 內容 SHA-256，兩者不可互換。
+- create-time `draft_spec_sha256`（以及相容欄位 `spec_sha256`）只代表 draft 內容；freeze response/meta 的 `spec_sha256` 才是 frozen raw SHA，semantic start 使用 freeze 後兩個 exact bindings。
+- **回傳**：JSON，包含 `status`、`start_id`、`profile`、`process_session_id`、`completion_transport`、`completion_delivery_expected`、`next_action`、`recovery_allowed_after` 等。
+
+#### Canonical freeze / approval examples
+
+- Freeze current draft: `{spec_ref: "current_draft_spec"}`
+- Approve implementation checkpoint: `{task_ref: "active_frozen_spec"}`
+- Start semantic task: `{task_ref: "active_frozen_spec"}`
+
+Model-facing AOTA tools follow one rule: the model supplies intent, required
+content, scope, acceptance criteria, and explicit human decisions; the control
+plane supplies and validates identity, binding, lifecycle state, profile,
+approval, revision, hashes, digests, and derived defaults. Missing trusted
+session context is a deterministic stop, not an invitation to retry with a
+guessed ID.
 
 #### 12. aota_profile_task_status
-- **功能**：查詢 AOTA 設定檔任務的狀態，含生命週期調解（reconciliation）。回傳目前的任務狀態、終端狀態、收據狀態、注册表狀態與調解元資料。對於執行中的任務，會嘗試透過完成收據或程序注册表進行調解。冪等（idempotent）：不修改終端任務。
+- **功能**：查詢 AOTA 設定檔任務的狀態，含生命週期調解（reconciliation）。對 wakeup-capable active task，`completion_delivery_pending` 會阻止 status/handoff/process/receipt 等替代 polling；`recovery_allowed_after` 後只允許 origin orchestrator 使用一次 bounded recovery，並直接聚合 terminal/running、receipt、outcome、process reconciliation 與 handoff evidence。冪等（idempotent）：不修改終端任務。
 - **參數**：
   - `workspace_id`（必填）：工作區識別碼。
   - `task_id`（必填）：要查詢的現有 AOTA 任務 ID。
@@ -544,12 +629,10 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 - **回傳**：JSON，包含 `status`、`termination_request_id`、`termination_state`、`registry_state` 等。
 
 #### 14. aota_profile_task_approve
-- **功能**：為草稿 AOTA 任務記錄明確的人員檢查點核准（P8-C）。建立 APPROVAL.json。僅適用於實作任務（診斷/審查不需要核准）。不開始執行、不修改 SPEC、不選擇設定檔、不建立其他任務。核准綁定精確的修訂版號+雜湊；規格更新會使核准失效。
+- **功能**：對 current frozen implementation SPEC 記錄明確的人員檢查點決策（approve / reject / request_changes）。控制面解析 exact subject、revision、canonical hash 與 raw SHA；僅 approve 建立 APPROVAL.json。診斷/審查不需要 approval。
 - **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `task_id`（必填）：要核准的現有 AOTA 任務 ID。
-  - `expected_revision`（必填）：預期的 SPEC 修訂版號。
-  - `expected_spec_sha256`（必填）：預期的 SPEC.md SHA-256 雜湊。
+  - `decision`（必填）：`approve` / `reject` / `request_changes`。
+  - `rationale`（必填）：bounded 人類決策理由或修改範圍。
 - **回傳**：JSON，包含 `status`、`approval_id`、`approved_at`、`approval_source`。
 
 ---
@@ -616,29 +699,29 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 
 ### aota_handoff（交接工具集，P8-D）
 
+Phase 2 canonical completion path uses trusted completion delivery and the
+current origin session to resolve the subject. The model supplies no internal
+workspace, task, handoff, decision, receipt, revision, hash, or path fields;
+the old explicit handler arguments remain compatibility-only. The normal chain
+is `open current handoff → record decision → ack current handoff → read
+terminal closure`.
+
 #### 19. aota_handoff_list
-- **功能**：列出工作區中待處理的持久交接（pending handoffs），按建立時間由舊到新排序。回傳精簡元資料，不含完整卡片內容。可選擇性地依 terminal_status 或 profile 過濾。每個交接項目會一併顯示相關的決策元資料（decision state、awaiting_user、followup_task_id）。
+- **功能**：一般 operator 查詢仍可用 bounded semantic filters；若 current completion subject 已存在，控制面直接回傳 `next_action=open_current_handoff`，不使用 list 尋找完成結果。
 - **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
   - `limit`（選填）：最大回傳數（預設 10，上限 50）。
   - `terminal_status`（選填）：依終端狀態過濾（done / failed / needs_input / cancelled）。
   - `profile`（選填）：依設定檔過濾（coder / debugger / reviewer）。
 - **回傳**：JSON，包含 `count` 與 `handoffs` 陣列。
 
 #### 20. aota_handoff_open
-- **功能**：開啟一個精確的持久交接，回傳其元資料與精簡角色卡片內容（CARD.json / DIAGNOSIS_CARD.json / REVIEW_CARD.json）。不會自動開啟完整報告成品（RESULT.md / DIAGNOSIS.md / REVIEW.md）。若角色卡片遺失，回傳 `card_missing=true` 且交接維持待處理狀態。
-- **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `handoff_id`（必填）：要開啟的交接 ID（如 `ho_20250101T120000_a1b2c3d4`）。
+- **功能**：不帶參數即開啟 current completion handoff；控制面驗證 origin session、task/start/SPEC/project/profile、receipt/outcome、binding hashes 與 Card。若 Card 足夠，下一步為 `review_card_and_record_decision`。
+- **參數**：可選 bounded semantic `handoff_ref`，不接受模型提供內部 ID。
 - **回傳**：JSON，包含交接元資料、`role_artifact`、`card_content`、`card_missing`、`subject_task_id`、`needs_input_reason` 以及相關決策資訊。
 
 #### 21. aota_handoff_ack
-- **功能**：確認（acknowledge）一個持久交接的消費。將交接從 pending/ 移動到 acknowledged/，並在旁建立 ack 成品。原子性操作，相同決策冪等，拒絕衝突的第二個確認。確認不會自動分派任何任務或核准任何結果。
-- **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `handoff_id`（必填）：要確認的交接 ID。
-  - `decision`（必填）：編排決策（accepted / needs_followup / needs_user_input / review_required / reopen_required / no_action）。
-  - `note`（選填）：選擇性的附註（上限 4000 字元）。
+- **功能**：不帶參數即從 current decided handoff 解析 decision，執行冪等 ack；成功回傳 `next_action=read_terminal_closure`。模型不提供 handoff 或 decision ID。
+- **參數**：`ack_ref`（選填 semantic selector）、`note`（選填，上限 4000 字元）。
 - **回傳**：JSON，包含 `acknowledged`、`decision`、`idempotent` 等。
 
 ---
@@ -646,12 +729,10 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 ### aota_orchestration（編排工具集，P8-E / P9）
 
 #### 22. aota_orchestration_decision_record
-- **功能**：為一個交接記錄編排決策（orchestration decision）。建立持久的決策成品，捕捉應基於交接完成訊號採取的行動。不會自動建立任何任務、啟動工作者、修改交接、修改確認，或接受模型指定的來源任務/交接/前驅任務 ID。
+- **功能**：canonical path 只接收模型判斷與理由，控制面從 current completion handoff 建立 decision binding。
 - **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `handoff_id`（必填）：要記錄決策的交接 ID。
   - `decision`（必填）：編排決策值（accepted / needs_followup / needs_user_input / review_required / reopen_required / no_action）。
-  - `reason`（選填）：決策原因/上下文（上限 4000 字元）。
+  - `rationale`（必填）：決策理由（上限 4000 字元）。
   - `followup_task_kind`（選填）：後續任務類型（review 等，依決策值有必填或禁止的約束）。
 - **回傳**：JSON，包含 `decision_id`、`decision`、`state`、`followup`、`human_checkpoint`。
 
@@ -677,8 +758,6 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 #### 24. aota_orchestration_decision_resume
 - **功能**：透過記錄使用者輸入摘要與預期的後續任務類型，將 `needs_user_input` 決策從 `awaiting_user` 狀態轉換為 `ready_for_followup` 狀態。不會建立任何任務、更新 SPEC、核准、啟動工作者、修改來源任務、修改交接或產生新決策。
 - **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `decision_id`（必填）：要恢復的編排決策 ID。
   - `user_input_summary`（必填）：使用者輸入摘要（上限 4000 字元，請勿包含機密或令牌）。
   - `followup_task_kind`（必填）：恢復後預期的後續任務類型（implementation / diagnosis / review）。
 - **回傳**：JSON，包含 `decision_id`、`state`、`idempotent`。
@@ -686,7 +765,6 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 #### 25. aota_orchestration_decision_list
 - **功能**：列出工作區的編排決策，按建立時間由舊到新排序。僅回傳精簡元資料（不含完整成品、原因或任務 SPEC）。預設僅列出活躍決策（awaiting_user、ready_for_followup、recorded），不列出已關閉的決策。
 - **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
   - `state`（選填）：依狀態過濾（awaiting_user / ready_for_followup / followup_created / closed / recorded）。
   - `limit`（選填）：最大回傳數（預設 10，上限 50）。
 - **回傳**：JSON，包含 `count` 與 `decisions` 陣列（每項含 decision_id、handoff_id、source_task_id、decision、state 等）。
@@ -694,8 +772,7 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 #### 26. aota_orchestration_decision_open
 - **功能**：開啟一個精確的編排決策，回傳完整的元資料，包含來源綁定、決策值、原因、狀態、恢復元資料、後續元資料、人員檢查點、來源交接狀態與來源任務精簡狀態。不會自動開啟角色完整成品、後續 SPEC 或仓库 diff。
 - **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `decision_id`（必填）：要開啟的編排決策 ID。
+- **參數**：可選 bounded semantic `decision_ref`；current completion decision 由控制面解析。
 - **回傳**：JSON，包含完整的決策資料、`source_binding`、`source_handoff`、`source_task`、`followup`、`resume`、`human_checkpoint`。
 
 #### 27. aota_orchestration_lineage
@@ -714,7 +791,6 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 #### 28. aota_operator_inbox_list
 - **功能**：列出工作區的運營者收件匣項目。掃描交接、決策、任務以建立統一的收件匣。項目按優先級（數字越低越緊急）與建立時間排序。支援依 item_type、priority_max、consistency_status 過濾。唯讀：不修改任何檔案。
 - **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
   - `limit`（選填）：最大回傳項目數（預設 20，上限 100）。
   - `item_type`（選填）：依項目類型過濾（pending_handoff / awaiting_user / ready_for_followup / draft_requires_approval / approved_ready_to_start / draft_ready_to_start / needs_input_task_without_decision / failed_task_unconsumed / cancelled_task_unconsumed / timeout_task_unconsumed / broken_lineage / artifact_gap / running_task）。
   - `priority_max`（選填）：僅顯示優先級≤此值的項目。
@@ -723,10 +799,9 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 - **回傳**：JSON，包含 `count` 與 `items` 陣列（每項含 item_id、item_type、priority、summary、recommended_action 等）。
 
 #### 29. aota_operator_inbox_open
-- **功能**：依 item_id 開啟一個精確的運營者收件匣項目，附帶證據投影（evidence projection）。確定性地解析 item_id 以找到確切的交接、決策、任務或核准成品。回傳精簡元資料與基於 item_type 的相關證據投影。不接受路徑/task_id/handoff_id/decision_id 覆寫。唯讀，不修改檔案。
+- **功能**：不帶參數即開啟 current relevant completion item，附帶 Card/evidence projection；一般 operator semantic search 仍可保留 bounded filter。唯讀，不修改檔案。
 - **參數**：
-  - `workspace_id`（必填）：工作區識別碼。
-  - `item_id`（必填）：精確的運營者收件匣項目 ID（格式如 `oi_handoff_<hid>`、`oi_decision_<did>`、`oi_task_<tid>_<reason>`、`oi_approval_<tid>`）。
+  - `inbox_ref`（選填）：bounded semantic selector，預設 current relevant item。
 - **回傳**：JSON，包含 `item_id`、`item_type` 以及依類型不同的證據（handoff、decision、task、approval 資料及相關 artifacts）。
 
 #### 30. aota_operator_consistency_check
@@ -754,6 +829,14 @@ AOTA（Architect-Overseer Task Automation）外掛程式提供 59 個狹義工�
 #### 34. aota_project_prepare
 - **功能**：從 selected project 的 Registry candidate 與重新驗證的 canonical manifest 產生 bounded Unified Project Brief；不執行 command、不 refresh Registry、不寫入任何檔案。
 - **參數**：`workspace_id`、`project_id`（必填），以及 `include_commands`、`include_constraints`、`include_plan_reference`、`max_warnings`。
+
+### Runtime current-state authority
+
+`profile-tasks/` 保存 durable historical truth：SPEC、task、receipt、outcome、Card/report、handoff 與 decision。`session-state/<workspace>/<project>/<session_digest>/` 保存目前 session 的 bounded pointers；`indexes/` 僅預留給可重建 derived data，不能成為 current authority。
+
+所有 current semantic references（`current_draft_spec`、`active_frozen_spec`、`active_task`、`current_completion`、`current_handoff`、`current_decision`、`current_completed_task`）都必須先由 trusted runtime context 讀取 exact session-state pointer，再驗證 durable artifact。正常路徑不得掃描歷史、依 mtime/latest/first 或 workspace-wide uniqueness 猜測 subject。pointer writer 使用 per-pointer lock、同目錄 temporary file、flush/fsync、atomic replace 與 exact binding validation；pointer stale/mismatch 或 trusted context 缺失時 fail-closed。
+
+既有 `session-active-spec/` 與舊 runtime 只作 bounded compatibility fallback；canonical 新 session 不會因 pointer 缺失而靜默改用其他 session 或 workspace history。
 
 ---
 

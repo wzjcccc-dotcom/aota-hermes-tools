@@ -157,10 +157,12 @@ def main() -> int:
         handoff = handoff_common.read_handoff(handoffs[0])
         assert handoff["profile"] == "project-steward" and handoff["task_kind"] == "stewardship"
         assert handoff["role_artifact"]["card_name"] == "STEWARD_CARD.json" and handoff["role_artifact"]["full_name"] == "STEWARD_RESULT.md"
-        assert list((runtime_root / "outbox" / "fixture" / "pending").glob("*.json"))
+        # Native terminal-background completion is authoritative; the retired
+        # WebUI/outbox rail must remain empty for newly finalized tasks.
+        assert not list((runtime_root / "outbox" / "fixture" / "pending").glob("*.json"))
         marker("PCF_STEWARD_FINALIZER_PASS")
         marker("PCF_STEWARD_HANDOFF_PASS")
-        marker("PCF_STEWARD_OUTBOX_PASS")
+        marker("PCF_STEWARD_OUTBOX_RETIRED_PASS")
 
         # Bounded docs and artifact metadata write paths, still under temp root.
         (workspace / ".aota").mkdir(); (workspace / "docs").mkdir()

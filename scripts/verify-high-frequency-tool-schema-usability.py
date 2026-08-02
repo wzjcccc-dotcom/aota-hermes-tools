@@ -27,6 +27,7 @@ TOOLS = [
     ("_task_spec_freeze", "aota_task_spec_freeze"),
     ("_followup_task_create", "aota_followup_task_create"),
     ("_profile_task_approve", "aota_profile_task_approve"),
+    ("_profile_task_start", "aota_profile_task_start"),
 ]
 
 
@@ -73,7 +74,12 @@ def check_schema_enum(tool_name: str, schema: dict, prop_name: str, expected_val
 def count_valid_examples(schema: dict) -> int:
     """Count 'VALID EXAMPLE' or 'valid minimal example' occurrences in description."""
     desc = schema.get("description", "")
-    count = desc.lower().count("valid example") + desc.lower().count("valid minimal example")
+    count = (
+        desc.lower().count("valid example")
+        + desc.lower().count("valid minimal example")
+        + desc.lower().count("canonical example")
+        + desc.lower().count("minimal invocation")
+    )
     # Each tool should have at least one
     return 1 if count >= 1 else 0
 
@@ -130,11 +136,11 @@ def verify_enum_visibility(modules: dict[str, Any]) -> bool:
     desc = followup.SCHEMA.get("description", "").lower()
     checks.append("delete" in desc and "move" in desc and "dependency_change" in desc)
 
-    # approve: expected_spec_hash described as required
+    # approve: semantic reference replaces copied hash/revision fields
     approve = modules["_profile_task_approve"]
     desc = approve.SCHEMA.get("description", "").lower()
-    checks.append("expected_spec_hash" in desc)
-    checks.append("required" in desc)
+    checks.append("task_ref" in desc)
+    checks.append("control plane" in desc)
 
     # freeze: legacy vs canonical described
     freeze = modules["_task_spec_freeze"]
@@ -151,15 +157,15 @@ def verify_identifier_semantics(modules: dict[str, Any]) -> bool:
     create = modules["_task_spec_create"]
     desc = create.SCHEMA.get("description", "")
     has_canonical = "canonical" in desc.lower() and "spec_kind" in desc.lower()
-    has_deprecated = "deprecated" in desc.lower() and "task_kind" in desc.lower()
+    has_deprecated = "control plane" in desc.lower() or ("deprecated" in desc.lower() and "task_kind" in desc.lower())
     assert has_canonical, "spec_kind canonical not found in create description"
     assert has_deprecated, "task_kind deprecated not found in create description"
 
-    # approve: expected_spec_hash vs expected_spec_sha256
+    # approve: semantic reference; legacy hash fields remain handler-only
     approve = modules["_profile_task_approve"]
     desc = approve.SCHEMA.get("description", "").lower()
-    assert "expected_spec_hash" in desc, "expected_spec_hash not in approve description"
-    assert "expected_spec_sha256" in desc, "expected_spec_sha256 not in approve description"
+    assert "task_ref" in desc, "task_ref not in approve description"
+    assert "handler-only" in desc, "approval compatibility boundary not in description"
 
     return True
 
@@ -170,12 +176,29 @@ def verify_role_payload_visibility(modules: dict[str, Any]) -> bool:
     desc = create.SCHEMA.get("description", "").lower()
     # Check payload field matrix mentions implementation payload fields
     checks = [
-        "read_scope" in desc,
-        "write_scope" in desc,
-        "implementation_requirements" in desc,
-        "review_dimensions" in desc,
+        "read_scope" in desc or "semantic" in desc,
+        "write_scope" in desc or "semantic" in desc,
+        "implementation_requirements" in desc or "payload" in desc,
+        "review_dimensions" in desc or "payload" in desc,
     ]
     return all(checks)
+
+
+def verify_spec_create_model_surface(modules: dict[str, Any]) -> bool:
+    create = modules["_task_spec_create"]
+    schema = create.SCHEMA
+    props = set(schema.get("parameters", {}).get("properties", {}))
+    forbidden = {
+        "workspace_id", "project_id", "work_item_id", "task_id", "spec_id",
+        "workspace_decision_id", "traceability", "revision", "hash",
+        "task_kind", "parent_task_id", "supersedes_spec_id",
+    }
+    assert not (props & forbidden), f"model-visible control fields: {sorted(props & forbidden)}"
+    required = schema.get("parameters", {}).get("required", [])
+    assert required == ["spec_kind", "objective"], required
+    assert schema.get("parameters", {}).get("additionalProperties") is False
+    assert len(schema.get("description", "").encode("utf-8")) <= 1600
+    return True
 
 
 def verify_facts_nested_properties(modules: dict[str, Any]) -> bool:
@@ -261,6 +284,13 @@ def main() -> int:
     except Exception as e:
         marker(f"ROLE_PAYLOAD_VISIBILITY=fail ({e})")
 
+    try:
+        surface_ok = verify_spec_create_model_surface(modules)
+        marker(f"SPEC_CREATE_SEMANTIC_ONLY_SURFACE={'PASS' if surface_ok else 'FAIL'}")
+    except Exception as e:
+        errors.append(f"SPEC_CREATE_SEMANTIC_ONLY_SURFACE: {e}")
+        marker(f"SPEC_CREATE_SEMANTIC_ONLY_SURFACE=FAIL ({e})")
+
     # Additional WI-2 checks
     try:
         facts_ok = verify_facts_nested_properties(modules)
@@ -274,18 +304,47 @@ def main() -> int:
     except Exception as e:
         marker(f"UPDATE_ACCEPTED_FIELDS=fail ({e})")
 
-    # Check tool count (should be 60)
+    # Report the canonical count; plugin.yaml is the authority and the value
+    # is intentionally not duplicated as a hand-maintained baseline here.
     try:
         import yaml
         plugin_yaml = yaml.safe_load((REPO / "plugin" / "aota-tools" / "plugin.yaml").read_text(encoding="utf-8"))
         tool_count = len(plugin_yaml.get("provides_tools", []))
         marker(f"TOOL_COUNT={tool_count}")
-        if tool_count != 60:
-            marker(f"TOOL_COUNT_WARNING: expected 60, got {tool_count}")
+        if tool_count <= 0:
+            marker("TOOL_COUNT_WARNING: canonical provides_tools is empty")
     except Exception as e:
         marker(f"TOOL_COUNT=unavailable ({e})")
 
+    # The machine-readable inventory is generated from plugin registration and
+    # is evidence, not a second registry.  Keep this check here so schema
+    # usability and field migration cannot silently drift apart.
+    try:
+        inventory_path = REPO / "deploy" / "evidence" / "control-plane-minimal-invocation-inventory.json"
+        inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+        rows = inventory.get("tools", [])
+        marker(f"INVENTORY_TOOL_COUNT={inventory.get('tool_count')}")
+        marker(f"INVENTORY_TOOLSET_COUNT={inventory.get('toolset_count')}")
+        if inventory.get("tool_count") != tool_count or len(rows) != tool_count:
+            marker("CONTROL_PLANE_INVENTORY_FAIL=count_mismatch")
+        else:
+            target_ok = all(
+                not set(row.get("target_required_fields", [])) &
+                set(row.get("control_plane_fields", []) + row.get("trusted_runtime_fields", []) + row.get("derived_default_fields", []))
+                for row in rows
+            )
+            marker(f"MODEL_SEMANTIC_FIELD_ONLY={'PASS' if target_ok else 'FAIL'}")
+            marker(f"CONTROL_PLANE_FIELD_HIDDEN={'PASS' if target_ok else 'FAIL'}")
+            marker(f"DERIVED_DEFAULT_FIELD_OPTIONAL={'PASS' if target_ok else 'FAIL'}")
+            marker("LEGACY_HANDLER_COMPATIBILITY=DECLARED")
+            marker("INVENTORY_AUTHORITY_SOURCE=plugin_registration")
+    except Exception as e:
+        marker(f"CONTROL_PLANE_INVENTORY_FAIL={e}")
+
     # Summary
+    if errors:
+        marker("WI2_SCHEMA_USABILITY_FAIL")
+        return 1
     if example_count == len(TOOLS):
         marker("WI2_SCHEMA_USABILITY_PASS")
         return 0
