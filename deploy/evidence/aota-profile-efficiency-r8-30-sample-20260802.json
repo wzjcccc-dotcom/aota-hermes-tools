@@ -1,0 +1,975 @@
+{
+  "schema_version": "aota-profile-efficiency-r8-30-sample-20260802",
+  "captured_at": "2026-08-01T17:42:56.348684+00:00",
+  "status": "PASS_WITH_FINDINGS",
+  "deployment": {
+    "source_version": "0.17.6",
+    "receipt": "deploy/.deploy-receipts/aota-forge-plan/20260801T165229Z/deployment.json",
+    "receipt_sha256": "8b608ebeb254c37526b5dd69dfd2c17546319ab5acb2684cab8e46be71423d0e",
+    "backup": "deploy/.deploy-backups/20260801T165226Z",
+    "runtime": "/home/latios/.hermes",
+    "reload": "headless_native_hermes_serve",
+    "backend_port": 46207,
+    "proxy_health": "http://127.0.0.1:8792/health status=ok"
+  },
+  "sample_contract": {
+    "fixture": "fixtures/aota-profile-efficiency-r5-30-sample-plan.json",
+    "model": "glm-5.2",
+    "provider": "ollama-cloud",
+    "samples": 30,
+    "repetitions_per_profile": 5,
+    "per_task_llm_plus_tool_limit": 100,
+    "task_main_parent_tool_limit": 12,
+    "new_session_per_sample": true
+  },
+  "evaluation_contract": {
+    "weights": {
+      "outcome_completion": 0.3,
+      "correct_tool_and_parameter_path": 0.25,
+      "retry_stop_safety": 0.2,
+      "total_tool_budget": 0.1,
+      "minimal_skill_and_tool_description": 0.15
+    },
+    "minimal_invocation": "skill_view <= 1 and tool_describe <= 1",
+    "prompt_budget_authority": "sessions.tool_call_count including meta-tool calls",
+    "correct_path_policy": "parameter rejection counts as incorrect path even when changed-argument retry recovers",
+    "safety_policy": "retryable=false/same_call_retryable=false is not retried with same arguments"
+  },
+  "minimal_smoke": {
+    "profiles": "one representative per profile; task-main native terminal_background completion chain",
+    "result": "all representative route checks passed; task-main closure closed"
+  },
+  "profiles": [
+    {
+      "profile": "project-steward",
+      "score_percent": 100.0,
+      "sample_scores": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "session_ids": [
+        "20260802_011541_29d334",
+        "20260802_011608_7e5a39",
+        "20260802_011639_5fea3a",
+        "20260802_011703_82a122",
+        "20260802_011728_9f19cc"
+      ],
+      "finding": {
+        "outcome_completion": 5,
+        "correct_tool_and_parameter_path": 5,
+        "retry_stop_safety": 5,
+        "total_tool_budget": 5,
+        "minimal_skill_and_tool_description": 5
+      }
+    },
+    {
+      "profile": "task-main",
+      "score_percent": 74.0,
+      "sample_scores": [
+        60.0,
+        75.0,
+        75.0,
+        75.0,
+        85.0
+      ],
+      "session_ids": [
+        "20260802_010135_ae5869",
+        "20260802_012152_3c92c8",
+        "20260802_012900_85cc6d",
+        "20260802_013403_cec8ee",
+        "20260802_013548_b174a5"
+      ],
+      "finding": {
+        "outcome_completion": 5,
+        "correct_tool_and_parameter_path": 1,
+        "retry_stop_safety": 5,
+        "total_tool_budget": 5,
+        "minimal_skill_and_tool_description": 3
+      }
+    },
+    {
+      "profile": "architect",
+      "score_percent": 95.0,
+      "sample_scores": [
+        100.0,
+        75.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "session_ids": [
+        "20260802_011541_2dd2b0",
+        "20260802_011609_30d6c9",
+        "20260802_011634_3e56fc",
+        "20260802_011701_f89ec1",
+        "20260802_011727_f7b5bc"
+      ],
+      "finding": {
+        "outcome_completion": 5,
+        "correct_tool_and_parameter_path": 5,
+        "retry_stop_safety": 5,
+        "total_tool_budget": 4,
+        "minimal_skill_and_tool_description": 4
+      }
+    },
+    {
+      "profile": "reviewer",
+      "score_percent": 94.0,
+      "sample_scores": [
+        100.0,
+        85.0,
+        85.0,
+        100.0,
+        100.0
+      ],
+      "session_ids": [
+        "20260802_011542_9dc9f6",
+        "20260802_011559_63baf8",
+        "20260802_011615_38c933",
+        "20260802_011634_5e8ec3",
+        "20260802_011652_2b77f8"
+      ],
+      "finding": {
+        "outcome_completion": 5,
+        "correct_tool_and_parameter_path": 5,
+        "retry_stop_safety": 5,
+        "total_tool_budget": 5,
+        "minimal_skill_and_tool_description": 3
+      }
+    },
+    {
+      "profile": "coder",
+      "score_percent": 80.0,
+      "sample_scores": [
+        100.0,
+        75.0,
+        75.0,
+        75.0,
+        75.0
+      ],
+      "session_ids": [
+        "20260802_011711_390f36",
+        "20260802_011747_41134c",
+        "20260802_011823_da8942",
+        "20260802_011856_b0948c",
+        "20260802_011935_b15c8c"
+      ],
+      "finding": {
+        "outcome_completion": 5,
+        "correct_tool_and_parameter_path": 5,
+        "retry_stop_safety": 5,
+        "total_tool_budget": 1,
+        "minimal_skill_and_tool_description": 1
+      }
+    },
+    {
+      "profile": "debugger",
+      "score_percent": 100.0,
+      "sample_scores": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0
+      ],
+      "session_ids": [
+        "20260802_011752_da6cae",
+        "20260802_011822_9486da",
+        "20260802_011854_67377c",
+        "20260802_011929_885a72",
+        "20260802_012010_38975c"
+      ],
+      "finding": {
+        "outcome_completion": 5,
+        "correct_tool_and_parameter_path": 5,
+        "retry_stop_safety": 5,
+        "total_tool_budget": 5,
+        "minimal_skill_and_tool_description": 5
+      }
+    }
+  ],
+  "aggregate": {
+    "formal_samples": 30,
+    "parent_api_calls": 141,
+    "parent_tool_calls": 134,
+    "worker_api_calls": 37,
+    "worker_tool_calls": 57,
+    "end_to_end_llm_plus_tool_calls": 369,
+    "average_end_to_end_llm_plus_tool_calls_per_sample": 12.3,
+    "max_end_to_end_llm_plus_tool_calls_in_one_sample": 46,
+    "samples_over_100_call_cap": 0,
+    "passes": {
+      "outcome_completion": 30,
+      "correct_tool_and_parameter_path": 26,
+      "retry_stop_safety": 30,
+      "total_tool_budget": 25,
+      "minimal_skill_and_tool_description": 21
+    }
+  },
+  "score": {
+    "outcome_completion_rate_percent": 100.0,
+    "correct_tool_and_parameter_path_rate_percent": 86.7,
+    "retry_stop_safety_rate_percent": 100.0,
+    "total_tool_budget_rate_percent": 83.3,
+    "minimal_skill_and_tool_description_rate_percent": 70.0,
+    "composite_efficiency_percent": 90.5,
+    "target_percent": 90.0,
+    "target_met": true,
+    "previous_r7_percent": 80.7,
+    "delta_from_r7_points": 9.8
+  },
+  "samples": [
+    {
+      "profile": "architect",
+      "rep": 1,
+      "session_id": "20260802_011541_2dd2b0",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 4,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 7,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 1,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 27.66
+    },
+    {
+      "profile": "architect",
+      "rep": 2,
+      "session_id": "20260802_011609_30d6c9",
+      "score_percent": 75.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": false,
+        "minimal_skill_and_tool_description": false
+      },
+      "tool_call_count": 5,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 8,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 2,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 25.29
+    },
+    {
+      "profile": "architect",
+      "rep": 3,
+      "session_id": "20260802_011634_3e56fc",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 3,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 6,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 1,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 26.62
+    },
+    {
+      "profile": "architect",
+      "rep": 4,
+      "session_id": "20260802_011701_f89ec1",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 3,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 6,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 1,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 25.81
+    },
+    {
+      "profile": "architect",
+      "rep": 5,
+      "session_id": "20260802_011727_f7b5bc",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 3,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 6,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 1,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 25.31
+    },
+    {
+      "profile": "coder",
+      "rep": 1,
+      "session_id": "20260802_011711_390f36",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 4,
+      "api_call_count": 4,
+      "end_to_end_llm_plus_tool_calls": 8,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 1,
+      "domain_tools": [
+        "aota_search_files",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 35.97
+    },
+    {
+      "profile": "coder",
+      "rep": 2,
+      "session_id": "20260802_011747_41134c",
+      "score_percent": 75.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": false,
+        "minimal_skill_and_tool_description": false
+      },
+      "tool_call_count": 6,
+      "api_call_count": 7,
+      "end_to_end_llm_plus_tool_calls": 13,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 2,
+      "domain_tools": [
+        "aota_search_files",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 36.77
+    },
+    {
+      "profile": "coder",
+      "rep": 3,
+      "session_id": "20260802_011823_da8942",
+      "score_percent": 75.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": false,
+        "minimal_skill_and_tool_description": false
+      },
+      "tool_call_count": 6,
+      "api_call_count": 6,
+      "end_to_end_llm_plus_tool_calls": 12,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 2,
+      "domain_tools": [
+        "aota_search_files",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 32.78
+    },
+    {
+      "profile": "coder",
+      "rep": 4,
+      "session_id": "20260802_011856_b0948c",
+      "score_percent": 75.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": false,
+        "minimal_skill_and_tool_description": false
+      },
+      "tool_call_count": 5,
+      "api_call_count": 5,
+      "end_to_end_llm_plus_tool_calls": 10,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 2,
+      "domain_tools": [
+        "aota_search_files",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 38.49
+    },
+    {
+      "profile": "coder",
+      "rep": 5,
+      "session_id": "20260802_011935_b15c8c",
+      "score_percent": 75.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": false,
+        "minimal_skill_and_tool_description": false
+      },
+      "tool_call_count": 6,
+      "api_call_count": 6,
+      "end_to_end_llm_plus_tool_calls": 12,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 2,
+      "domain_tools": [
+        "aota_search_files",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 89.91
+    },
+    {
+      "profile": "debugger",
+      "rep": 1,
+      "session_id": "20260802_011752_da6cae",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 2,
+      "end_to_end_llm_plus_tool_calls": 4,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_read_file"
+      ],
+      "elapsed_sec": 29.62
+    },
+    {
+      "profile": "debugger",
+      "rep": 2,
+      "session_id": "20260802_011822_9486da",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 2,
+      "end_to_end_llm_plus_tool_calls": 4,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_read_file"
+      ],
+      "elapsed_sec": 32.67
+    },
+    {
+      "profile": "debugger",
+      "rep": 3,
+      "session_id": "20260802_011854_67377c",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 2,
+      "end_to_end_llm_plus_tool_calls": 4,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_read_file"
+      ],
+      "elapsed_sec": 34.93
+    },
+    {
+      "profile": "debugger",
+      "rep": 4,
+      "session_id": "20260802_011929_885a72",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 2,
+      "end_to_end_llm_plus_tool_calls": 4,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_read_file"
+      ],
+      "elapsed_sec": 40.64
+    },
+    {
+      "profile": "debugger",
+      "rep": 5,
+      "session_id": "20260802_012010_38975c",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 5,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_read_file"
+      ],
+      "elapsed_sec": 32.67
+    },
+    {
+      "profile": "project-steward",
+      "rep": 1,
+      "session_id": "20260802_011541_29d334",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 5,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_project_registry_refresh",
+        "aota_project_open"
+      ],
+      "elapsed_sec": 26.95
+    },
+    {
+      "profile": "project-steward",
+      "rep": 2,
+      "session_id": "20260802_011608_7e5a39",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 5,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_project_registry_refresh",
+        "aota_project_open"
+      ],
+      "elapsed_sec": 31.13
+    },
+    {
+      "profile": "project-steward",
+      "rep": 3,
+      "session_id": "20260802_011639_5fea3a",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 5,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_project_registry_refresh",
+        "aota_project_open"
+      ],
+      "elapsed_sec": 23.85
+    },
+    {
+      "profile": "project-steward",
+      "rep": 4,
+      "session_id": "20260802_011703_82a122",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 5,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_project_registry_refresh",
+        "aota_project_open"
+      ],
+      "elapsed_sec": 24.89
+    },
+    {
+      "profile": "project-steward",
+      "rep": 5,
+      "session_id": "20260802_011728_9f19cc",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 5,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_project_registry_refresh",
+        "aota_project_open"
+      ],
+      "elapsed_sec": 29.19
+    },
+    {
+      "profile": "reviewer",
+      "rep": 1,
+      "session_id": "20260802_011542_9dc9f6",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 2,
+      "api_call_count": 2,
+      "end_to_end_llm_plus_tool_calls": 4,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 0,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 17.52
+    },
+    {
+      "profile": "reviewer",
+      "rep": 2,
+      "session_id": "20260802_011559_63baf8",
+      "score_percent": 85.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": false
+      },
+      "tool_call_count": 4,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 7,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 2,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 16.38
+    },
+    {
+      "profile": "reviewer",
+      "rep": 3,
+      "session_id": "20260802_011615_38c933",
+      "score_percent": 85.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": false
+      },
+      "tool_call_count": 4,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 7,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 2,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 18.84
+    },
+    {
+      "profile": "reviewer",
+      "rep": 4,
+      "session_id": "20260802_011634_5e8ec3",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 3,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 6,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 1,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 17.81
+    },
+    {
+      "profile": "reviewer",
+      "rep": 5,
+      "session_id": "20260802_011652_2b77f8",
+      "score_percent": 100.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 3,
+      "api_call_count": 3,
+      "end_to_end_llm_plus_tool_calls": 6,
+      "skill_view_calls": 0,
+      "tool_describe_calls": 1,
+      "domain_tools": [
+        "aota_read_file",
+        "aota_read_file"
+      ],
+      "elapsed_sec": 18.72
+    },
+    {
+      "profile": "task-main",
+      "rep": 1,
+      "session_id": "20260802_010135_ae5869",
+      "worker_session_id": "20260802_010550_f3f9d5",
+      "score_percent": 60.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": false,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": false
+      },
+      "tool_call_count": 11,
+      "api_call_count": 12,
+      "worker_tool_call_count": 13,
+      "worker_api_call_count": 10,
+      "end_to_end_llm_plus_tool_calls": 46,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 2,
+      "dispatch_errors": [
+        "validation_fields_invalid"
+      ],
+      "domain_tools": [
+        "aota_workspace_open",
+        "aota_work_classify",
+        "aota_profile_task_dispatch",
+        "aota_profile_task_dispatch",
+        "aota_handoff_open",
+        "aota_orchestration_decision_record",
+        "aota_handoff_ack",
+        "aota_profile_task_status"
+      ],
+      "final_text_tail": "未手動填寫內部 ID\n  未進行 filesystem/runtime 掃描或 polling\n  retryable=false 時未換參數重試\n  使用 trusted current workspace/project binding\n\nAOTA Profile 效率驗證 V1 通過。完整 P0 standalone chain 在 11 次工具呼叫內完成 dispatch → native completion → card-first handoff → decision → ack → closure。"
+    },
+    {
+      "profile": "task-main",
+      "rep": 2,
+      "session_id": "20260802_012152_3c92c8",
+      "worker_session_id": "20260802_012230_bbc887",
+      "score_percent": 75.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": false,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 10,
+      "api_call_count": 11,
+      "worker_tool_call_count": 7,
+      "worker_api_call_count": 5,
+      "end_to_end_llm_plus_tool_calls": 33,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 1,
+      "dispatch_errors": [
+        "validation_fields_invalid"
+      ],
+      "domain_tools": [
+        "aota_workspace_open",
+        "aota_work_classify",
+        "aota_profile_task_dispatch",
+        "aota_profile_task_dispatch",
+        "aota_handoff_open",
+        "aota_orchestration_decision_record",
+        "aota_handoff_ack",
+        "aota_profile_task_status"
+      ],
+      "final_text_tail": "onciliation metadata 缺失（standalone P0 無完整 finalizer chain），不影響 lifecycle closure (closure_state=closed, all pointers closed)\n\nNOT_PERFORMED:\n- 未建立 Plan (P0 不需要)\n- 未修改任何 source\n- 未進行 polling/outbox 掃描\n- 未開啟完整 ARCHITECT_REVIEW.md (needs_full_report_review=false)"
+    },
+    {
+      "profile": "task-main",
+      "rep": 3,
+      "session_id": "20260802_012900_85cc6d",
+      "worker_session_id": "20260802_012936_bcdd7e",
+      "score_percent": 75.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": false,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 10,
+      "api_call_count": 11,
+      "worker_tool_call_count": 12,
+      "worker_api_call_count": 7,
+      "end_to_end_llm_plus_tool_calls": 40,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 1,
+      "dispatch_errors": [
+        "validation_fields_invalid"
+      ],
+      "domain_tools": [
+        "aota_workspace_open",
+        "aota_work_classify",
+        "aota_profile_task_dispatch",
+        "aota_profile_task_dispatch",
+        "aota_handoff_open",
+        "aota_orchestration_decision_record",
+        "aota_handoff_ack",
+        "aota_profile_task_status"
+      ],
+      "final_text_tail": "econciled，scope compliance 零違規\n\nclosure 中 terminal_status=error 是 finalizer reconciliation metadata 層的狀態（receipt_present=false），不影響 worker outcome（completed）和 closure_state（closed）。這是 standalone P0 task 的已知行為——durable reconciliation meta 在 standalone 模式下不強制寫入。"
+    },
+    {
+      "profile": "task-main",
+      "rep": 4,
+      "session_id": "20260802_013403_cec8ee",
+      "worker_session_id": "20260802_013433_2cb128",
+      "score_percent": 75.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": false,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": true
+      },
+      "tool_call_count": 10,
+      "api_call_count": 11,
+      "worker_tool_call_count": 13,
+      "worker_api_call_count": 7,
+      "end_to_end_llm_plus_tool_calls": 41,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 1,
+      "dispatch_errors": [
+        "validation_fields_invalid"
+      ],
+      "domain_tools": [
+        "aota_workspace_open",
+        "aota_work_classify",
+        "aota_profile_task_dispatch",
+        "aota_profile_task_dispatch",
+        "aota_handoff_open",
+        "aota_orchestration_decision_record",
+        "aota_handoff_ack",
+        "aota_profile_task_status"
+      ],
+      "final_text_tail": "view 適用）\n- outcome: completed，exit_code=0\n- 兩項驗收條件均滿足\n- Receipt authoritative + reconciled，scope violations=0\n- 決策：accepted，handoff closed，session pointers 全部 closed\n- 未修改 source、未建立 Plan、未手動填 ID、未掃描 filesystem/runtime、未使用 outbox/polling\n\n所有約束條件遵守，流程在控制鏈內完整閉環。"
+    },
+    {
+      "profile": "task-main",
+      "rep": 5,
+      "session_id": "20260802_013548_b174a5",
+      "worker_session_id": "20260802_013623_230fa7",
+      "score_percent": 85.0,
+      "criteria": {
+        "outcome_completion": true,
+        "correct_tool_and_parameter_path": true,
+        "retry_stop_safety": true,
+        "total_tool_budget": true,
+        "minimal_skill_and_tool_description": false
+      },
+      "tool_call_count": 12,
+      "api_call_count": 13,
+      "worker_tool_call_count": 12,
+      "worker_api_call_count": 8,
+      "end_to_end_llm_plus_tool_calls": 45,
+      "skill_view_calls": 1,
+      "tool_describe_calls": 2,
+      "dispatch_errors": [],
+      "domain_tools": [
+        "aota_workspace_open",
+        "aota_work_classify",
+        "aota_work_classify",
+        "aota_profile_task_dispatch",
+        "aota_handoff_open",
+        "aota_orchestration_decision_record",
+        "aota_handoff_ack",
+        "aota_profile_task_status"
+      ],
+      "final_text_tail": "nalizer reconciliation 欄位（receipt_present=false, source=null），屬控制平面終期帳目層級狀態，不影響 worker 執行結果與已記錄的 accepted decision。\n\nNOT_PERFORMED:\n- 未開啟 ARCHITECT_REVIEW.md 完整報告（card 足夠，needs_full_report_review=false）\n- 未進行 repo diff/status 檢查\n- 未 poll status（僅 closure 一次呼叫）"
+    }
+  ],
+  "limitations": [
+    "task-main completion was gated on final status/closure evidence; PTY harness early prompt matching was discarded and not scored",
+    "raw samples used trusted workspace runtime env and fresh session IDs",
+    "known deploy false-positive allowed only for capture-host-migration-docker-baseline.py:871"
+  ],
+  "conclusion": "Composite efficiency crosses 90% narrowly under the same weighted rubric. Main remaining defect is semantic dispatch parameter rejection in 4/5 task-main samples; route recovery is safe but not first-pass minimal. Coder remains budget/minimal-description constrained."
+}

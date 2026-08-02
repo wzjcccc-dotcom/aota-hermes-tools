@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "read_only_reconnaissance": true,
+  "baseline_hermes_commit": "689b51bef68f9ec95b638121bb9c7fefa3703fb2",
+  "current_hermes_commit": "3c388db06b6543821f15ed62efb9d8e7cd9bb9be",
+  "current_branch": "main",
+  "upstream": "origin/main",
+  "ahead": 0,
+  "behind": 0,
+  "last_commit_time": "2026-07-27T23:59:52-05:00",
+  "hermes_remote": "https://github.com/NousResearch/hermes-agent.git",
+  "hermes_worktree": {
+    "status": "dirty",
+    "pre_existing_changes_preserved": true,
+    "entries_in_scope": ["M gateway/run.py", "?? gateway/aota_parent_wake.py"]
+  },
+  "upstream_diff_summary": {
+    "gateway/run.py": {"insertions": 324, "deletions": 44},
+    "gateway/session_context.py": {"insertions": 5, "deletions": 0},
+    "tools/async_delegation.py": {"insertions": 392, "deletions": 30}
+  },
+  "working_tree_wiring_delta": {"gateway/run.py": {"insertions": 17, "deletions": 0}},
+  "aota_forge_commit": "c2e0c4d05e102c8ad9b622a6c5cfb311bbcbfb36",
+  "aota_forge_worktree": "dirty pre-existing changes preserved"
+}

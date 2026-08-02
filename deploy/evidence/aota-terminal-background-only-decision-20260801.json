@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-08-01",
+  "status": "source_implemented_not_deployed",
+  "decision": {
+    "new_profile_task_transport": "terminal_background_only",
+    "unsupported_context_result": "terminal_background_required",
+    "unsupported_context_worker_launch": false,
+    "new_legacy_outbox_production": false,
+    "historical_legacy_read_compatibility": true,
+    "historical_pending_events_mutated": false
+  },
+  "native_trigger_chain": [
+    "task-main calls aota_profile_task_start or aota_profile_task_dispatch",
+    "start resolves gateway.session_context.async_delivery_supported",
+    "start calls terminal_tool with background=true and notify_on_complete=true",
+    "_profile_task_launcher runs the selected Worker",
+    "Worker writes the role artifact and worker outcome",
+    "finalizer writes the completion receipt, handoff, and session-state pointers",
+    "launcher exits",
+    "Hermes ProcessRegistry emits the completion event",
+    "the originating persistent task-main session is resumed"
+  ],
+  "wake_initiator": {
+    "worker_calls_parent_wake": false,
+    "worker_role": "produce bounded result artifacts and exit",
+    "actual_wake_owner": "Hermes tools/process_registry.py",
+    "launch_owner": "AOTA plugin/aota-tools/_profile_task_start.py"
+  },
+  "root_cause_evidence": {
+    "r5_task_main_transport": "terminal_background",
+    "r6_task_main_transport": "legacy_durable_delivery",
+    "r6_invocation_context": "hermes -z finite/stateless session",
+    "native_process_registry_regression_found": false,
+    "hermes_update_touched_native_wake_chain": false,
+    "legacy_adapter_observation": {
+      "pending_total": 89,
+      "pending_before_activation_boundary": 70,
+      "pending_after_activation_boundary": 19,
+      "processing": 0,
+      "delivered": 0,
+      "delivery_receipts": 0,
+      "repeated_log": "historical_pending_skipped=50",
+      "failure_mode": "the first 50 historical events were rescanned and skipped on every loop, starving newer events"
+    }
+  },
+  "implementation_scope": {
+    "new_start_selection": "remove automatic legacy fallback",
+    "finalizer": "write outbox only for an execution already durably bound to legacy_durable_delivery with completion_delivery_expected=true",
+    "historical_adapter_source": "preserved for audit and explicit managed retirement; not part of new completion acceptance",
+    "hermes_host_source_modified_by_this_decision": false,
+    "runtime_environment_modified": false,
+    "deployment_performed": false,
+    "reload_performed": false,
+    "llm_sample_rerun_performed": false
+  },
+  "validation": {
+    "verify_aota_native_terminal_handoff_gate": "pass",
+    "verify_aota_native_terminal_completion_chain": "pass",
+    "verify_aota_phase2_completion_migration": "pass",
+    "verify_aota_skill_lifecycle": "pass_with_runtime_checks_required",
+    "targeted_py_compile": "pass",
+    "git_diff_check": "pass",
+    "llm_calls": 0,
+    "known_unrelated_verifier_mismatch": {
+      "verifier": "verify-profile-task-progress-polling-enforcement.py",
+      "fixture_cases": "A-R pass",
+      "final_assertion": "expected tool count 61 but loaded 62",
+      "transport_change_added_or_registered_tools": false
+    }
+  },
+  "source_evidence": [
+    "plugin/aota-tools/_completion_observation.py",
+    "plugin/aota-tools/_profile_task_start.py",
+    "plugin/aota-tools/_profile_task_launcher.py",
+    "plugin/aota-tools/_profile_task_finalize.py",
+    "/home/latios/workspace/hermes-agent-host/tools/process_registry.py",
+    "/home/latios/workspace/hermes-agent-host/gateway/session_context.py",
+    "deploy/evidence/aota-profile-efficiency-r5-30-sample-20260801.json",
+    "deploy/evidence/aota-profile-efficiency-r6-30-sample-20260801.json"
+  ]
+}

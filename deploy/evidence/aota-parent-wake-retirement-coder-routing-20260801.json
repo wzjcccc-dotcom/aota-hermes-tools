@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-08-01",
+  "status": "source_implemented_not_deployed",
+  "parent_wake_retirement": {
+    "gateway/aota_parent_wake.py": "removed",
+    "gateway/run.py": "matches_current_hermes_head",
+    "gateway/wake.py": "unchanged",
+    "runtime_env_authority": "/home/latios/.local/bin/hermes-host sources /home/latios/.config/hermes-host/runtime.env before exec",
+    "new_profile_task_transport": "terminal_background_only",
+    "native_completion_owner": "Hermes ProcessRegistry",
+    "forge_group": "hermes_host_profile_skill_projection",
+    "parent_wake_managed_or_required": false,
+    "historical_documents_and_evidence_preserved": true,
+    "historical_outbox_events_mutated": false
+  },
+  "coder_routing_conflict": {
+    "r6_symptom": "coder sent a named enum/schema literal search to an exact file path and received non-retryable path_not_authorized",
+    "conflicting_contracts": [
+      "coder SOUL and Phase 4 description said any supplied exact path must use aota_read_file first",
+      "workspace-file-access-strategy said a literal symbol, enum, or schema must use aota_search_files first",
+      "aota_search_files documented and implemented path as a directory only"
+    ],
+    "root_cause": "the model followed the literal-probe route but the tool rejected an exact file; Phase 4 then misclassified the directory-only error as path_not_authorized",
+    "resolved_route": {
+      "exact_file_contents_or_known_lines": "aota_read_file",
+      "named_literal_enum_or_schema_in_known_file": "aota_search_files scoped to the exact file",
+      "unknown_file_location": "aota_search_files scoped to the narrowest directory",
+      "preflight_path_check": "not_allowed_unless_metadata_is_requested"
+    },
+    "tool_change": "aota_search_files now accepts one regular file or one directory without widening workspace containment"
+  },
+  "validation": {
+    "verify_aota_parent_wake_retirement": "pass",
+    "host_launcher_runtime_env_authority": "pass",
+    "gateway_run_py_compile": "pass",
+    "gateway_run_git_diff_against_head": "pass",
+    "verify_aota_phase4_remaining_tools_migration": "pass",
+    "exact_file_literal_search_fixture": "pass",
+    "verify_aota_profile_efficiency_contracts": "pass",
+    "llm_calls": 0
+  },
+  "not_performed": [
+    "managed deployment",
+    "Hermes reload or restart",
+    "runtime environment edit",
+    "historical outbox cleanup",
+    "LLM sample rerun",
+    "Git commit or push"
+  ]
+}

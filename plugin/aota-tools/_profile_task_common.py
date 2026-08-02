@@ -7,7 +7,9 @@ runner detection, worker prompt generation, and error types.
 from __future__ import annotations
 
 import re
-from typing import Optional
+import hashlib
+import json
+from typing import Any, Mapping, Optional
 
 from ._task_spec_common import TASK_KIND_PROFILE_HINT, TASK_KINDS, STATUS_DRAFT
 from ._workspace import WorkspaceError
@@ -212,6 +214,155 @@ _ROLE_SPECIFIC: dict[str, str] = {
 }
 
 _TIMEOUT_AWARE_INSTRUCTION = """\nThis task has a hard timeout configured. If you exceed the time limit, the\nprocess will be terminated with SIGTERM (and SIGKILL after a grace period).\nUse your time efficiently and submit your outcome before the deadline.\n"""
+
+
+# These fields are control-plane bindings, not Worker instructions.  They are
+# intentionally removed from the role projection even when a legacy SPEC puts
+# them inside ``payload`` or ``role_contract``.
+_CONTROL_PLANE_FIELDS = frozenset({
+    "artifact_id", "artifact_path", "hash", "sha", "sha256", "spec_hash",
+    "spec_sha256", "revision", "spec_revision", "task_id", "start_id",
+    "workspace_id", "project_id", "work_item_id", "subject_task_id",
+    "spec_id", "meta_path", "spec_path", "task_path", "workspace_path",
+    "subject_ref", "subject_spec_ref", "subject_plan_ref",
+    "subject_work_classification_ref", "context_refs", "related_artifacts",
+})
+
+
+def _semantic_projection(value: Any) -> Any:
+    """Project role data without copying control-plane identity bindings."""
+    if isinstance(value, Mapping):
+        projected: dict[str, Any] = {}
+        for key, item in value.items():
+            if str(key).lower() in _CONTROL_PLANE_FIELDS:
+                continue
+            projected[str(key)] = _semantic_projection(item)
+        return projected
+    if isinstance(value, (list, tuple)):
+        return [_semantic_projection(item) for item in value]
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    return str(value)
+
+
+def _spec_value(spec: Mapping[str, Any], *names: str, default: Any = None) -> Any:
+    for name in names:
+        if name in spec and spec[name] is not None:
+            return spec[name]
+    return default
+
+
+def build_worker_execution_envelope(
+    *,
+    spec: Mapping[str, Any],
+    task_kind: str,
+    derived_profile: str,
+    read_scope: list[str],
+    write_scope: list[str],
+    forbidden_scope: list[str],
+    architecture_mode: str | None = None,
+) -> dict[str, Any]:
+    """Build the deterministic, model-visible semantic Worker envelope.
+
+    The envelope deliberately contains objective/acceptance/scope/role intent,
+    but never task IDs, hashes, revisions, subject IDs, or control-plane paths.
+    Trusted active-task tools remain the only way to read bound artifacts.
+    """
+    payload = spec.get("payload") if isinstance(spec.get("payload"), Mapping) else {}
+    role_contract = spec.get("role_contract") if isinstance(spec.get("role_contract"), Mapping) else {}
+    role_data = dict(role_contract)
+    # Canonical WI-09C stores role intent in payload.  Merge it only for fields
+    # absent from the older role_contract so the projection is deterministic.
+    for key, value in payload.items():
+        role_data.setdefault(key, value)
+
+    process_path = _spec_value(spec, "process_path", default="standard")
+    validation_tier = _spec_value(spec, "validation_tier", default=0)
+    human_checkpoints = _spec_value(spec, "human_checkpoints", default=[])
+    validation = {
+        "policy": _semantic_projection(_spec_value(spec, "validation_policy", default=[])),
+        "commands": _semantic_projection(payload.get("validation_commands", [])),
+        "strategy": _semantic_projection(payload.get("validation_strategy", "")),
+        "process_path": process_path,
+        "tier": validation_tier,
+        "human_checkpoints": _semantic_projection(human_checkpoints),
+    }
+
+    return {
+        "schema_version": 1,
+        "role": task_kind,
+        "profile_route": derived_profile,
+        "objective": _semantic_projection(_spec_value(spec, "objective", "goal", default="")),
+        "acceptance_criteria": _semantic_projection(_spec_value(spec, "acceptance_criteria", default=[])),
+        "read_scope": _semantic_projection(read_scope),
+        "write_scope": _semantic_projection(write_scope),
+        "forbidden_scope": _semantic_projection(
+            forbidden_scope or _spec_value(spec, "forbidden_actions", default=[])
+        ),
+        "constraints": _semantic_projection(_spec_value(spec, "constraints", default=[])),
+        "stop_conditions": _semantic_projection(_spec_value(spec, "stop_conditions", default=[])),
+        "evidence_required": _semantic_projection(_spec_value(spec, "evidence_required", default=[])),
+        "architecture_mode": architecture_mode if task_kind == "architecture" else None,
+        "role_requirements": _semantic_projection(role_data),
+        "validation": validation,
+    }
+
+
+_EXECUTION_ENVELOPE_PROMPT_TEMPLATE = """You are executing one bounded AOTA Profile Task.
+
+Execution Envelope (authoritative semantic projection):
+{envelope_json}
+
+Operating rules:
+- The active Profile and its fixed tool surface are already selected. Do not use tool discovery or tool description calls for the routine path.
+- Worker identity, task/artifact IDs, revisions, hashes, subject bindings, and control-plane paths come from trusted runtime context. Do not request, infer, copy, or repeat them.
+- Do not scan task-control directories or rediscover a task. If the active Profile Skill requires a binding check, use the bounded active-task artifact tool for each required SPEC/SCOPE/BINDING artifact once, then proceed from this envelope.
+- Treat read_scope, write_scope, forbidden_scope, constraints, and stop_conditions as authoritative. If the requested work cannot stay inside them, stop and report needs_input.
+- Use evidence before claiming completion. Do not modify task-control artifacts.
+
+Role execution:
+{role_guidance}
+
+At the end, submit the role artifact/report when applicable, then call aota_worker_outcome_submit exactly once with completed, failed, or needs_input. Do not exit without a terminal outcome.
+"""
+
+
+_ENVELOPE_ROLE_GUIDANCE = {
+    "implementation": "Implement only the required changes. Use the spec-driven implementation Skill and its bounded active-task preflight before project-tier work.",
+    "diagnosis": "Diagnose only; gather the evidence named by the envelope, submit the diagnosis card/report, and do not mutate source files.",
+    "review": "Perform an independent read-only review against the envelope and the bound subject evidence. Do not fix issues.",
+    "architecture": "Perform the requested read-only architecture review or preflight against the envelope and bound subject evidence. Do not dispatch or modify files.",
+    "stewardship": "Provide only the project facts and continuity artifact authorized by the envelope. Do not make durable orchestration decisions or source changes.",
+}
+
+
+def generate_worker_execution_envelope_prompt(
+    *,
+    spec: Mapping[str, Any],
+    task_kind: str,
+    derived_profile: str,
+    read_scope: list[str],
+    write_scope: list[str],
+    forbidden_scope: list[str],
+    architecture_mode: str | None = None,
+) -> tuple[str, str, dict[str, Any]]:
+    """Return ``(prompt, digest, envelope)`` for the current start boundary."""
+    envelope = build_worker_execution_envelope(
+        spec=spec,
+        task_kind=task_kind,
+        derived_profile=derived_profile,
+        read_scope=read_scope,
+        write_scope=write_scope,
+        forbidden_scope=forbidden_scope,
+        architecture_mode=architecture_mode,
+    )
+    encoded = json.dumps(envelope, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    digest = hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+    prompt = _EXECUTION_ENVELOPE_PROMPT_TEMPLATE.format(
+        envelope_json=encoded,
+        role_guidance=_ENVELOPE_ROLE_GUIDANCE.get(task_kind, _ENVELOPE_ROLE_GUIDANCE["implementation"]),
+    )
+    return prompt, digest, envelope
 
 
 

@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-01T19:54:53+08:00",
+  "status": "DEPLOYED_RELOAD_AND_RERUN_COMPLETE_TARGET_NOT_MET",
+  "deployment": {
+    "method": "scripts/aota_forge_plan_package.py deploy",
+    "runtime_root": "/home/latios/.hermes",
+    "source_version": "0.17.6",
+    "receipt": "/home/latios/workspace/aota-hermes-tools/.deploy-receipts/aota-forge-plan/20260801T112831Z/deployment.json",
+    "receipt_sha256": "a2c4c9ce30ec036e3bfad3e2cffc803c9258772d0b26de417f65835f3d0c1590",
+    "backup": "/home/latios/workspace/aota-hermes-tools/.deploy-backups/20260801T112829Z",
+    "deploy_verify": "pass",
+    "profile_assembly": "pass",
+    "reload": {
+      "process": "/home/latios/.venvs/hermes-agent-host/bin/hermes serve --skip-build --port 0",
+      "pid": 2408739,
+      "port": 42785,
+      "hermes_home": "/home/latios/.hermes",
+      "aota_runtime_root": "/home/latios/.hermes/aota-runtime",
+      "sqlite_loaded": "3.53.4"
+    }
+  },
+  "sample_contract": {
+    "plan": "fixtures/aota-profile-efficiency-r5-30-sample-plan.json",
+    "formal_samples": 30,
+    "repetitions_per_profile": 5,
+    "model": "glm-5.2",
+    "provider": "ollama-cloud",
+    "per_task_llm_plus_tool_limit": 100,
+    "new_session_per_sample": true,
+    "sequential_within_profile": true
+  },
+  "evaluation_contract": {
+    "weights": {
+      "outcome_completion": 0.30,
+      "correct_tool_and_parameter_path": 0.25,
+      "safety_stop_or_no_retry_after_non_retryable": 0.20,
+      "total_tool_budget": 0.10,
+      "minimal_invocation": 0.15
+    },
+    "minimal_invocation": "skill_view <= 1 and tool_describe <= 1",
+    "parent_tool_budget": "prompt-specific cap from sample plan",
+    "completion_definition": "bounded task reaches a usable completion/terminal outcome; task-main requires worker completion handoff closure"
+  },
+  "profiles": [
+    {
+      "profile": "project-steward",
+      "score_percent": 75.0,
+      "sample_sessions": ["20260801_193145_5f361b", "20260801_193211_624979", "20260801_193237_8889e0", "20260801_193259_b10c74", "20260801_193321_069444"],
+      "api_calls": [5, 3, 4, 4, 4],
+      "tool_calls": [6, 5, 4, 4, 5],
+      "sample_scores": [75, 75, 75, 75, 75],
+      "finding": "All bounded tasks completed and used safe tools, but every sample exceeded the three-tool prompt budget and repeated discovery/description."
+    },
+    {
+      "profile": "task-main",
+      "score_percent": 25.0,
+      "sample_sessions": ["20260801_193358_5059a6", "20260801_193434_cce256", "20260801_193511_0c49c9", "20260801_193609_a67061", "20260801_193717_6a2fbe"],
+      "worker_sessions": ["20260801_193429_c944c2", "20260801_193500_d6b873", "20260801_193541_a6b838", "20260801_193645_07fd03", "20260801_193741_508753"],
+      "api_calls": [9, 8, 14, 12, 7],
+      "tool_calls": [9, 8, 16, 12, 7],
+      "worker_tool_calls": [13, 7, 9, 12, 11],
+      "combined_llm_plus_tool_calls": [40, 29, 45, 46, 31],
+      "sample_scores": [45, 45, 0, 10, 25],
+      "finding": "Workers created terminal artifacts and reached done, but the parent did not consume completion facade output into decision/ack/closure; non-retryable completion_subject_missing was repeatedly polled in samples 3-5."
+    },
+    {
+      "profile": "architect",
+      "score_percent": 97.0,
+      "sample_sessions": ["20260801_193801_75ae5f", "20260801_193821_395790", "20260801_193842_90910c", "20260801_193906_595480", "20260801_193929_d44aa1"],
+      "api_calls": [3, 3, 3, 3, 3],
+      "tool_calls": [4, 3, 3, 3, 3],
+      "sample_scores": [85, 100, 100, 100, 100],
+      "finding": "All tasks completed correctly and safely; only the first sample exceeded the minimal discovery criterion by one extra description call."
+    },
+    {
+      "profile": "reviewer",
+      "score_percent": 89.0,
+      "sample_sessions": ["20260801_194000_3a8df3", "20260801_194023_1b4e16", "20260801_194052_46ba3c", "20260801_194114_b98155", "20260801_194134_442dac"],
+      "api_calls": [4, 3, 4, 3, 3],
+      "tool_calls": [4, 3, 4, 4, 4],
+      "sample_scores": [100, 85, 100, 85, 75],
+      "finding": "All tasks completed; two samples repeated description and the fifth used redundant tool search for an exact-path probe."
+    },
+    {
+      "profile": "coder",
+      "score_percent": 35.0,
+      "sample_sessions": ["20260801_194204_3dc698", "20260801_194243_cbfc57", "20260801_194317_8d262c", "20260801_194345_f0fb4b", "20260801_194423_84e31c"],
+      "api_calls": [4, 7, 5, 5, 4],
+      "tool_calls": [4, 7, 5, 5, 4],
+      "sample_scores": [55, 15, 45, 30, 30],
+      "finding": "All exact-path search attempts were rejected as non-retryable path_not_authorized; four samples continued or retried after that rejection, and one sample did not finish the requested enum task."
+    },
+    {
+      "profile": "debugger",
+      "score_percent": 93.0,
+      "sample_sessions": ["20260801_194500_1edffb", "20260801_194520_2341e8", "20260801_194541_9c071c", "20260801_194614_b8c52f", "20260801_194631_497ad0"],
+      "api_calls": [2, 2, 6, 2, 2],
+      "tool_calls": [2, 2, 6, 1, 2],
+      "sample_scores": [100, 100, 65, 100, 100],
+      "finding": "Four samples completed with the direct read path; one added an unnecessary codegraph query and exceeded its prompt tool budget."
+    }
+  ],
+  "aggregate": {
+    "formal_samples": 30,
+    "parent_api_calls": 141,
+    "parent_tool_calls": 149,
+    "worker_api_calls": 37,
+    "worker_tool_calls": 52,
+    "end_to_end_llm_plus_tool_calls": 379,
+    "average_end_to_end_llm_plus_tool_calls_per_sample": 12.63,
+    "max_end_to_end_llm_plus_tool_calls_in_one_sample": 46,
+    "samples_over_100_call_cap": 0,
+    "outcome_completion_passes": 23,
+    "correct_tool_and_parameter_path_passes": 18,
+    "safety_passes": 23,
+    "budget_passes": 20,
+    "minimal_invocation_passes": 18
+  },
+  "score": {
+    "outcome_completion_rate_percent": 76.7,
+    "correct_tool_and_parameter_path_rate_percent": 60.0,
+    "safety_rate_percent": 76.7,
+    "budget_rate_percent": 66.7,
+    "minimal_invocation_rate_percent": 60.0,
+    "composite_efficiency_percent": 69.0,
+    "target_percent": 90.0,
+    "target_met": false,
+    "delta_to_target_points": -21.0,
+    "previous_r5_percent": 78.0,
+    "delta_from_r5_points": -9.0
+  },
+  "conclusion": {
+    "target_met": false,
+    "primary_bottleneck": "task-main did not consume completion facade output into parent decision/ack/closure despite workers reaching done",
+    "secondary_bottleneck": "coder still searches before exact-path reads and continues after non-retryable path_not_authorized",
+    "tertiary_bottleneck": "project-steward and some reviewer samples repeat discovery/description beyond the minimal invocation contract",
+    "runtime_facade_status": "deployed and source/runtime parity verified; live parent completion consumption was not demonstrated in scored samples"
+  },
+  "limitations": [
+    "The 30 formal samples are one run with five sequential repetitions per profile; stochastic model behavior is not a confidence interval.",
+    "Worker sessions are matched to task-main samples by ordered timestamps because the current usage record does not expose a parent_session_id link.",
+    "The Host backend was activated headlessly with serve --port 0; dashboard status does not enumerate this headless process, while PID/proc and runtime maps do.",
+    "No manual Parent Wake was injected after a missing completion subject, so this run measures the current native completion delivery path rather than a repaired fallback."
+  ]
+}

@@ -138,7 +138,7 @@ def policy_static_assertions() -> None:
     assert "unrestricted `file` and `terminal` are disabled" in souls["coder"]
     assert "spec_kind=diagnosis" in souls["debugger"] and "recommended_decision" in souls["reviewer"]
     assert "approved document writing belongs to Project Steward" in souls["architect"]
-    assert "aota-profile-task-orchestration` is the only operational orchestration" in souls["task-main"]
+    assert "aota-profile-skill-routing-index` is the compact operational entrypoint" in souls["task-main"]
     marker("PCF_TASK_MAIN_CARD_FIRST_PASS"); marker("PCF_TASK_MAIN_DECISION_BOUNDARY_PASS")
     marker("PCF_ACTIVE_SKILL_BINDINGS_PASS"); marker("PCF_ORCHESTRATION_AUTHORITY_PASS")
     marker("PCF_DOCUMENT_OWNERSHIP_PASS")

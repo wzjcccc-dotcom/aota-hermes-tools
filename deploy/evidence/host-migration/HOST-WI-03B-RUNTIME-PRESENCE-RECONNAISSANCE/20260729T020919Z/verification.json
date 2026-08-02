@@ -1,0 +1,22 @@
+{
+  "evidence_only_write": true,
+  "source_mutated": false,
+  "aota_source_mutated": false,
+  "runtime_mutated": false,
+  "feature_flag_mutated": false,
+  "backend_restarted": false,
+  "profile_task_started": false,
+  "synthetic_turn_executed": false,
+  "native_wake_triggered": false,
+  "database_mutated": false,
+  "docker_started_or_modified": false,
+  "commit_created": false,
+  "push_or_fetch": false,
+  "reset_stash_or_clean": false,
+  "pytest": false,
+  "static_verifier": "PASS",
+  "py_compile": "PASS",
+  "git_diff_check": "PASS",
+  "independent_review": "NOT_EXECUTED_ORCA_FUSE_BLOCKED",
+  "final_decision": "NEEDS_PARENT_WAKE_CONFIGURATION_OR_SCHEMA_RECONCILIATION"
+}

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-01T13:09:00+08:00",
+  "status": "PASS_SOURCE_PENDING_DEPLOY_AND_LLM_RERUN",
+  "objective": "Raise Hermes AOTA tool-use efficiency above 90 percent while preserving model-led orchestration and expand the scored sample from 6 to 30.",
+  "implementation": {
+    "semantic_architecture_start": {
+      "status": "implemented",
+      "authority": "frozen canonical SPEC plus matching P0 work-classification binding",
+      "legacy_subject_task_review_preserved": true,
+      "spec_preflight_subject_task_binding_preserved": true,
+      "runtime_same_tool_hard_latch_added": false
+    },
+    "profile_cost_posture": {
+      "project_steward_route": "one Skill load plus register_current_project and project_open",
+      "task_main_route": "direct workspace open, at most one classifier describe, then returned next schemas",
+      "debugger_route": "one optional Active Skill load plus direct exact-path read without search/describe",
+      "control_plane_tool_ban_added": false
+    },
+    "sample_plan": {
+      "path": "/home/latios/workspace/aota-hermes-tools/fixtures/aota-profile-efficiency-r5-30-sample-plan.json",
+      "base_profiles": 6,
+      "repetitions_per_profile": 5,
+      "total_samples": 30,
+      "model": "glm-5.2",
+      "per_task_llm_plus_tool_limit": 100,
+      "weights_unchanged": true,
+      "prompts_unchanged": true
+    }
+  },
+  "validation": {
+    "py_compile": "pass",
+    "zero_llm_profile_efficiency_fixtures": "pass",
+    "semantic_architecture_start_gate": "pass",
+    "semantic_subject_tamper_fail_closed": "pass",
+    "thirty_sample_plan": "pass",
+    "skill_creator_quick_validate": "pass_3_of_3",
+    "aota_skill_lifecycle_source": "pass",
+    "aota_skill_lifecycle_fixture": "pass",
+    "profile_assembly_source": "pass",
+    "high_frequency_schema_usability": "pass",
+    "minimal_invocation_chain": "pass",
+    "work_classification_session_binding": "pass",
+    "spec_preflight_failure_contract": "pass",
+    "control_plane_reference_resolution": "pass",
+    "profile_local_skill_source_integration": "pass",
+    "profile_task_launcher_hardening": "pass",
+    "profile_tool_boundaries": "pass",
+    "git_diff_check": "pass"
+  },
+  "files_changed": [
+    "plugin/aota-tools/_profile_task_start.py",
+    "profiles/debugger/SOUL.md",
+    "profiles/task-main/SOUL.md",
+    "skills/aota-pcf-project-steward/SKILL.md",
+    "skills/aota-profile-skill-routing-index/SKILL.md",
+    "skills/workspace-file-access-strategy/SKILL.md",
+    "fixtures/aota-profile-efficiency-r5-30-sample-plan.json",
+    "scripts/verify-aota-profile-efficiency-contracts.py",
+    "deploy/evidence/aota-profile-efficiency-r5-contracts-20260801.json"
+  ],
+  "not_performed": [
+    "managed deployment",
+    "Hermes process restart or recreation",
+    "live runtime parity check",
+    "Hermes LLM invocation",
+    "30-sample scored rerun",
+    "Git commit or push"
+  ],
+  "next_gate": "explicit user approval for managed deployment and 30-sample rerun"
+}

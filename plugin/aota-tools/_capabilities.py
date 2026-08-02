@@ -85,6 +85,7 @@ PROFILE_CAPABILITIES: dict[str, dict[str, Any]] = {
         "allowed_tools": [
             "aota_task_spec_create",
             "aota_task_spec_update",
+            "aota_profile_task_dispatch",
             "aota_profile_task_start",
             "aota_profile_task_status",
             "aota_profile_task_cancel",

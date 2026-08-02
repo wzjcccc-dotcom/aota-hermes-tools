@@ -1,9 +1,9 @@
 {
-  "description": "Fixture cases for PCF-WI-PROFILE-TASK-PROGRESS-POLLING-ENFORCEMENT-MINIMUM verifier. Cases A-J cover no-poll enforcement for running task status queries.",
+  "description": "Isolated fixtures for Profile Task completion delivery, cross-tool observation guards, and one bounded recovery; legacy status compatibility remains covered by Cases A-J.",
   "schema_version": 1,
   "retrieval_reasons": [
     "completion_notification_timeout",
-    "lost_notification",
+    "lost_completion_delivery",
     "suspected_runtime_failure",
     "non_wakeup_reentry",
     "user_requested",
@@ -74,7 +74,7 @@
       "description": "All six retrieval_reason values must be accepted by the validator.",
       "retrieval_reasons": [
         "completion_notification_timeout",
-        "lost_notification",
+        "lost_completion_delivery",
         "suspected_runtime_failure",
         "non_wakeup_reentry",
         "user_requested",

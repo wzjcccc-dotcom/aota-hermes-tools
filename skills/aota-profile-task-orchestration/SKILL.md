@@ -14,13 +14,23 @@ an explicit Skill-development contract and require the implementer to follow
 This is the operational contract for **task-main**. It coordinates work; it is
 the only role allowed to mutate a Plan. It does not make source changes itself.
 
+Global invocation rule: never invent, copy, or retry control-plane identifiers,
+paths, revisions, hashes, sessions, profiles, or lifecycle bindings. Submit
+semantic references and human decisions; follow the deterministic `next_action`
+returned by the tool when authority is missing or ambiguous.
+
 ## 1. Authority and durable truth
 
 ### Workspace selection and frozen binding
 
-Resolve in this order: active Profile Task binding, frozen SPEC binding,
-validated user-supplied IDs, valid prior workspace-selection decision, Steward
-recommendation, discovery, then clarification.  task-main alone converts a
+Resolve in this order: explicit trusted reference, active Profile Task binding,
+trusted current-session `active_frozen_spec` binding, frozen SPEC binding,
+active Work Item/linked Plan, current validated workspace-selection decision,
+validated user-supplied IDs, Steward recommendation, discovery, then
+clarification. `active_frozen_spec` means the current trusted task-main or
+coordinator session's active frozen SPEC; workspace-wide uniqueness is only a
+fallback. A present but stale session binding fails closed and never falls back
+to another frozen SPEC. task-main alone converts a
 recommendation or supplied candidate into `workspace_selection`; record the
 registry digest, project manifest digest, and validation evidence.  Project
 Plans/SPECs/tasks must retain the same frozen binding.  A worker never reruns
@@ -37,6 +47,14 @@ workspace discovery or changes the selected workspace/project.
 Workers, Architect, and Reviewer never mutate a Plan. `execution_completed`
 and Reviewer `pass` never close a Work Item automatically. Chat memory is not a
 roadmap or a handoff.
+
+For the high-frequency dispatch path, use
+`aota_profile_task_start(task_ref="active_frozen_spec")` after the workspace
+selection and SPEC freeze gates have completed. The shared resolver returns the
+validated workspace/project/task binding, exact revision, canonical
+`spec_hash`, and raw `spec_sha256`; it fails closed on missing, ambiguous,
+stale, or mismatched candidates. Do not manually copy those control-plane
+foreign keys or hashes into the semantic call.
 
 ## 1a. Canonical worker-result consumption
 
@@ -81,8 +99,11 @@ as `handoff → Card → conditional full report → durable decision → ack`.
    - **A2 candidate:** additionally decision, blast radius, irreversibility,
      rollback, and Architect inputs.
 5. Call `aota_work_classify` again after convergence. This final result drives
-   the current flow. Record it in Todo; for P1/P2 also record it later with an
-   explicit Plan `record_decision`. P0 needs no durable classification record.
+   the current flow and must return a written session-state
+   `current_work_classification` binding. If the binding is missing, stop and
+   return to intake/classification; do not ask the model to supply P0/P1/P2 or
+   internal IDs. Record the route in Todo; for P1/P2 also record it later with
+   an explicit Plan `record_decision`.
 
 `aota_work_classify` returns independent `planning_depth` (P0/P1/P2),
 `architect_gate` (A0/A1/A2), and `delivery_path` (fast/standard/deep). P0+A2
@@ -111,10 +132,18 @@ next action; never say only "need more information." Reclassify after answers.
 | A1 | task-main may invoke Architect for unresolved designs, uncertainty, cross-runtime/repo impact, durable contract, or user request; record a deliberate skip in Todo or Plan decision |
 | A2 | Architect review is required before P1/P2 approval or high-risk SPEC freeze |
 
+Before `aota_task_spec_create`, task-main re-reads that binding through trusted
+session/workspace/project context. P0 permits all five SPEC profiles without a
+Plan or administrative Work Item; P1/P2 require the current Plan, active Work
+Item, and verified traceability. The binding is consumed only after the SPEC
+artifact and `current_draft_spec` pointer are durable.
+
 P0 flow is: Intake Lite → preliminary classification → proportional convergence
-→ final classification → Architect decision → standalone SPEC → required
-preflight → approval/freeze → task → result/review → task-main decision →
-closure or follow-up → optional handoff.
+→ final classification → `aota_profile_task_dispatch` with semantic SPEC →
+native completion → card-first handoff → task-main decision → closure or
+follow-up → optional handoff. The classifier's `allowed_next_tool_schema` is
+authoritative for P0, including P0+A2; do not reopen the create/freeze/start
+chain unless the control plane explicitly returns a non-P0 route.
 
 P1 flow is: final P1 → create draft Plan → one lightweight milestone and bounded
 Work Items → active IDs → classification decision → required review/adoption →
@@ -145,6 +174,13 @@ deployment topology, a first design specimen, or an explicit Plan finding.
 
 ## 6. Plan lifecycle (P1/P2 only)
 
+Canonical model invocations are semantic-only. Create a current Plan with
+`{"title":"README 診斷","objective":"確認 README 可正確讀取"}`. The control
+plane resolves workspace/project, Plan identity, revision, digests, and
+planning defaults. Update with `plan_ref="current_plan"` (or omit it) and one
+bounded operation/payload; `freeze_plan` resolves the current Plan and does
+not accept a Plan ID, revision, or digest.
+
 `aota_plan_create` creates revision 1 in `draft`. Build it through one bounded
 `aota_plan_update` operation at a time: `add_milestone`, `add_work_item`,
 `set_active_milestone`, `set_active_work_item`, `record_decision`,
@@ -166,6 +202,12 @@ Recommended Work Item path:
 planned → ready → in_progress → execution_completed → review_required → closed
 ```
 
+Work Item creation/update uses the canonical Plan mutation surface. The model
+submits title/objective/outcomes or a bounded semantic choice such as
+`work_item_ref="choice:2"`; active Plan, Work Item ID, sequence and revision
+are control-plane bindings. Multiple candidates return bounded choices and
+require a human selection.
+
 Valid branches include `needs_input`, `human_checkpoint`, `blocked`, and
 `review_required → needs_fix → ready`. Before a plan-linked SPEC, select a
 non-terminal active Work Item whose dependencies are satisfied or explicitly
@@ -179,8 +221,47 @@ refresh the **draft** traceability, inspect the change, and freeze again. Never
 automatically refresh/freeze and never modify a frozen SPEC; create a revision
 or new SPEC for fixes.
 
-For implementation, explicit human approval follows freeze. Start only with the
-exact current frozen revision/SHA. Recommended order is:
+The canonical model contract is semantic-only. A minimal P0 diagnosis call is:
+
+```json
+{"spec_kind":"diagnosis","objective":"唯讀確認 README.md","read_scope":["README.md"],"write_scope":[]}
+```
+
+Plan-bound SPEC creation uses the same semantic fields after a unique current
+Plan/Work Item is selected. Update uses
+`{"spec_ref":"current_draft_spec","patch":{"objective":"更新目標"}}`;
+freeze uses `{"spec_ref":"current_draft_spec"}`. An implementation approval
+uses `{"decision":"approve","rationale":"範圍與驗收條件已確認"}`. Exact
+subject, revision, hashes and approval artifacts are resolved by the control
+plane.
+
+The control plane injects/resolves workspace, project, Plan/Work Item, task and
+SPEC identity, Profile, approval policy, revision, hashes, digests, and defaults.
+Use `spec_ref="current_draft_spec"` to freeze and
+`decision`/`rationale` to approve; start still uses the bounded
+`task_ref="active_frozen_spec"`; do not copy IDs or hashes into
+model calls. If trusted session context is absent, freeze may preserve the
+durable frozen SPEC but returns `semantic_start_ready=false`,
+`trusted_session_context_missing`, `retryable=false`, and
+`next_action=stop_and_report_runtime_context_missing`.
+
+Current semantic authority is the trusted `session-state/` pointer for the
+current workspace/project/session partition, followed by exact durable
+artifact validation. `profile-tasks/`, `handoffs/`, and `decisions/` are
+history stores; normal current resolution must not scan them, use
+mtime/latest/first, or use workspace-wide uniqueness. Legacy unique fallback
+is compatibility-only and must report
+`resolution_source=legacy_workspace_unique_fallback` plus
+`migration_recommended=true`. A `retryable=false` result forbids repeating the
+same tool, filesystem search, or legacy explicit-ID bypass; follow only its
+exact `next_action`.
+
+For implementation, explicit human approval follows freeze. Freeze updates the
+current trusted session's runtime `session-active-spec` binding atomically when
+the handler supplies trusted session metadata; a later freeze in the same
+session supersedes only that session's pointer while older SPECs remain
+frozen. Start only with the exact current frozen revision/SHA. Recommended
+order is:
 
 ```text
 freeze SPEC → start succeeds → aota_plan_update(link_task) → Work Item in_progress
@@ -207,51 +288,78 @@ with the task-start baseline so pre-existing dirty paths are not attributed to
 the worker. Scope status and violation counts retain task/start identity, scope
 digest/source, foreign-event counts, and unattributed-delta counts.
 
-## 7a. Task start preflight (wait-mode resolution)
+## 7a. Task start preflight (terminal-only admission)
 
-Before calling `aota_profile_task_start`, task-main MUST execute a 5-step
-preflight to resolve and record the wait mode. This prevents progress polling
-after the task returns `running`.
+Before calling `aota_profile_task_start`, task-main applies this bounded
+preflight. It does not discover or classify transport itself.
 
-1. **Resolve delivery capability**: Determine from runtime evidence whether
-   the current transport supports async delivery (wakeup notifications).
-   - WebUI session with wakeup-capable transport → `wakeup_capable_normal`
-   - API Server (`supports_async_delivery=False`) → `non_wakeup_transport`
-   - Do NOT self-infer the transport from model reasoning. Use runtime
-     evidence (e.g., `aota_runtime_info`, platform transport metadata).
+1. **Use trusted admission**: Do not infer transport from model reasoning and
+   do not call a discovery tool to select it. The start tool reads Hermes'
+   trusted `async_delivery_supported()` authority.
 
-2. **Record wait_mode**: Record the resolved wait mode in Todo or session
-   state. This is the authoritative wait mode for this task — it must not be
-   reinterpreted after start.
+2. **Load aota-task-lifecycle**: Load the `aota-task-lifecycle` Skill only
+   when the compact routing projection does not already provide the no-poll
+   rule needed for this start.
 
-3. **Load aota-task-lifecycle**: Load the `aota-task-lifecycle` Skill to
-   access the wait-mode classification rules, FORBIDDEN_PROGRESS_ACTIONS
-   list, and non_wakeup_transport explicit retrieval conditions.
+3. **Start task**: Call `aota_profile_task_start` with
+   `task_ref="active_frozen_spec"`. The resolver obtains the frozen SPEC
+   revision and both hash bindings; the start returns `running` (or an error).
 
-4. **Start task**: Call `aota_profile_task_start` with the frozen SPEC
-   revision/SHA. The start returns `running` (or an error).
-
-5. **Apply selected wait_mode without reinterpretation**: After start returns
-   `running`, apply the wait mode resolved in step 1. Do NOT re-evaluate the
-   transport or change the wait mode. For `wakeup_capable_normal`: wait for
-   the wakeup signal (handoff), do NOT poll. For `non_wakeup_transport`:
-   exit the turn and wait for external re-entry; do NOT busy-wait in the
-   same turn.
+4. **Obey the admission result**: A successful start is always
+   `completion_transport=terminal_background`; end the turn and wait for
+   native re-entry without polling. `terminal_background_required` means the
+   current caller is finite/stateless: stop before Worker launch and move the
+   task to a persistent task-main session. Do not retry through another
+   transport.
 
 ### Post-start no-poll enforcement
 
-After `aota_profile_task_start` returns `running`:
+After `aota_profile_task_start` returns `running`, follow the returned
+`next_action` literally. The start binding is resolved by the trusted Hermes
+host capability; model arguments never select the transport:
 
-- For `wakeup_capable_normal`: Do NOT call `aota_profile_task_status` without
-  a valid `retrieval_reason`. The typed `retrieval_reason` parameter is
-  enforced by `plugin/aota-tools/_profile_task_status.py`. Missing
-  `retrieval_reason` returns `normal_path_progress_poll_forbidden`.
-- A second status query within the minimum interval is rejected as
-  `repeated_progress_poll_forbidden`.
-- One authorized recovery check does NOT authorize repeated polling.
-- For `non_wakeup_transport`: explicit retrieval is allowed but must NOT
-  happen within the same turn as task start. Exit the turn and wait for
-  re-entry.
+- Native CLI/Desktop: `completion_transport=terminal_background`,
+  `completion_delivery_expected=false`, `notify_on_complete=true`. The
+  launcher/finalizer/ProcessRegistry completion ordering is the notification
+  path, and the originating session opens the handoff after result integrity
+  and trusted binding validation. A legacy outbox event is not a native gate.
+- Finite/stateless or non-push context: reject with
+  `terminal_background_required` before launch. Do not fall back to
+  `legacy_durable_delivery`, outbox delivery, or manual status polling.
+- Missing or contradictory trusted authority fails closed before launch; do
+  not infer or override it from task arguments, worker output, or model
+  reasoning.
+
+For the native completion path:
+
+- End the start turn and wait for ProcessRegistry re-entry. Do not call task
+  status, handoff list, process status, receipt, artifact, or operator-inbox
+  completion observations while waiting; do not switch tools.
+- After delivery, call `aota_handoff_open` with the current semantic context
+  (normally `{}`). The control plane resolves and validates the handoff,
+  receipt, outcome, Card, task/start/SPEC binding, and origin session. Continue
+  `handoff → Card → decision → ack → terminal closure`; do not list/search for
+  the handoff or copy an internal ID.
+- Record the decision with only `decision` and `rationale` through
+  `aota_orchestration_decision_record`. Then call `aota_handoff_ack` with `{}`;
+  the current durable decision supplies the acknowledgement decision.
+- Read the final aggregate through `aota_profile_task_status` with
+  `{"view":"closure"}`. It returns terminal status, exit code, outcome,
+  receipt, handoff, decision, ack, reconciliation, scope compliance, hashes,
+  and a deterministic next action in one response.
+- Only after the control-plane-provided `recovery_allowed_after` has passed,
+  with no delivery, may the origin orchestrator perform one recovery using
+  `retrieval_reason=completion_notification_timeout` or
+  `retrieval_reason=lost_completion_delivery`. The recovery response already
+  aggregates status, terminal/running state, receipt, outcome, process
+  reconciliation, and handoff evidence.
+- A terminal recovery returns `next_action=open_completion_handoff`; a running
+  recovery returns to native waiting. A later recovery
+  is fail-closed as `recovery_already_consumed`.
+
+Historical tasks that were already created with
+`legacy_durable_delivery` retain read/closure compatibility. That compatibility
+does not authorize a new legacy start or outbox event.
 
 ## 7b. Validation Authority Preflight
 

@@ -31,6 +31,8 @@ from ._plan_common import (
 )
 from ._plan_open import _PlanOpenError, _read_plan_json, _resolve_plan_file, _verify_and_validate
 from ._workspace import WorkspaceError, resolve_workspace
+from ._session_active_spec_binding import trusted_session_context
+from ._reference_resolver import ReferenceError, resolve_current_plan, resolve_current_work_item
 
 TOOLSET_NAME = "aota_plan_write"
 CREATE_TOOL_NAME = "aota_plan_create"
@@ -42,27 +44,25 @@ _TERMINAL = {"closed", "cancelled", "superseded"}
 
 CREATE_SCHEMA = {
     "name": CREATE_TOOL_NAME,
-    "description": "Create one minimal, audited canonical AOTA Plan in a registered workspace. Requires trusted task-main plan_write authority; no path, plan ID, actor, or raw Plan input is accepted.",
+    "description": "Create one minimal, audited current AOTA Plan. The control plane resolves workspace, project, owner, IDs, timestamps, revision and digests. Semantic input is title/objective plus optional scope/outcomes; planning defaults are derived from the existing classifier contract. Minimal example: {title: 'README diagnosis', objective: 'Confirm README is readable'}.",
     "parameters": {"type": "object", "properties": {
-        "workspace_id": {"type": "string"}, "title": {"type": "string"},
-        "planning_depth": {"type": "string", "enum": ["P1", "P2"]},
-        "architect_gate": {"type": "string", "enum": ["A0", "A1", "A2"]},
-        "delivery_path": {"type": "string", "enum": ["fast", "standard", "deep"]},
-        "goal": {"type": "string"}, "non_goals": {"type": "array", "items": {"type": "string"}},
-        "current_state": {"type": "string"}, "next_action": {"type": ["string", "null"]},
-        "project_id": {"type": "string"}, "workspace_decision_id": {"type": "string"},
-    }, "required": ["workspace_id", "title", "planning_depth", "architect_gate", "delivery_path", "goal"], "additionalProperties": False},
+        "title": {"type": "string"}, "objective": {"type": "string"},
+        "scope": {"type": "array", "items": {"type": "string"}},
+        "outcomes": {"type": "array", "items": {"type": "string"}},
+        "constraints": {"type": "array", "items": {"type": "string"}},
+        "planning_depth": {"type": "string", "enum": ["P1", "P2"], "description": "Optional explicit human planning decision; default is derived."},
+    }, "required": ["title", "objective"], "additionalProperties": False},
 }
 UPDATE_SCHEMA = {
     "name": UPDATE_TOOL_NAME,
-    "description": "Apply exactly one bounded, audited AOTA Plan operation with mandatory optimistic revision matching. Arbitrary JSON, Markdown, paths, actor, and authority are rejected.",
+    "description": "Apply one bounded operation to the current Plan. The control plane resolves current Plan and revision; use plan_ref=current_plan or omit it. Do not provide Plan ID, revision, digest, workspace or project fields. Freeze uses operation=freeze_plan. Work Item operations resolve the active item; a multiple-choice selector such as work_item_ref=choice:2 is allowed.",
     "parameters": {"type": "object", "properties": {
-        "workspace_id": {"type": "string"}, "plan_id": {"type": "string"},
-        "expected_revision": {"type": "integer", "minimum": 1},
+        "plan_ref": {"type": "string", "enum": ["current_plan"], "description": "Optional semantic reference; current_plan is the only canonical value."},
         "operation": {"type": "string", "enum": ["set_plan_status", "update_current_state", "set_plan_next_action", "add_milestone", "set_milestone_status", "set_active_milestone", "record_milestone_evidence", "add_work_item", "set_work_item_status", "set_active_work_item", "set_work_item_next_action", "record_work_item_evidence", "link_task", "record_decision", "set_decision_status"]},
         "payload": {"type": "object"},
-    }, "required": ["workspace_id", "plan_id", "expected_revision", "operation", "payload"], "additionalProperties": False},
+    }, "required": ["operation", "payload"], "additionalProperties": False},
 }
+UPDATE_SCHEMA["parameters"]["properties"]["operation"]["enum"].append("freeze_plan")
 
 
 class _MutationError(Exception):
@@ -326,6 +326,71 @@ def _operation(plan: dict[str, Any], operation: str, payload: Any) -> tuple[dict
     raise _MutationError("PLAN_OPERATION_INVALID")
 
 
+def _semantic_create_args(args: dict[str, Any], kwargs: Mapping[str, Any]) -> dict[str, Any]:
+    result = dict(args)
+    context = trusted_session_context(kwargs)
+    result.setdefault("workspace_id", context.workspace_id)
+    if not result.get("workspace_id"):
+        raise _MutationError("TRUSTED_WORKSPACE_CONTEXT_MISSING")
+    result.setdefault("goal", result.get("objective"))
+    result.setdefault("non_goals", list(result.get("constraints") or []))
+    result.setdefault("planning_depth", "P1")
+    result.setdefault("architect_gate", "A1")
+    result.setdefault("delivery_path", "standard")
+    return result
+
+
+def _semantic_update_args(args: dict[str, Any], kwargs: Mapping[str, Any]) -> dict[str, Any]:
+    result = dict(args)
+    context = trusted_session_context(kwargs)
+    result.setdefault("workspace_id", context.workspace_id)
+    if not result.get("workspace_id"):
+        raise _MutationError("TRUSTED_WORKSPACE_CONTEXT_MISSING")
+    if not result.get("plan_id"):
+        try:
+            plan = resolve_current_plan(result["workspace_id"])
+        except ReferenceError as exc:
+            error = _error(exc.code, result["workspace_id"])
+            error.update({"next_action": "select_governance_subject" if exc.code == "reference_ambiguous" else "create_or_select_current_plan", "choices": exc.choices, "retryable": False, "human_action_required": bool(exc.choices)})
+            raise _SemanticResolutionError(error)
+        result["plan_id"] = plan["plan_id"]
+        result["expected_revision"] = plan["revision"]
+    elif "expected_revision" not in result:
+        raise _MutationError("PLAN_REVISION_CONFLICT")
+    operation = result.get("operation")
+    payload = dict(result.get("payload") or {})
+    if operation == "freeze_plan":
+        result["operation"] = "set_plan_status"
+        result["payload"] = {"status": "approved"}
+        result["semantic_operation"] = "freeze_plan"
+        return result
+    try:
+        plan = resolve_current_plan(result["workspace_id"])
+    except ReferenceError:
+        plan = None
+    if operation in {"set_work_item_status", "set_active_work_item", "set_work_item_next_action", "record_work_item_evidence", "link_task"} and "work_item_id" not in payload:
+        try:
+            _, item = resolve_current_work_item(result["workspace_id"], payload.get("work_item_ref", "current"))
+        except ReferenceError as exc:
+            error = _error(exc.code, result["workspace_id"], result.get("plan_id"))
+            error.update({"next_action": "select_governance_subject", "human_action_required": exc.code == "reference_ambiguous", "choices": exc.choices})
+            raise _SemanticResolutionError(error)
+        payload["work_item_id"] = item["work_item_id"]
+    if operation == "add_milestone" and "milestone_id" not in payload:
+        payload = {"title": payload.get("title"), "objective": payload.get("objective", payload.get("goal")), "dependencies": payload.get("dependencies", []), "acceptance_criteria": payload.get("acceptance_criteria", payload.get("outcomes", [])), "architect_review_id": None}
+    if operation == "add_work_item" and "milestone_id" not in payload:
+        if not plan or not plan.get("active_milestone_id"):
+            raise _SemanticResolutionError(_error("reference_missing", result["workspace_id"], result.get("plan_id")) | {"next_action": "select_current_milestone"})
+        payload = {"milestone_id": plan["active_milestone_id"], "title": payload.get("title"), "goal": payload.get("objective", payload.get("goal")), "risk_level": payload.get("risk_level", "medium"), "architect_gate": payload.get("architect_gate", "A1"), "spec_preflight": payload.get("spec_preflight", "optional"), "dependencies": payload.get("dependencies", []), "next_action": payload.get("next_action")}
+    result["payload"] = payload
+    return result
+
+
+class _SemanticResolutionError(Exception):
+    def __init__(self, result: dict[str, Any]) -> None:
+        self.result = result
+
+
 def _do_create(args: dict[str, Any]) -> dict[str, Any]:
     workspace_id = args.get("workspace_id") if isinstance(args, dict) else None
     try:
@@ -410,12 +475,39 @@ def _do_update(args: dict[str, Any]) -> dict[str, Any]:
     except Exception: return _error("PLAN_WRITE_FAILED", workspace_id if isinstance(workspace_id, str) else None, plan_id if isinstance(plan_id, str) else None)
 
 
-def handle_create(args: dict, **_kwargs: Any) -> str:
-    return json.dumps(_do_create(args), ensure_ascii=False, sort_keys=True)
+def _project_mutation_result(result: dict[str, Any], *, operation: str) -> dict[str, Any]:
+    projected = dict(result)
+    status = projected.get("status")
+    projected.setdefault("operation_result", "plan_created" if operation == "create_plan" and status == "created" else operation)
+    projected.setdefault("resolved_context", {"binding": "current_plan" if operation != "create_plan" else "current_workspace", "revision": projected.get("revision")})
+    projected.setdefault("retryable", False)
+    projected.setdefault("human_action_required", bool(projected.get("choices")))
+    projected.setdefault("next_action", "create_or_select_work_item" if operation == "freeze_plan" and status in {"updated", "frozen"} else ("refresh_current_subject" if projected.get("error_code") == "PLAN_REVISION_CONFLICT" else ("stop_and_report_plan_failure" if status in {"error", "failed", "rejected"} else "continue_governance")))
+    return projected
 
 
-def handle_update(args: dict, **_kwargs: Any) -> str:
-    return json.dumps(_do_update(args), ensure_ascii=False, sort_keys=True)
+def handle_create(args: dict, **kwargs: Any) -> str:
+    try:
+        result = _do_create(_semantic_create_args(args, kwargs))
+    except _SemanticResolutionError as exc:
+        result = exc.result
+    except _MutationError as exc:
+        result = _error(exc.code)
+    return json.dumps(_project_mutation_result(result, operation="create_plan"), ensure_ascii=False, sort_keys=True)
+
+
+def handle_update(args: dict, **kwargs: Any) -> str:
+    try:
+        normalized = _semantic_update_args(args, kwargs)
+        result = _do_update(normalized)
+        if normalized.get("semantic_operation") == "freeze_plan" and result.get("status") == "updated":
+            result["status"] = "frozen"
+        operation = str(normalized.get("semantic_operation") or normalized.get("operation") or "plan_update")
+    except _SemanticResolutionError as exc:
+        result, operation = exc.result, str(args.get("operation") or "plan_update")
+    except _MutationError as exc:
+        result, operation = _error(exc.code), str(args.get("operation") or "plan_update")
+    return json.dumps(_project_mutation_result(result, operation=operation), ensure_ascii=False, sort_keys=True)
 
 
 def run_isolated_smoke() -> dict[str, str]:

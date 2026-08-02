@@ -25,6 +25,12 @@ from ._orchestration_common import (
     validate_workspace_id,
 )
 from ._task_spec_common import get_task_dir, load_meta
+from ._completion_subject_resolver import (
+    CompletionSubjectError,
+    _result_error,
+    resolve_current_completion_subject,
+    resolved_context,
+)
 
 TOOL_NAME = "aota_orchestration_decision_open"
 TOOLSET_NAME = "aota_orchestration"
@@ -32,7 +38,7 @@ TOOLSET_NAME = "aota_orchestration"
 SCHEMA = {
     "name": TOOL_NAME,
     "description": (
-        "Open an exact orchestration decision and return its full metadata "
+        "Open the current completion orchestration decision and return its full metadata "
         "including source binding, decision, reason, state, resume metadata, "
         "followup metadata, human checkpoint, source handoff state, and source "
         "task compact status. "
@@ -42,16 +48,12 @@ SCHEMA = {
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
+            "decision_ref": {
                 "type": "string",
-                "description": "Registered workspace identifier (e.g. 'aota-runtime')",
-            },
-            "decision_id": {
-                "type": "string",
-                "description": "Exact orchestration decision ID to open",
+                "description": "Semantic selector; omit for the current completion decision.",
             },
         },
-        "required": ["workspace_id", "decision_id"],
+        "required": [],
         "additionalProperties": False,
     },
 }
@@ -60,8 +62,34 @@ SCHEMA = {
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_orchestration_decision_open tool invocation."""
     try:
+        if not {"workspace_id", "decision_id"} & set(args):
+            subject = resolve_current_completion_subject(
+                args,
+                _kwargs,
+                ref=args.get("decision_ref", "current_decided_decision"),
+                require_decision=True,
+            )
+            result = _do_open(
+                {
+                    "workspace_id": subject["workspace_id"],
+                    "decision_id": subject["decision"]["decision_id"],
+                }
+            )
+            result.update(
+                {
+                    "operation_result": "decision_opened",
+                    "resolved_context": resolved_context(
+                        subject, selector=args.get("decision_ref", "current_decided_decision")
+                    ),
+                    "retryable": False,
+                    "human_action_required": False,
+                }
+            )
+            return json.dumps(result, sort_keys=True)
         result = _do_open(args)
         return json.dumps(result, sort_keys=True)
+    except CompletionSubjectError as exc:
+        return json.dumps(_result_error(exc, operation="decision_open"), sort_keys=True)
     except Exception as e:
         return json.dumps({"status": "error", "error": str(e)}, sort_keys=True)
 

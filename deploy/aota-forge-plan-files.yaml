@@ -171,6 +171,76 @@ groups:
         required: true
         expected_mode: preserve
         managed: true
+      - source: deploy/host-parent-wake/host-parent-wake.manifest.json
+        destination: deploy/host-parent-wake/host-parent-wake.manifest.json
+        file_type: json
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: docs/HERMES_AGENT_UPDATE_AOTA_PARENT_WAKE_RECOVERY.md
+        destination: docs/HERMES_AGENT_UPDATE_AOTA_PARENT_WAKE_RECOVERY.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+
+  hermes_host_profile_skill_projection:
+    # Parent-wake core customization was retired on 2026-08-01. The remaining
+    # canonical Host changes only implement minimal active/reference Skill
+    # exposure. These entries are source-only so Forge records hashes/backup
+    # scope without introducing an overlay or a second deployment system.
+    kind: source_only
+    source_root: ${AOTA_CANONICAL_WORKSPACE_ROOT}/hermes-agent-host
+    runtime_root: ${AOTA_CANONICAL_WORKSPACE_ROOT}/hermes-agent-host
+    files:
+      - source: agent/skill_utils.py
+        destination: agent/skill_utils.py
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: agent/prompt_builder.py
+        destination: agent/prompt_builder.py
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: tools/skills_tool.py
+        destination: tools/skills_tool.py
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: toolsets.py
+        destination: toolsets.py
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: tests/agent/test_skill_utils.py
+        destination: tests/agent/test_skill_utils.py
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: tests/agent/test_prompt_builder.py
+        destination: tests/agent/test_prompt_builder.py
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: tests/tools/test_skills_tool_discovery_cache.py
+        destination: tests/tools/test_skills_tool_discovery_cache.py
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: tests/test_toolsets.py
+        destination: tests/test_toolsets.py
+        file_type: python
+        required: true
+        expected_mode: preserve
+        managed: true
 
   runtime_projection:
     # Retained as a rollback/compatibility artifact only. The runtime

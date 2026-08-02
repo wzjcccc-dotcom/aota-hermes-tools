@@ -1,0 +1,10 @@
+{
+  "command": "scripts/verify-host-wi-03b-parent-turn-adapter.py",
+  "verifier": "/home/latios/workspace/aota-hermes-tools/scripts/verify-host-wi-03b-parent-turn-adapter.py",
+  "exit_code": 0,
+  "fixture_count": 37,
+  "status": "PASS",
+  "coverage": ["schema and event rejection", "path traversal", "duplicate handling", "stale claim recovery", "feature-flag default", "graceful shutdown", "native wake success/failure", "cross-profile fail-closed", "API fallback"],
+  "pytest": "NOT_RUN",
+  "live_backend_or_wake": "NOT_RUN"
+}

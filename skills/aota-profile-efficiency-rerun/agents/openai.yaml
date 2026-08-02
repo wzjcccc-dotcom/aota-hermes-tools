@@ -1,0 +1,4 @@
+interface:
+  display_name: "AOTA Profile Efficiency Rerun"
+  short_description: "Deploy, reload, and rerun AOTA efficiency samples."
+  default_prompt: "Run the managed deployment, headless reload, smoke checks, and fixed 30-sample AOTA profile efficiency rerun."

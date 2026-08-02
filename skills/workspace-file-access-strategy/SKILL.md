@@ -1,8 +1,9 @@
 ---
 name: workspace-file-access-strategy
-description: Canonical AOTA workspace file access strategy — bounded read tools, path verification, and forbidden access patterns.
-category: orchestration
-tags: [aota, workspace, file-access, strategy, readonly]
+description: Compact AOTA bounded-read router for exact files, literal source search, structured probes, path verification, and forbidden access patterns.
+metadata:
+  hermes:
+    tags: [aota, workspace, file-access, strategy, readonly]
 ---
 
 # Workspace File Access Strategy
@@ -40,10 +41,42 @@ perform file operations.
 
 ## Path verification rules
 
-Before acting on a path, verify its existence and type with `aota_path_info`.
-Do not assume a path exists based on naming conventions or inference. Use
-`aota_search_files` to locate files by name or content pattern, then read
-with `aota_read_file`.
+When the user supplies one exact workspace-relative file path and asks for its
+contents or a known line range, call the bounded read tool directly; it already
+validates existence, containment, symlink escape, and file type. When the same
+request asks for a named literal, enum, or schema fragment inside that known
+file, call one literal search scoped to the exact file instead of reading the
+whole source file. Do not add `aota_path_info` merely to preflight either route.
+Use `aota_path_info` only when file type or metadata is itself required. When a
+path is not known, use `aota_search_files` to locate it before reading. Search
+is a fallback for unknown location, not an alternate first call for an exact
+path. If the direct read returns a specific recoverable condition, follow that
+condition; otherwise stop instead of broadening into a repository scan.
+
+## Minimal model routes
+
+Use the first matching route and do not describe or search unrelated tools.
+If the exact tool name and argument shape appear below, call it directly through
+the deferred-tool bridge; `tool_search` and `tool_describe` are unnecessary.
+
+1. Exact first line or file contents:
+   `aota_read_file({"path":"<path>","start_line":1,"end_line":1})`.
+2. Exact small text/YAML files: call
+   `aota_read_file({"path":"<path>"})` directly for each named file. Do not
+   call `tool_search`, `tool_describe`, or `aota_path_info` first.
+3. Literal symbol, enum, or schema probe in source, including when the exact
+   file is already known: call exactly one
+   `aota_search_files({"query":"<exact literal>","path":"<bounded file or dir>","max_results":10})`
+   scoped to that exact file first. Treat the returned preview as authoritative
+   when it contains the requested enum/schema; read only one narrow matching
+   line range when the preview is insufficient. Never repeat the search or read
+   a whole large source file for the same probe.
+4. Exact manifest diagnosis: read only the named manifest. Do not run
+   repository-wide search, CodeGraph, or path metadata checks.
+5. A `same_call_retryable=false` result forbids replaying identical normalized
+   arguments. A reported `retry_scope=changed_arguments_only` permits only the
+   named semantic repair. Stop the failed branch for `flow_disposition=stop`,
+   and return to the user for `await_human`.
 
 ## CodeGraph fallback
 
@@ -54,11 +87,10 @@ trigger a CodeGraph rebuild.
 
 ## Worker-specific access
 
-Workers (coder, debugger, reviewer, architect) use `aota_project_file_read`
-for project-tier reads within the frozen SPEC `read_scope`. This is a
-separate tool from the general `aota_read_file` and is scoped to the active
-task's allowed paths. Subject reads (reviewer/debugger/architect reading
-the reviewed task's artifacts) require explicit frozen binding permission.
+Workers with a frozen Profile Task binding use `aota_project_file_read` for
+project-tier reads within the frozen SPEC `read_scope`. A raw no-binding probe
+uses the read-only workspace tools above and must not submit a role report or
+worker outcome. Subject reads require explicit frozen binding permission.
 
 ## Routing integration
 
@@ -69,8 +101,8 @@ orchestration flow; it is a reference document for file access strategy.
 ## Activation classification
 
 - Source class: `canonical_managed`
-- Activation class: `reference` (loaded by task-main; not in active_skills)
-- Owning profile: task-main
+- Activation class: `active` for the six managed AOTA Profiles
+- Owning profiles: task-main, architect, reviewer, coder, debugger, project-steward
 
 ## Deployment and Runtime Guidance
 

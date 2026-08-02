@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "plan_id": "aota-profile-efficiency-r5-30-sample",
+  "model": "glm-5.2",
+  "base_case_count": 6,
+  "repetitions_per_profile": 5,
+  "total_sample_count": 30,
+  "per_task_llm_plus_tool_limit": 100,
+  "execution": {
+    "new_session_per_sample": true,
+    "sequential_within_profile": true,
+    "managed_deploy_required": true,
+    "explicit_user_consent_after_fix_report_required": true,
+    "score_transport_failures": false,
+    "retry_failed_scored_session": false
+  },
+  "scoring": {
+    "outcome_completion": 0.3,
+    "correct_tool_and_parameter_path": 0.25,
+    "retry_stop_safety": 0.2,
+    "total_tool_budget": 0.1,
+    "minimal_skill_and_tool_description": 0.15,
+    "target_percent": 90.0
+  },
+  "route_contracts": {
+    "coder": {
+      "exact_content": {
+        "first_domain_tool": "aota_read_file",
+        "max_domain_calls": 1
+      },
+      "exact_schema_probe": {
+        "first_domain_tool": "aota_search_files",
+        "direct_tools": ["aota_search_files", "aota_read_file"],
+        "forbidden_meta_tools": ["tool_search", "tool_describe"],
+        "path_must_be_exact_file": true,
+        "max_search_calls": 1,
+        "optional_followup": "one_narrow_aota_read_file_only_if_preview_insufficient"
+      }
+    },
+    "project-steward": {
+      "raw_current_project_setup": {
+        "route_id": "raw_current_project_setup_v1",
+        "domain_sequence": ["aota_project_registry_refresh", "aota_project_open"],
+        "max_domain_calls": 2
+      }
+    },
+    "task-main": {
+      "p0": {
+        "first_dispatch_tool": "aota_profile_task_dispatch",
+        "p1_p2_fallback": "aota_task_spec_create"
+      }
+    }
+  },
+  "base_cases": [
+    {
+      "profile": "project-steward",
+      "prompt_tool_limit": 3,
+      "prompt": "這是 AOTA 驗證前置設定，不是正式評分任務。請只使用 AOTA project 工具，將目前 CWD 對應的 current project 登錄或刷新到 project registry，然後唯讀確認 current project 可開啟。禁止修改任何 source、README、changelog、roadmap、Plan、SPEC 或 Task；最多 3 次工具呼叫。若 retryable=false，立即停止。"
+    },
+    {
+      "profile": "task-main",
+      "prompt_tool_limit": 12,
+      "prompt": "AOTA Profile 效率驗證 V1。請把「唯讀確認 README.md 第一行標題，並由 architect 提交架構審查」當成 current project 的單一 P0 standalone Profile Task。必須使用正常 AOTA 控制鏈與 trusted current workspace/project binding；禁止修改 source、禁止建立 Plan、禁止手動填內部 ID、禁止 filesystem/runtime 掃描、禁止 outbox/polling。任何工具回傳 retryable=false 或 binding 不可用時立即停止且不得換參數重試。若成功啟動，等待 native completion 後只做一次 card-first handoff、decision、ack、closure。整個流程最多 12 次工具呼叫。"
+    },
+    {
+      "profile": "architect",
+      "prompt_tool_limit": 4,
+      "prompt": "AOTA Profile 效率驗證 V2（raw read-only probe，沒有 Profile Task binding，因此禁止提交 role report 或 worker outcome）。請唯讀確認 README.md 第一行標題，並讀取 .aota/project.yaml 的 project.id，判斷兩者是否代表同一個 AOTA Hermes Tools 專案。只可使用 AOTA 工具；禁止 project mutation、禁止 filesystem/terminal、禁止掃描其他檔案，最多 4 次工具呼叫。工具 retryable=false 時立即停止。"
+    },
+    {
+      "profile": "reviewer",
+      "prompt_tool_limit": 4,
+      "prompt": "AOTA Profile 效率驗證 V3（raw read-only probe，沒有 Profile Task binding，因此禁止提交 role report 或 worker outcome）。請只讀 VERSION 與 plugin/aota-tools/plugin.yaml 的 version 欄位，判斷版本是否完全一致。只可使用 AOTA 工具；禁止 project mutation、禁止 filesystem/terminal、禁止 repo-wide 掃描，最多 4 次工具呼叫。工具發生 retryable=false 錯誤時立即停止。"
+    },
+    {
+      "profile": "coder",
+      "prompt_tool_limit": 4,
+      "prompt": "AOTA Profile 效率驗證 V4（raw no-write schema-probe，沒有 Profile Task binding，因此禁止提交 role report 或 worker outcome）。請唯讀檢查已知檔案 plugin/aota-tools/_phase3_control_plane.py 中 aota_project_registry_refresh 的公開 schema，回報 operation enum 的完整值，並判斷 register_current_project 是否為 schema 允許值。這是 exact-file schema probe：最多一次 scoped aota_search_files；只有搜尋 preview 不足時才可讀取一次窄行範圍，禁止重複搜尋或讀取整個 source。只可使用 AOTA 工具；禁止修改檔案、禁止 command、禁止 filesystem/terminal、禁止 repo-wide 掃描，最多 4 次工具呼叫。工具發生 retryable=false 錯誤時立即停止。"
+    },
+    {
+      "profile": "debugger",
+      "prompt_tool_limit": 4,
+      "prompt": "AOTA Profile 效率驗證 V5（raw read-only diagnosis probe，沒有 Profile Task binding，因此禁止提交 role report 或 worker outcome）。請只讀 fixtures/project-continuity/invalid/.aota/project.yaml，依目前 AOTA project manifest contract 診斷其中三個最明確、可由該檔案直接證明的 invalid 原因。只可使用 AOTA 工具；禁止 web、mutation、filesystem/terminal、repo-wide 掃描，最多 4 次工具呼叫。工具發生 retryable=false 錯誤時立即停止。"
+    }
+  ]
+}

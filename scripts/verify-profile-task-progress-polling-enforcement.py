@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verifier for PCF-WI-PROFILE-TASK-PROGRESS-POLLING-ENFORCEMENT-MINIMUM.
 
-Validates Cases A-J from the work item using stdlib + importlib to load the
+Validates legacy Cases A-J plus the bounded completion-delivery cases using stdlib + importlib to load the
 plugin module (_profile_task_status.py) directly, with tempfile fixture tasks
 that never touch a real project.
 
@@ -16,6 +16,8 @@ Cases:
   H: Not-found task without retrieval_reason → not_found.
   I: All six retrieval_reason values are valid.
   J: SCHEMA declares retrieval_reason as an optional parameter.
+  K-R: start wait contract, cross-tool completion guard, one recovery, and
+       operator/non-wakeup compatibility.
 """
 from __future__ import annotations
 
@@ -79,6 +81,17 @@ def load_status_module():
     return module
 
 
+def load_handoff_list_module():
+    path = PLUGIN / "_handoff_list.py"
+    spec = importlib.util.spec_from_file_location(
+        "aota_tools._handoff_list", str(path)
+    )
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def load_fixture() -> dict:
     if not FIXTURE_PATH.is_file():
         raise AssertionError(f"fixture file missing: {FIXTURE_PATH}")
@@ -88,7 +101,15 @@ def load_fixture() -> dict:
     return data
 
 
-def write_meta(root: Path, task_id: str, status: str) -> Path:
+def write_meta(
+    root: Path,
+    task_id: str,
+    status: str,
+    *,
+    completion_expected: bool = False,
+    recovery_allowed_after: str = "",
+    recovery_consumed: bool = False,
+) -> Path:
     """Write a fixture meta.json for a task with the given status."""
     task_dir = root / "profile-tasks" / WORKSPACE_ID / task_id
     task_dir.mkdir(parents=True, exist_ok=True)
@@ -109,11 +130,42 @@ def write_meta(root: Path, task_id: str, status: str) -> Path:
             "start_id": task_id,
             "profile": "coder",
             "started_at": "2026-07-21T00:00:00Z",
+            "spec_revision": 1,
+            "spec_sha256": "testhash",
+            "spec_hash": "testhash",
+            "completion_receipt_path": f"completion.{task_id}.json",
+            "completion_transport": "terminal_background",
+            "completion_delivery_expected": completion_expected,
+            "delivery_state": "pending" if completion_expected else "not_expected",
+            "next_action": "wait_for_completion_delivery" if completion_expected else "retrieve_after_reentry",
+            "recovery_allowed_after": recovery_allowed_after,
+            "recovery_consumed": recovery_consumed,
         },
     }
+    if completion_expected:
+        meta["origin_session_id"] = "origin-session"
     meta_path = task_dir / "meta.json"
     meta_path.write_text(json.dumps(meta), encoding="utf-8")
     return task_dir
+
+
+def write_receipt(task_dir: Path, task_id: str, *, outcome: str = "completed") -> None:
+    receipt = {
+        "task_id": task_id,
+        "workspace_id": WORKSPACE_ID,
+        "start_id": task_id,
+        "profile": "coder",
+        "spec_revision": 1,
+        "spec_sha256": "testhash",
+        "spec_hash": "testhash",
+        "status": "done" if outcome == "completed" else "failed",
+        "outcome": outcome,
+        "exit_code": 0 if outcome == "completed" else 1,
+        "completed_at": "2026-07-21T00:01:00Z",
+    }
+    (task_dir / f"completion.{task_id}.json").write_text(
+        json.dumps(receipt), encoding="utf-8"
+    )
 
 
 def setup_env(root: Path) -> None:
@@ -368,6 +420,152 @@ def case_j_schema_has_property(fixture: dict, status_mod, root: Path) -> None:
     marker("CASE_J_PASS")
 
 
+def _completion_task_id(suffix: str) -> str:
+    return f"pt_20260721T0000{suffix}_aabbccdd"
+
+
+def _recovery_args(task_id: str, reason: str = "completion_notification_timeout") -> dict:
+    return {
+        "workspace_id": WORKSPACE_ID,
+        "task_id": task_id,
+        "retrieval_reason": reason,
+    }
+
+
+def case_k_start_wait_contract(status_mod, root: Path) -> None:
+    from aota_tools import _completion_observation as observation_mod
+
+    wait = observation_mod.build_completion_wait_contract(
+        started_at="2026-07-21T00:00:00Z",
+        completion_transport="terminal_background",
+        completion_delivery_expected=True,
+    )
+    _check(wait["completion_transport"] == "terminal_background", "Case K: transport missing")
+    _check(wait["completion_delivery_expected"] is True, "Case K: delivery expectation missing")
+    _check(wait["next_action"] == "wait_for_completion_delivery", "Case K: start must tell task-main to wait")
+    _check(wait["recovery_allowed_after"] == "2026-07-21T00:00:30Z", "Case K: recovery deadline must be control-plane computed")
+    marker("CASE_K_PASS")
+
+
+def case_l_cross_tool_pending_guard(status_mod, handoff_mod, root: Path) -> None:
+    task_id = _completion_task_id("01")
+    write_meta(
+        root,
+        task_id,
+        "running",
+        completion_expected=True,
+        recovery_allowed_after="2099-01-01T00:00:00Z",
+    )
+    status_result = status_mod._do_status(
+        {"workspace_id": WORKSPACE_ID, "task_id": task_id},
+        observer_session_id="origin-session",
+        observer_principal="task-main",
+    )
+    list_result = handoff_mod._do_list(
+        {"workspace_id": WORKSPACE_ID, "task_id": task_id, "observation_purpose": "completion"},
+        observer_session_id="origin-session",
+        observer_principal="task-main",
+    )
+    for label, result in (("status", status_result), ("handoff", list_result)):
+        _check(result.get("status") == "rejected", f"Case L: {label} must reject pending observation")
+        _check(result.get("error") == "completion_delivery_pending", f"Case L: {label} bypassed pending guard: {result}")
+        _check(result.get("next_action") == "wait_for_completion_delivery", f"Case L: {label} must return wait action")
+    marker("CASE_L_PASS")
+
+
+def case_m_first_recovery_terminal_and_second_rejected(status_mod, root: Path) -> None:
+    task_id = _completion_task_id("02")
+    task_dir = write_meta(
+        root,
+        task_id,
+        "running",
+        completion_expected=True,
+        recovery_allowed_after="2000-01-01T00:00:00Z",
+    )
+    write_receipt(task_dir, task_id)
+    first = status_mod._do_status(
+        _recovery_args(task_id),
+        observer_session_id="origin-session",
+        observer_principal="task-main",
+    )
+    _check(first.get("status") == "done", f"Case M: first recovery must aggregate terminal evidence: {first}")
+    _check(first.get("next_action") == "open_completion_handoff", f"Case M: terminal next action wrong: {first}")
+    second = status_mod._do_status(
+        _recovery_args(task_id, "lost_completion_delivery"),
+        observer_session_id="origin-session",
+        observer_principal="task-main",
+    )
+    _check(second.get("error") == "recovery_already_consumed", f"Case M: second recovery bypassed consumed guard: {second}")
+    marker("CASE_M_PASS")
+
+
+def case_n_first_recovery_running_then_consumed(status_mod, root: Path) -> None:
+    task_id = _completion_task_id("03")
+    write_meta(
+        root,
+        task_id,
+        "running",
+        completion_expected=True,
+        recovery_allowed_after="2000-01-01T00:00:00Z",
+    )
+    first = status_mod._do_status(
+        _recovery_args(task_id),
+        observer_session_id="origin-session",
+        observer_principal="task-main",
+    )
+    _check(first.get("status") == "running", f"Case N: missing receipt should remain running: {first}")
+    _check(first.get("next_action") == "wait_for_completion_delivery", f"Case N: running recovery must return wait: {first}")
+    second = status_mod._do_status(
+        _recovery_args(task_id),
+        observer_session_id="origin-session",
+        observer_principal="task-main",
+    )
+    _check(second.get("error") == "recovery_already_consumed", f"Case N: repeated recovery was allowed: {second}")
+    marker("CASE_N_PASS")
+
+
+def case_o_origin_and_principal_guard(status_mod, root: Path) -> None:
+    task_id = _completion_task_id("04")
+    write_meta(root, task_id, "running", completion_expected=True, recovery_allowed_after="2000-01-01T00:00:00Z")
+    result = status_mod._do_status(
+        _recovery_args(task_id),
+        observer_session_id="origin-session",
+        observer_principal="coder",
+    )
+    _check(result.get("error") == "origin_session_recovery_forbidden", f"Case O: non-orchestrator consumed recovery: {result}")
+    marker("CASE_O_PASS")
+
+
+def case_p_delivery_and_operator_inbox(handoff_mod, status_mod, root: Path) -> None:
+    task_id = _completion_task_id("05")
+    write_meta(root, task_id, "done", completion_expected=True)
+    delivered = handoff_mod._do_list({"workspace_id": WORKSPACE_ID, "task_id": task_id, "observation_purpose": "completion"})
+    operator = handoff_mod._do_list({"workspace_id": WORKSPACE_ID})
+    _check(delivered.get("status") == "ok", f"Case P: delivery-complete handoff list must be allowed: {delivered}")
+    _check(operator.get("status") == "ok", f"Case P: operator inbox list changed: {operator}")
+    marker("CASE_P_PASS")
+
+
+def case_q_non_wakeup_compatibility(status_mod, root: Path) -> None:
+    task_id = _completion_task_id("06")
+    write_meta(root, task_id, "running", completion_expected=False)
+    result = status_mod._do_status(
+        {"workspace_id": WORKSPACE_ID, "task_id": task_id, "retrieval_reason": "user_requested"}
+    )
+    _check(result.get("status") in {"running", "done", "failed"}, f"Case Q: non-wakeup retrieval path changed: {result}")
+    marker("CASE_Q_PASS")
+
+
+def case_r_schema_and_reason_scope(status_mod, handoff_mod) -> None:
+    task_id = _completion_task_id("07")
+    _check("task_id" not in handoff_mod.SCHEMA["parameters"]["properties"], "Case R: task ID must remain handler-only")
+    _check("workspace_id" not in handoff_mod.SCHEMA["parameters"]["properties"], "Case R: workspace ID must remain handler-only")
+    guarded = handoff_mod._do_list({"workspace_id": WORKSPACE_ID, "task_id": task_id, "observation_purpose": "completion"})
+    _check(guarded.get("status") in {"ok", "rejected"}, f"Case R: legacy handler guard unavailable: {guarded}")
+    _check(status_mod.BOUNDED_RECOVERY_REASONS == {"completion_notification_timeout", "lost_completion_delivery"}, "Case R: recovery reasons drifted")
+    marker("CASE_R_PASS")
+
+
 # ---------------------------------------------------------------------------
 # Additional structural checks
 # ---------------------------------------------------------------------------
@@ -430,6 +628,7 @@ def main() -> int:
             if "aota_tools" not in sys.modules:
                 load_plugin()
             status_mod = load_status_module()
+            handoff_mod = load_handoff_list_module()
 
             # Run all cases A-J
             case_a_terminal_no_reason(fixture, status_mod, root)
@@ -442,6 +641,14 @@ def main() -> int:
             case_h_not_found(fixture, status_mod, root)
             case_i_all_reasons_valid(fixture, status_mod, root)
             case_j_schema_has_property(fixture, status_mod, root)
+            case_k_start_wait_contract(status_mod, root)
+            case_l_cross_tool_pending_guard(status_mod, handoff_mod, root)
+            case_m_first_recovery_terminal_and_second_rejected(status_mod, root)
+            case_n_first_recovery_running_then_consumed(status_mod, root)
+            case_o_origin_and_principal_guard(status_mod, root)
+            case_p_delivery_and_operator_inbox(handoff_mod, status_mod, root)
+            case_q_non_wakeup_compatibility(status_mod, root)
+            case_r_schema_and_reason_scope(status_mod, handoff_mod)
 
             # Structural checks
             check_reject_reasons_constant(status_mod)

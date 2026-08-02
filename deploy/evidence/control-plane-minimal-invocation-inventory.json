@@ -1,0 +1,3973 @@
+{
+  "phase_2_summary": {
+    "counting_rule": "Phase 2 selection is the disjoint set explicitly tagged phase_2_migration; the after count is regenerated from the canonical registered schemas.",
+    "overlapping_tools": [],
+    "previously_partially_migrated_tools": [],
+    "tools_migrated_this_phase": 10,
+    "tools_requiring_migration_after": 0,
+    "tools_requiring_migration_before": 42,
+    "tools_selected_this_phase": 10
+  },
+  "phase_3_summary": {
+    "counting_rule": "Phase 3 selection is the disjoint set explicitly tagged phase_3_migration; migrated count includes the semantic upgrade of an already-canonical stewardship report, while after count is regenerated from registered schemas.",
+    "overlapping_tools": [
+      "aota_project_steward_report"
+    ],
+    "tools_migrated_this_phase": 22,
+    "tools_requiring_migration_after": 0,
+    "tools_requiring_migration_before": 32,
+    "tools_selected_this_phase": 22
+  },
+  "phase_4_summary": {
+    "counting_rule": "Phase 4 selection is the exact eleven-tool truth-check set; after count is regenerated from canonical registered schemas.",
+    "grouping": {
+      "development_support": [
+        "aota_work_classify"
+      ],
+      "evidence_audit": [
+        "aota_operator_consistency_check"
+      ],
+      "filesystem_control": [
+        "aota_file_copy"
+      ],
+      "filesystem_read": [
+        "aota_path_info",
+        "aota_read_file"
+      ],
+      "filesystem_search": [
+        "aota_search_files"
+      ],
+      "lifecycle_control": [
+        "aota_profile_task_cancel"
+      ],
+      "orchestration": [
+        "aota_followup_task_create",
+        "aota_orchestration_lineage"
+      ],
+      "repository_evidence": [
+        "aota_repo_diff_readonly",
+        "aota_repo_status_readonly"
+      ]
+    },
+    "tools_migrated_this_phase": 11,
+    "tools_requiring_migration_after": 0,
+    "tools_requiring_migration_before": 11,
+    "tools_selected_this_phase": 11
+  },
+  "schema_version": 1,
+  "source": [
+    "plugin/aota-tools/plugin.yaml",
+    "plugin/aota-tools/__init__.py",
+    "registered tool schemas"
+  ],
+  "tool_count": 62,
+  "tools": [
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "target_required_fields": [],
+      "tool_name": "aota_runtime_info",
+      "toolset": "aota_core",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "path"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "path": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "path"
+      ],
+      "official_minimal_example": {
+        "path": "semantic_value"
+      },
+      "operation_kind": "read",
+      "phase_4_migration": {
+        "authority_source": "trusted runtime workspace + existing relative-path resolver",
+        "control_plane_fields_to_hide": [
+          "workspace_id"
+        ],
+        "current_model_required_fields": [
+          "path",
+          "workspace_id"
+        ],
+        "expected_next_action": "none",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "filesystem_read",
+        "legacy_handler_fields": [
+          "workspace_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {
+          "path": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "trusted current workspace; human-readable relative path; containment and symlink checks",
+        "target_model_required_fields": [
+          "path"
+        ]
+      },
+      "target_required_fields": [
+        "path"
+      ],
+      "tool_name": "aota_path_info",
+      "toolset": "aota_fs_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "path"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "path": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "end_line",
+        "max_bytes",
+        "path",
+        "start_line"
+      ],
+      "official_minimal_example": {
+        "path": "semantic_value"
+      },
+      "operation_kind": "read",
+      "phase_4_migration": {
+        "authority_source": "trusted runtime workspace + existing bounded text reader",
+        "control_plane_fields_to_hide": [
+          "workspace_id"
+        ],
+        "current_model_required_fields": [
+          "path",
+          "workspace_id"
+        ],
+        "expected_next_action": "none",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "filesystem_read",
+        "legacy_handler_fields": [
+          "workspace_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {
+          "path": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "trusted current workspace; human-readable relative path; containment and encoding checks",
+        "target_model_required_fields": [
+          "path"
+        ]
+      },
+      "target_required_fields": [
+        "path"
+      ],
+      "tool_name": "aota_read_file",
+      "toolset": "aota_fs_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "query"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "mode",
+        "query"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "query": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "case_sensitive",
+        "file_glob",
+        "max_file_bytes",
+        "max_results",
+        "path"
+      ],
+      "official_minimal_example": {
+        "query": "semantic_value"
+      },
+      "operation_kind": "read",
+      "phase_4_migration": {
+        "authority_source": "trusted runtime workspace + existing bounded search walker",
+        "control_plane_fields_to_hide": [
+          "workspace_id"
+        ],
+        "current_model_required_fields": [
+          "query",
+          "workspace_id"
+        ],
+        "expected_next_action": "review_bounded_results",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "filesystem_search",
+        "legacy_handler_fields": [
+          "workspace_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {
+          "query": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "trusted current workspace; bounded semantic query and filters",
+        "target_model_required_fields": [
+          "query"
+        ]
+      },
+      "target_required_fields": [
+        "query"
+      ],
+      "tool_name": "aota_search_files",
+      "toolset": "aota_fs_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "attachment_path",
+        "attachment_ref",
+        "max_chars",
+        "offset_chars"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "target_required_fields": [],
+      "tool_name": "aota_webui_attachment_read",
+      "toolset": "aota_webui_attachment_read",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "artifact"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "artifact": "SPEC"
+      },
+      "model_semantic_fields": [
+        "artifact"
+      ],
+      "official_minimal_example": {
+        "artifact": "SPEC"
+      },
+      "operation_kind": "read",
+      "target_required_fields": [
+        "artifact"
+      ],
+      "tool_name": "aota_active_task_artifact_open",
+      "toolset": "aota_active_task_context",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "query"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "artifact_ref",
+        "max_bytes"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "trusted task context + durable task artifact",
+        "control_plane_fields_to_hide": [
+          "subject_task_id",
+          "artifact_name",
+          "path",
+          "sha256"
+        ],
+        "current_required_fields": [
+          "subject_task_id",
+          "artifact_name"
+        ],
+        "expected_next_action": "consume_or_link_artifact",
+        "first_call_success": true,
+        "group": "artifact_open",
+        "legacy_handler_fields": [
+          "subject_task_id",
+          "artifact_name",
+          "path",
+          "sha256"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "artifact_ref": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current semantic artifact; ambiguity fails closed",
+        "target_required_fields": [
+          "artifact_ref"
+        ]
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_subject_task_artifact_open",
+      "toolset": "aota_active_task_context",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "max_entries",
+        "target"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_4_migration": {
+        "authority_source": "trusted runtime workspace + fixed Git command authority",
+        "control_plane_fields_to_hide": [
+          "workspace_id"
+        ],
+        "current_model_required_fields": [
+          "workspace_id"
+        ],
+        "expected_next_action": "none",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "repository_evidence",
+        "legacy_handler_fields": [
+          "workspace_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current repository derived from trusted workspace; no revision/path input",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_repo_status_readonly",
+      "toolset": "aota_repo_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "mode"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "max_bytes",
+        "scope",
+        "target"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_4_migration": {
+        "authority_source": "trusted runtime workspace + fixed Git command authority",
+        "control_plane_fields_to_hide": [
+          "workspace_id"
+        ],
+        "current_model_required_fields": [
+          "workspace_id"
+        ],
+        "expected_next_action": "none",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "repository_evidence",
+        "legacy_handler_fields": [
+          "workspace_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current repository derived from trusted workspace; view/scope only",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_repo_diff_readonly",
+      "toolset": "aota_repo_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "url"
+      ],
+      "derived_default_fields": [
+        "timeout_seconds"
+      ],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "mode"
+      ],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "url": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "max_bytes",
+        "url"
+      ],
+      "official_minimal_example": {
+        "url": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "target_required_fields": [
+        "url"
+      ],
+      "tool_name": "aota_web_fetch",
+      "toolset": "aota_web_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "source",
+        "destination"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "destination": "semantic_value",
+        "source": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "destination",
+        "overwrite",
+        "source"
+      ],
+      "official_minimal_example": {
+        "destination": "semantic_value",
+        "source": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_4_migration": {
+        "authority_source": "trusted runtime workspace + existing copy security/audit boundary",
+        "control_plane_fields_to_hide": [
+          "workspace_id"
+        ],
+        "current_model_required_fields": [
+          "destination",
+          "source",
+          "workspace_id"
+        ],
+        "expected_next_action": "reconcile_current_workspace",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "filesystem_control",
+        "legacy_handler_fields": [
+          "workspace_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {
+          "destination": "semantic_value",
+          "source": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "human-readable relative source/destination; containment, symlink, scope and checkpoint validation",
+        "target_model_required_fields": [
+          "source",
+          "destination"
+        ]
+      },
+      "target_required_fields": [
+        "source",
+        "destination"
+      ],
+      "tool_name": "aota_file_copy",
+      "toolset": "aota_fs_copy",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "spec_kind",
+        "objective"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "acceptance_criteria",
+        "constraints",
+        "forbidden_actions",
+        "goal",
+        "objective",
+        "read_scope",
+        "subject_ref",
+        "summary",
+        "write_scope"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "objective": "semantic_value",
+        "spec_kind": "implementation"
+      },
+      "model_semantic_fields": [
+        "architecture_mode",
+        "capability_contract",
+        "context_refs",
+        "evidence_required",
+        "expected_artifacts",
+        "forbidden_scope",
+        "known_inputs",
+        "payload",
+        "related_artifacts",
+        "risk_level",
+        "role_contract",
+        "spec_kind",
+        "stop_conditions",
+        "title",
+        "validation_policy"
+      ],
+      "official_minimal_example": {
+        "objective": "semantic_value",
+        "spec_kind": "implementation"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_1_migration": {
+        "authority_source": "trusted runtime + current Plan/Work Item or P0 standalone",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "work_item_id",
+          "workspace_decision_id",
+          "subject_work_classification_ref",
+          "profile",
+          "revision",
+          "hash"
+        ],
+        "current_model_required_fields": [
+          "spec_kind",
+          "objective"
+        ],
+        "expected_next_action": "freeze_current_spec",
+        "group": "spec",
+        "legacy_handler_fields": [
+          "profile",
+          "project_id",
+          "revision",
+          "subject_work_classification_ref",
+          "work_item_id",
+          "workspace_decision_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "objective": "semantic_value",
+          "spec_kind": "implementation",
+          "subject_ref": "semantic_value"
+        },
+        "remaining_exception": "P0 diagnosis remains standalone when no current Plan exists",
+        "resolver_strategy": "Plan-bound for a unique active Work Item; P0 architecture resolves current_work_classification without a model-supplied artifact ID",
+        "target_model_required_fields": [
+          "spec_kind",
+          "objective",
+          "subject_ref"
+        ]
+      },
+      "target_required_fields": [
+        "spec_kind",
+        "objective"
+      ],
+      "tool_name": "aota_task_spec_create",
+      "toolset": "aota_task_spec",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "patch"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "acceptance_criteria",
+        "goal",
+        "read_scope",
+        "write_scope"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "patch": {}
+      },
+      "model_semantic_fields": [
+        "evidence_required",
+        "forbidden_scope",
+        "known_inputs",
+        "patch",
+        "risk_level",
+        "role_contract",
+        "spec_ref",
+        "stop_conditions",
+        "title",
+        "traceability",
+        "validation_policy"
+      ],
+      "official_minimal_example": {
+        "patch": {}
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_1_migration": {
+        "authority_source": "current draft SPEC artifact",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "spec_id",
+          "task_id",
+          "expected_revision",
+          "revision",
+          "hash"
+        ],
+        "current_model_required_fields": [
+          "patch"
+        ],
+        "expected_next_action": "freeze_current_spec",
+        "group": "spec",
+        "legacy_handler_fields": [
+          "expected_revision",
+          "revision",
+          "spec_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "patch": {}
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "resolver_strategy": "unique current_draft_spec; ambiguity fail-closed",
+        "target_model_required_fields": [
+          "patch"
+        ]
+      },
+      "target_required_fields": [
+        "patch"
+      ],
+      "tool_name": "aota_task_spec_update",
+      "toolset": "aota_task_spec",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "spec_ref"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "spec_ref": "current_draft_spec"
+      },
+      "model_semantic_fields": [
+        "spec_ref"
+      ],
+      "official_minimal_example": {
+        "spec_ref": "current_draft_spec"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_1_migration": {
+        "authority_source": "current draft SPEC + trusted session binding",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "spec_id",
+          "task_id",
+          "expected_revision",
+          "revision",
+          "hash",
+          "session_id",
+          "profile"
+        ],
+        "current_model_required_fields": [
+          "spec_ref"
+        ],
+        "expected_next_action": "start_active_frozen_spec",
+        "group": "spec",
+        "legacy_handler_fields": [
+          "expected_revision",
+          "profile",
+          "revision",
+          "session_id",
+          "spec_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "spec_ref": "current_draft_spec"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "resolver_strategy": "unique current_draft_spec; write active session binding",
+        "target_model_required_fields": [
+          "spec_ref"
+        ]
+      },
+      "target_required_fields": [
+        "spec_ref"
+      ],
+      "tool_name": "aota_task_spec_freeze",
+      "toolset": "aota_task_spec",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "spec_kind",
+        "objective"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "acceptance_criteria",
+        "constraints",
+        "objective",
+        "read_scope",
+        "subject_ref",
+        "write_scope"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "objective": "semantic_value",
+        "spec_kind": "implementation"
+      },
+      "model_semantic_fields": [
+        "forbidden_scope",
+        "requirements",
+        "spec_kind",
+        "validation"
+      ],
+      "official_minimal_example": {
+        "objective": "semantic_value",
+        "spec_kind": "implementation"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_1_migration": {
+        "authority_source": "trusted runtime + current active P0 work classification",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "task_id",
+          "spec_id",
+          "revision",
+          "hash",
+          "profile",
+          "tool_names",
+          "session_id"
+        ],
+        "current_model_required_fields": [
+          "spec_kind",
+          "objective"
+        ],
+        "expected_next_action": "wait_for_completion_delivery",
+        "group": "p0_dispatch",
+        "legacy_handler_fields": [
+          "profile",
+          "project_id",
+          "revision",
+          "session_id",
+          "spec_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "acceptance_criteria": "semantic_value",
+          "constraints": "semantic_value",
+          "forbidden_scope": "semantic_value",
+          "objective": "semantic_value",
+          "read_scope": "semantic_value",
+          "requirements": "semantic_value",
+          "spec_kind": "implementation",
+          "subject_ref": "semantic_value",
+          "validation": "semantic_value",
+          "write_scope": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "resolver_strategy": "verify active P0 classification; materialize/freeze/start fixed routing through canonical handlers",
+        "target_model_required_fields": [
+          "spec_kind",
+          "objective",
+          "acceptance_criteria",
+          "read_scope",
+          "write_scope",
+          "forbidden_scope",
+          "requirements",
+          "constraints",
+          "subject_ref",
+          "validation"
+        ]
+      },
+      "target_required_fields": [
+        "spec_kind",
+        "objective"
+      ],
+      "tool_name": "aota_profile_task_dispatch",
+      "toolset": "aota_profile_task",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "task_ref"
+      ],
+      "derived_default_fields": [
+        "timeout_seconds"
+      ],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "task_ref": "active_frozen_spec"
+      },
+      "model_semantic_fields": [
+        "task_ref"
+      ],
+      "official_minimal_example": {
+        "task_ref": "active_frozen_spec"
+      },
+      "operation_kind": "mutation_or_control",
+      "target_required_fields": [
+        "task_ref"
+      ],
+      "tool_name": "aota_profile_task_start",
+      "toolset": "aota_profile_task",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "retrieval_reason",
+        "task_ref",
+        "view"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_2_migration": {
+        "authority_source": "trusted completion delivery + current origin session + task meta + receipt + handoff + process reconciliation",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "task_id",
+          "start_id",
+          "receipt_id",
+          "spec_hash",
+          "spec_sha256",
+          "profile"
+        ],
+        "current_model_required_fields": [],
+        "expected_next_action": "read_terminal_closure",
+        "group": "completion_closure",
+        "legacy_handler_fields": [
+          "profile",
+          "spec_hash",
+          "spec_sha256",
+          "start_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_completed_task; no latest/first/workspace-wide fallback",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_profile_task_status",
+      "toolset": "aota_profile_task",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "target"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "mutation_or_control",
+      "phase_4_migration": {
+        "authority_source": "trusted runtime task context + existing task metadata and ProcessRegistry primitive",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "task_id"
+        ],
+        "current_model_required_fields": [
+          "task_id",
+          "workspace_id"
+        ],
+        "expected_next_action": "observe_cancellation",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "lifecycle_control",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "task_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current running task; ambiguity and missing subject fail closed",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_profile_task_cancel",
+      "toolset": "aota_profile_task",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "decision",
+        "rationale"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "decision",
+        "rationale"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "decision": "approve",
+        "rationale": "semantic_value"
+      },
+      "model_semantic_fields": [],
+      "official_minimal_example": {
+        "decision": "approve",
+        "rationale": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_1_migration": {
+        "authority_source": "current frozen implementation SPEC + approval policy",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "task_id",
+          "spec_id",
+          "revision",
+          "expected_revision",
+          "spec_hash",
+          "spec_sha256",
+          "approval_id",
+          "profile"
+        ],
+        "current_model_required_fields": [
+          "decision",
+          "rationale"
+        ],
+        "expected_next_action": "start_active_frozen_spec",
+        "group": "approval",
+        "legacy_handler_fields": [
+          "approval_id",
+          "expected_revision",
+          "profile",
+          "revision",
+          "spec_hash",
+          "spec_id",
+          "spec_sha256",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "decision": "approve",
+          "rationale": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "resolver_strategy": "exact active frozen subject; ambiguity fail-closed",
+        "target_model_required_fields": [
+          "decision",
+          "rationale"
+        ]
+      },
+      "target_required_fields": [
+        "decision",
+        "rationale"
+      ],
+      "tool_name": "aota_profile_task_approve",
+      "toolset": "aota_profile_task",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "outcome"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "outcome": "completed"
+      },
+      "model_semantic_fields": [
+        "outcome",
+        "reason"
+      ],
+      "official_minimal_example": {
+        "outcome": "completed"
+      },
+      "operation_kind": "mutation_or_control",
+      "target_required_fields": [
+        "outcome"
+      ],
+      "tool_name": "aota_worker_outcome_submit",
+      "toolset": "aota_worker_outcome",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "summary",
+        "confidence"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "summary"
+      ],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "confidence": 1,
+        "summary": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "confidence",
+        "full_report",
+        "key_evidence",
+        "missing_inputs",
+        "open_questions",
+        "recommended_next_action",
+        "root_cause"
+      ],
+      "official_minimal_example": {
+        "confidence": 1,
+        "summary": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "target_required_fields": [
+        "summary",
+        "confidence"
+      ],
+      "tool_name": "aota_debugger_report_submit",
+      "toolset": "aota_debugger_artifact",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "verdict"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "summary",
+        "verdict"
+      ],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "verdict": "pass"
+      },
+      "model_semantic_fields": [
+        "blocking_findings",
+        "full_report",
+        "key_evidence",
+        "missing_evidence",
+        "recommendation",
+        "scope_findings"
+      ],
+      "official_minimal_example": {
+        "verdict": "pass"
+      },
+      "operation_kind": "mutation_or_control",
+      "target_required_fields": [
+        "verdict"
+      ],
+      "tool_name": "aota_reviewer_report_submit",
+      "toolset": "aota_reviewer_artifact",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "summary"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "summary"
+      ],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "summary": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "changed_paths",
+        "follow_up",
+        "full_report",
+        "risks",
+        "validation"
+      ],
+      "official_minimal_example": {
+        "summary": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "target_required_fields": [
+        "summary"
+      ],
+      "tool_name": "aota_coder_report_submit",
+      "toolset": "aota_coder_artifact",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "mode",
+        "verdict"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "mode",
+        "summary",
+        "verdict"
+      ],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "mode": "design_review",
+        "verdict": "approve"
+      },
+      "model_semantic_fields": [
+        "blocking_findings",
+        "full_report",
+        "key_evidence",
+        "missing_inputs",
+        "optional_improvements",
+        "recommendation",
+        "required_changes",
+        "residual_risks",
+        "risk_findings",
+        "validation_findings"
+      ],
+      "official_minimal_example": {
+        "mode": "design_review",
+        "verdict": "approve"
+      },
+      "operation_kind": "mutation_or_control",
+      "target_required_fields": [
+        "mode",
+        "verdict"
+      ],
+      "tool_name": "aota_architect_report_submit",
+      "toolset": "aota_architect_artifact",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [
+        "profile"
+      ],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [
+        "profile"
+      ],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "handoff_ref",
+        "limit",
+        "terminal_status"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_2_migration": {
+        "authority_source": "trusted current completion subject or bounded operator semantic filters",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "task_id",
+          "profile"
+        ],
+        "current_model_required_fields": [],
+        "expected_next_action": "open_current_handoff",
+        "group": "handoff",
+        "legacy_handler_fields": [
+          "profile",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current completion opens directly; general list remains bounded search",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_handoff_list",
+      "toolset": "aota_handoff",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "handoff_ref"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_2_migration": {
+        "authority_source": "trusted completion delivery, origin session, durable handoff/receipt/outcome/card",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "handoff_id",
+          "task_id",
+          "start_id",
+          "spec_id",
+          "revision",
+          "spec_hash",
+          "spec_sha256",
+          "project_id",
+          "profile"
+        ],
+        "current_model_required_fields": [],
+        "expected_next_action": "review_card_and_record_decision",
+        "group": "handoff",
+        "legacy_handler_fields": [
+          "handoff_id",
+          "profile",
+          "project_id",
+          "revision",
+          "spec_hash",
+          "spec_id",
+          "spec_sha256",
+          "start_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_completion; bounded choice only when multiple subjects exist",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_handoff_open",
+      "toolset": "aota_handoff",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "ack_ref",
+        "note"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "mutation_or_control",
+      "phase_2_migration": {
+        "authority_source": "current opened handoff + current durable decision + receipt/outcome binding",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "handoff_id",
+          "decision_id",
+          "task_id",
+          "start_id",
+          "project_id"
+        ],
+        "current_model_required_fields": [],
+        "expected_next_action": "read_terminal_closure",
+        "group": "handoff",
+        "legacy_handler_fields": [
+          "decision_id",
+          "handoff_id",
+          "project_id",
+          "start_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_decided_handoff",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_handoff_ack",
+      "toolset": "aota_handoff",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "decision",
+        "rationale"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "decision",
+        "followup_task_kind",
+        "rationale",
+        "subject_ref"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "decision": "accepted",
+        "rationale": "semantic_value"
+      },
+      "model_semantic_fields": [],
+      "official_minimal_example": {
+        "decision": "accepted",
+        "rationale": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_2_migration": {
+        "authority_source": "current opened handoff/card + trusted receipt/outcome binding",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "handoff_id",
+          "decision_id",
+          "task_id",
+          "start_id",
+          "spec_id",
+          "revision",
+          "spec_hash",
+          "spec_sha256",
+          "project_id",
+          "profile"
+        ],
+        "current_model_required_fields": [
+          "decision",
+          "rationale"
+        ],
+        "expected_next_action": "ack_current_handoff",
+        "group": "orchestration_decision",
+        "legacy_handler_fields": [
+          "decision_id",
+          "handoff_id",
+          "profile",
+          "project_id",
+          "revision",
+          "spec_hash",
+          "spec_id",
+          "spec_sha256",
+          "start_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "decision": "accepted",
+          "rationale": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_completion; deterministic missing/ambiguous subject",
+        "target_model_required_fields": [
+          "decision",
+          "rationale"
+        ]
+      },
+      "target_required_fields": [
+        "decision",
+        "rationale"
+      ],
+      "tool_name": "aota_orchestration_decision_record",
+      "toolset": "aota_orchestration",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "title",
+        "goal",
+        "risk_level",
+        "read_scope",
+        "acceptance_criteria",
+        "stop_conditions",
+        "evidence_required"
+      ],
+      "derived_default_fields": [
+        "process_path",
+        "validation_tier"
+      ],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "acceptance_criteria",
+        "goal",
+        "read_scope",
+        "write_scope"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "acceptance_criteria": [],
+        "evidence_required": [],
+        "goal": "semantic_value",
+        "read_scope": [],
+        "risk_level": "low",
+        "stop_conditions": [],
+        "title": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "architecture_mode",
+        "decision_ref",
+        "evidence_required",
+        "forbidden_scope",
+        "human_checkpoints",
+        "known_inputs",
+        "risk_level",
+        "role_contract",
+        "stop_conditions",
+        "task_kind",
+        "title",
+        "validation_policy"
+      ],
+      "official_minimal_example": {
+        "acceptance_criteria": [],
+        "evidence_required": [],
+        "goal": "semantic_value",
+        "read_scope": [],
+        "risk_level": "low",
+        "stop_conditions": [],
+        "title": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_4_migration": {
+        "authority_source": "current completion decision resolver + existing decision/handoff artifacts",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "decision_id"
+        ],
+        "current_model_required_fields": [
+          "acceptance_criteria",
+          "decision_id",
+          "evidence_required",
+          "goal",
+          "read_scope",
+          "risk_level",
+          "stop_conditions",
+          "title",
+          "workspace_id"
+        ],
+        "expected_next_action": "review_draft_followup",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "orchestration",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "decision_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {
+          "acceptance_criteria": [],
+          "evidence_required": [],
+          "goal": "semantic_value",
+          "read_scope": [],
+          "risk_level": "low",
+          "stop_conditions": [],
+          "title": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current decided decision; bounded choice on ambiguity",
+        "target_model_required_fields": [
+          "title",
+          "goal",
+          "risk_level",
+          "read_scope",
+          "acceptance_criteria",
+          "stop_conditions",
+          "evidence_required"
+        ]
+      },
+      "target_required_fields": [
+        "title",
+        "goal",
+        "risk_level",
+        "read_scope",
+        "acceptance_criteria",
+        "stop_conditions",
+        "evidence_required"
+      ],
+      "tool_name": "aota_followup_task_create",
+      "toolset": "aota_orchestration",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "user_input_summary",
+        "followup_task_kind"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "followup_task_kind",
+        "user_input_summary"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "followup_task_kind": "implementation",
+        "user_input_summary": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "decision_ref"
+      ],
+      "official_minimal_example": {
+        "followup_task_kind": "implementation",
+        "user_input_summary": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_2_migration": {
+        "authority_source": "current awaiting-user decision artifact",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "decision_id",
+          "handoff_id",
+          "task_id"
+        ],
+        "current_model_required_fields": [
+          "user_input_summary",
+          "followup_task_kind"
+        ],
+        "expected_next_action": "continue_orchestration",
+        "group": "orchestration_decision",
+        "legacy_handler_fields": [
+          "decision_id",
+          "handoff_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "followup_task_kind": "implementation",
+          "user_input_summary": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_awaiting_user_decision",
+        "target_model_required_fields": [
+          "user_input_summary",
+          "followup_task_kind"
+        ]
+      },
+      "target_required_fields": [
+        "user_input_summary",
+        "followup_task_kind"
+      ],
+      "tool_name": "aota_orchestration_decision_resume",
+      "toolset": "aota_orchestration",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "limit",
+        "state"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_2_migration": {
+        "authority_source": "trusted current operator scope + bounded decision filters",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "decision_id",
+          "handoff_id",
+          "task_id"
+        ],
+        "current_model_required_fields": [],
+        "expected_next_action": "continue_operator_review",
+        "group": "orchestration_decision",
+        "legacy_handler_fields": [
+          "decision_id",
+          "handoff_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current workspace/session scope",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_orchestration_decision_list",
+      "toolset": "aota_orchestration",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "decision_ref"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_2_migration": {
+        "authority_source": "current completion decision binding",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "decision_id",
+          "handoff_id",
+          "task_id",
+          "start_id",
+          "spec_id",
+          "revision",
+          "spec_hash",
+          "spec_sha256",
+          "project_id",
+          "profile"
+        ],
+        "current_model_required_fields": [],
+        "expected_next_action": "continue_operator_review",
+        "group": "orchestration_decision",
+        "legacy_handler_fields": [
+          "decision_id",
+          "handoff_id",
+          "profile",
+          "project_id",
+          "revision",
+          "spec_hash",
+          "spec_id",
+          "spec_sha256",
+          "start_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_decided_decision",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_orchestration_decision_open",
+      "toolset": "aota_orchestration",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "subject_ref"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [],
+      "official_minimal_example": {},
+      "operation_kind": "mutation_or_control",
+      "phase_4_migration": {
+        "authority_source": "trusted current task or completion decision + existing durable lineage artifacts",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "task_id",
+          "decision_id"
+        ],
+        "current_model_required_fields": [
+          "decision_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "expected_next_action": "none",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "orchestration",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "task_id",
+          "decision_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "semantic current_task/current_decision only",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_orchestration_lineage",
+      "toolset": "aota_orchestration",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "consistency_status",
+        "inbox_ref",
+        "include_informational",
+        "item_type",
+        "limit",
+        "priority_max"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_2_migration": {
+        "authority_source": "trusted current operator scope + durable inbox projections",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "item_id",
+          "task_id",
+          "handoff_id",
+          "decision_id",
+          "session_id",
+          "project_id"
+        ],
+        "current_model_required_fields": [],
+        "expected_next_action": "open_current_handoff",
+        "group": "operator_inbox",
+        "legacy_handler_fields": [
+          "decision_id",
+          "handoff_id",
+          "item_id",
+          "project_id",
+          "session_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current relevant item; general search uses bounded semantic filters",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_operator_inbox_list",
+      "toolset": "aota_operator",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "inbox_ref"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_2_migration": {
+        "authority_source": "current completion subject and durable inbox binding",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "item_id",
+          "task_id",
+          "handoff_id",
+          "decision_id",
+          "path",
+          "session_id",
+          "project_id"
+        ],
+        "current_model_required_fields": [],
+        "expected_next_action": "review_card_and_record_decision",
+        "group": "operator_inbox",
+        "legacy_handler_fields": [
+          "decision_id",
+          "handoff_id",
+          "item_id",
+          "project_id",
+          "session_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_relevant_item; bounded semantic choice for general inbox use",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_operator_inbox_open",
+      "toolset": "aota_operator",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "subject_ref"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [],
+      "official_minimal_example": {},
+      "operation_kind": "mutation_or_control",
+      "phase_4_migration": {
+        "authority_source": "trusted current task/handoff/decision + existing read-only consistency rules",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "task_id",
+          "handoff_id",
+          "decision_id"
+        ],
+        "current_model_required_fields": [
+          "decision_id",
+          "handoff_id",
+          "task_id",
+          "workspace_id"
+        ],
+        "expected_next_action": "review_consistency_findings",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "evidence_audit",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "task_id",
+          "handoff_id",
+          "decision_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "semantic current_task/current_handoff/current_decision only",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_operator_consistency_check",
+      "toolset": "aota_operator",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "plan_ref",
+        "view"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_1_migration": {
+        "authority_source": "trusted runtime + canonical Plan artifact",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "plan_id"
+        ],
+        "current_model_required_fields": [],
+        "expected_next_action": "continue_governance",
+        "group": "plan",
+        "legacy_handler_fields": [
+          "plan_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "resolver_strategy": "unique current Plan; ambiguity returns bounded choices",
+        "target_model_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_plan_open",
+      "toolset": "aota_plan_read",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "title",
+        "objective"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "constraints",
+        "objective"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "objective": "semantic_value",
+        "title": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "outcomes",
+        "planning_depth",
+        "scope",
+        "title"
+      ],
+      "official_minimal_example": {
+        "objective": "semantic_value",
+        "title": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_1_migration": {
+        "authority_source": "trusted runtime + Plan artifact",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "workspace_decision_id",
+          "plan_id",
+          "revision",
+          "digest"
+        ],
+        "current_model_required_fields": [
+          "title",
+          "objective"
+        ],
+        "expected_next_action": "freeze_current_plan",
+        "group": "plan",
+        "legacy_handler_fields": [
+          "plan_id",
+          "project_id",
+          "revision",
+          "workspace_decision_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "objective": "semantic_value",
+          "title": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "resolver_strategy": "current workspace; derive P1/A1/standard defaults",
+        "target_model_required_fields": [
+          "title",
+          "objective"
+        ]
+      },
+      "target_required_fields": [
+        "title",
+        "objective"
+      ],
+      "tool_name": "aota_plan_create",
+      "toolset": "aota_plan_write",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "operation",
+        "payload"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "operation"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "operation": "set_plan_status",
+        "payload": {}
+      },
+      "model_semantic_fields": [
+        "payload",
+        "plan_ref"
+      ],
+      "official_minimal_example": {
+        "operation": "set_plan_status",
+        "payload": {}
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_1_migration": {
+        "authority_source": "current Plan artifact",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "plan_id",
+          "expected_revision",
+          "digest"
+        ],
+        "current_model_required_fields": [
+          "operation",
+          "payload"
+        ],
+        "expected_next_action": "continue_governance",
+        "group": "plan",
+        "legacy_handler_fields": [
+          "expected_revision",
+          "plan_id",
+          "project_id",
+          "workspace_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "operation": "set_plan_status",
+          "payload": {}
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "resolver_strategy": "unique current_plan; Work Item payload resolves active item or choice selector",
+        "target_model_required_fields": [
+          "operation",
+          "payload"
+        ]
+      },
+      "target_required_fields": [
+        "operation",
+        "payload"
+      ],
+      "tool_name": "aota_plan_update",
+      "toolset": "aota_plan_write",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "title",
+        "summary",
+        "facts"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "summary"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "facts": {
+          "auth_or_security_change": false,
+          "competing_designs": false,
+          "cross_service_protocol_change": false,
+          "cross_session_required": false,
+          "data_migration": false,
+          "deployment_topology_change": false,
+          "estimated_duration_days": 1,
+          "estimated_sessions": 1,
+          "estimated_work_items": 1,
+          "external_dependency_change": false,
+          "has_dependencies": false,
+          "has_milestones": false,
+          "high_blast_radius": false,
+          "human_checkpoints_expected": 1,
+          "irreversible_change": false,
+          "modules_touched": 1,
+          "multiple_profiles_required": false,
+          "new_durable_contract": false,
+          "novel_architecture": false,
+          "production_runtime_impact": false,
+          "repositories_touched": 1,
+          "requested_architect_review": false,
+          "requested_plan": false,
+          "requirements_ambiguity": "high",
+          "rollback_required": false,
+          "runtime_control_plane_change": false,
+          "schema_change": false,
+          "services_touched": 1,
+          "technical_uncertainty": "high",
+          "validation_scope": "end_to_end",
+          "write_scope": "cross_repository"
+        },
+        "summary": "semantic_value",
+        "title": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "facts",
+        "override",
+        "title"
+      ],
+      "official_minimal_example": {
+        "facts": {
+          "auth_or_security_change": false,
+          "competing_designs": false,
+          "cross_service_protocol_change": false,
+          "cross_session_required": false,
+          "data_migration": false,
+          "deployment_topology_change": false,
+          "estimated_duration_days": 1,
+          "estimated_sessions": 1,
+          "estimated_work_items": 1,
+          "external_dependency_change": false,
+          "has_dependencies": false,
+          "has_milestones": false,
+          "high_blast_radius": false,
+          "human_checkpoints_expected": 1,
+          "irreversible_change": false,
+          "modules_touched": 1,
+          "multiple_profiles_required": false,
+          "new_durable_contract": false,
+          "novel_architecture": false,
+          "production_runtime_impact": false,
+          "repositories_touched": 1,
+          "requested_architect_review": false,
+          "requested_plan": false,
+          "requirements_ambiguity": "high",
+          "rollback_required": false,
+          "runtime_control_plane_change": false,
+          "schema_change": false,
+          "services_touched": 1,
+          "technical_uncertainty": "high",
+          "validation_scope": "end_to_end",
+          "write_scope": "cross_repository"
+        },
+        "summary": "semantic_value",
+        "title": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_4_migration": {
+        "authority_source": "trusted runtime workspace + deterministic intake classifier",
+        "control_plane_fields_to_hide": [
+          "workspace_id"
+        ],
+        "current_model_required_fields": [
+          "facts",
+          "summary",
+          "title",
+          "workspace_id"
+        ],
+        "expected_next_action": "follow_recommended_planning_step",
+        "first_call_result": "success_or_expected_deterministic_checkpoint",
+        "group": "development_support",
+        "legacy_handler_fields": [
+          "workspace_id"
+        ],
+        "migration_status": "migrated",
+        "minimal_example": {
+          "facts": {
+            "auth_or_security_change": false,
+            "competing_designs": false,
+            "cross_service_protocol_change": false,
+            "cross_session_required": false,
+            "data_migration": false,
+            "deployment_topology_change": false,
+            "estimated_duration_days": 1,
+            "estimated_sessions": 1,
+            "estimated_work_items": 1,
+            "external_dependency_change": false,
+            "has_dependencies": false,
+            "has_milestones": false,
+            "high_blast_radius": false,
+            "human_checkpoints_expected": 1,
+            "irreversible_change": false,
+            "modules_touched": 1,
+            "multiple_profiles_required": false,
+            "new_durable_contract": false,
+            "novel_architecture": false,
+            "production_runtime_impact": false,
+            "repositories_touched": 1,
+            "requested_architect_review": false,
+            "requested_plan": false,
+            "requirements_ambiguity": "high",
+            "rollback_required": false,
+            "runtime_control_plane_change": false,
+            "schema_change": false,
+            "services_touched": 1,
+            "technical_uncertainty": "high",
+            "validation_scope": "end_to_end",
+            "write_scope": "cross_repository"
+          },
+          "summary": "semantic_value",
+          "title": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "trusted current workspace; all classification facts remain model semantic or human decision",
+        "target_model_required_fields": [
+          "title",
+          "summary",
+          "facts"
+        ]
+      },
+      "target_required_fields": [
+        "title",
+        "summary",
+        "facts"
+      ],
+      "tool_name": "aota_work_classify",
+      "toolset": "aota_work_intake",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "limit"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "workspace registry + .aota/project.yaml",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_root"
+        ],
+        "current_required_fields": [
+          "workspace_id"
+        ],
+        "expected_next_action": "select_current_project",
+        "first_call_success": true,
+        "group": "workspace_project_governance",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_root"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "trusted current workspace",
+        "target_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_project_scan",
+      "toolset": "aota_project_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "query"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "query"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "query": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "include_inactive",
+        "limit"
+      ],
+      "official_minimal_example": {
+        "query": "semantic_value"
+      },
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "workspace registry",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "query"
+        ],
+        "expected_next_action": "select_current_project",
+        "first_call_success": true,
+        "group": "workspace_project_governance",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "query": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "trusted current workspace",
+        "target_required_fields": [
+          "query"
+        ]
+      },
+      "target_required_fields": [
+        "query"
+      ],
+      "tool_name": "aota_project_search",
+      "toolset": "aota_project_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "include_observed",
+        "project_ref"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "trusted current project + exact registry binding",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "manifest_path"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id"
+        ],
+        "expected_next_action": "refresh_current_project_observed_state",
+        "first_call_success": true,
+        "group": "project_evidence_status",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "manifest_path"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_project",
+        "target_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_project_open",
+      "toolset": "aota_project_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "operation"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "dry_run",
+        "include_invalid"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "existing project registry + project declaration",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "registry_path",
+          "project_id",
+          "manifest_digest"
+        ],
+        "current_required_fields": [
+          "workspace_id"
+        ],
+        "expected_next_action": "refresh_current_project_observed_state",
+        "first_call_success": true,
+        "group": "project_registration",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "registry_path",
+          "project_id",
+          "manifest_digest"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "register_current_project",
+        "target_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_project_registry_refresh",
+      "toolset": "aota_project_steward",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "existing project registry",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "registry_path"
+        ],
+        "current_required_fields": [
+          "workspace_id"
+        ],
+        "expected_next_action": "register_current_project",
+        "first_call_success": true,
+        "group": "project_registration",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "registry_path"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current workspace registry",
+        "target_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_project_registry_open",
+      "toolset": "aota_project_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "request_summary"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "request_summary": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "limit",
+        "request_summary"
+      ],
+      "official_minimal_example": {
+        "request_summary": "semantic_value"
+      },
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "workspace registry + manifest evidence",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "request_summary"
+        ],
+        "expected_next_action": "select_current_project",
+        "first_call_success": true,
+        "group": "workspace_project_governance",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "request_summary": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "bounded semantic relationship search",
+        "target_required_fields": [
+          "request_summary"
+        ]
+      },
+      "target_required_fields": [
+        "request_summary"
+      ],
+      "tool_name": "aota_project_relationship_brief",
+      "toolset": "aota_project_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "operation",
+        "rationale"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "action",
+        "include_commands",
+        "include_constraints",
+        "include_plan_reference",
+        "max_warnings"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "current project declaration + observed state + registry",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "manifest_path",
+          "registry_digest"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id"
+        ],
+        "expected_next_action": "reconcile_current_project",
+        "first_call_success": true,
+        "group": "project_evidence_status",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "manifest_path",
+          "registry_digest"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_project",
+        "target_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_project_prepare",
+      "toolset": "aota_project_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "document_kind",
+        "operation",
+        "content"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "operation",
+        "rationale"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "content": "semantic_value",
+        "document_kind": "readme",
+        "operation": "replace"
+      },
+      "model_semantic_fields": [
+        "content",
+        "document_kind",
+        "document_ref"
+      ],
+      "official_minimal_example": {
+        "content": "semantic_value",
+        "document_kind": "readme",
+        "operation": "replace"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "current project declaration + allowlisted docs root",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "document_ref",
+          "expected_sha256",
+          "manifest_path"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id",
+          "document_kind",
+          "operation",
+          "content"
+        ],
+        "expected_next_action": "reconcile_current_project",
+        "first_call_success": true,
+        "group": "workspace_project_maintenance",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "document_ref",
+          "expected_sha256",
+          "manifest_path"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "content": "semantic_value",
+          "document_kind": "readme",
+          "operation": "replace"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "semantic document ref",
+        "target_required_fields": [
+          "document_kind",
+          "operation",
+          "content"
+        ]
+      },
+      "target_required_fields": [
+        "document_kind",
+        "operation",
+        "content"
+      ],
+      "tool_name": "aota_project_docs_update",
+      "toolset": "aota_project_steward",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "artifact_ref",
+        "target_ref",
+        "relation"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "rationale"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "artifact_ref": "current_completion_card",
+        "relation": "evidence_for",
+        "target_ref": "current_work_item"
+      },
+      "model_semantic_fields": [
+        "artifact_ref",
+        "relation",
+        "target_ref"
+      ],
+      "official_minimal_example": {
+        "artifact_ref": "current_completion_card",
+        "relation": "evidence_for",
+        "target_ref": "current_work_item"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "canonical artifact resolver + current project subject",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "work_item_id",
+          "artifact_id",
+          "artifact_path",
+          "expected_index_sha256"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id",
+          "work_item_id",
+          "artifact_type",
+          "artifact_ref",
+          "relation"
+        ],
+        "expected_next_action": "none",
+        "first_call_success": true,
+        "group": "artifact_link",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "work_item_id",
+          "artifact_id",
+          "artifact_path",
+          "expected_index_sha256"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "artifact_ref": "current_completion_card",
+          "relation": "evidence_for",
+          "target_ref": "current_work_item"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "source semantic artifact + target semantic subject",
+        "target_required_fields": [
+          "artifact_ref",
+          "target_ref",
+          "relation"
+        ]
+      },
+      "target_required_fields": [
+        "artifact_ref",
+        "target_ref",
+        "relation"
+      ],
+      "tool_name": "aota_project_artifact_link",
+      "toolset": "aota_project_steward",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "current project declaration + CodeGraph lifecycle inventory",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "index_path"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id"
+        ],
+        "expected_next_action": "none",
+        "first_call_success": true,
+        "group": "project_evidence_status",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "index_path"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_project",
+        "target_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_codegraph_status",
+      "toolset": "aota_codegraph_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "search"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "search": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "kind",
+        "limit",
+        "search"
+      ],
+      "official_minimal_example": {
+        "search": "semantic_value"
+      },
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "current project declaration + CodeGraph lifecycle inventory",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "index_path"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id",
+          "search"
+        ],
+        "expected_next_action": "none",
+        "first_call_success": true,
+        "group": "project_evidence_status",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "index_path"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "search": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_project",
+        "target_required_fields": [
+          "search"
+        ]
+      },
+      "target_required_fields": [
+        "search"
+      ],
+      "tool_name": "aota_codegraph_query",
+      "toolset": "aota_codegraph_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "query"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "query"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "query": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "max_files"
+      ],
+      "official_minimal_example": {
+        "query": "semantic_value"
+      },
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "current project declaration + CodeGraph lifecycle inventory",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "index_path"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id",
+          "query"
+        ],
+        "expected_next_action": "none",
+        "first_call_success": true,
+        "group": "project_evidence_status",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "index_path"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "query": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_project",
+        "target_required_fields": [
+          "query"
+        ]
+      },
+      "target_required_fields": [
+        "query"
+      ],
+      "tool_name": "aota_codegraph_explore",
+      "toolset": "aota_codegraph_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [],
+      "official_minimal_example": {},
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "current project lifecycle contract",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "index_path"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id"
+        ],
+        "expected_next_action": "confirm_project_lifecycle_action",
+        "first_call_success": true,
+        "group": "project_lifecycle",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "index_path"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current_project",
+        "target_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_codegraph_rebuild",
+      "toolset": "aota_codegraph_rebuild",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "operation"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "operation",
+        "rationale"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "operation": "intake"
+      },
+      "model_semantic_fields": [],
+      "official_minimal_example": {
+        "operation": "intake"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "current project declaration + registry + observed state + lifecycle inventory",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "manifest_path",
+          "registry_digest",
+          "expected_hash"
+        ],
+        "current_required_fields": [
+          "outcome",
+          "verdict",
+          "summary",
+          "scope_status"
+        ],
+        "expected_next_action": "none",
+        "first_call_success": true,
+        "group": "project_stewardship",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "manifest_path",
+          "registry_digest",
+          "expected_hash"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "operation": "intake"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "reconcile_current_project",
+        "target_required_fields": [
+          "operation"
+        ]
+      },
+      "target_required_fields": [
+        "operation"
+      ],
+      "tool_name": "aota_project_steward_report",
+      "toolset": "aota_project_steward_artifact",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "file_ref"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "file_ref": "current_changelog"
+      },
+      "model_semantic_fields": [
+        "end_line",
+        "file_ref",
+        "max_bytes",
+        "start_line"
+      ],
+      "official_minimal_example": {
+        "file_ref": "current_changelog"
+      },
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "current project declaration + allowlisted file refs",
+        "control_plane_fields_to_hide": [
+          "task_id",
+          "spec_id",
+          "path",
+          "project_root"
+        ],
+        "current_required_fields": [
+          "task_id",
+          "spec_id",
+          "path"
+        ],
+        "expected_next_action": "none",
+        "first_call_success": true,
+        "group": "workspace_project_maintenance",
+        "legacy_handler_fields": [
+          "task_id",
+          "spec_id",
+          "path",
+          "project_root"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "file_ref": "current_changelog"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "semantic file ref",
+        "target_required_fields": [
+          "file_ref"
+        ]
+      },
+      "target_required_fields": [
+        "file_ref"
+      ],
+      "tool_name": "aota_project_file_read",
+      "toolset": "aota_coder_file_mutation",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "file_ref",
+        "content"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "content": "semantic_value",
+        "file_ref": "current_readme"
+      },
+      "model_semantic_fields": [
+        "content",
+        "file_ref"
+      ],
+      "official_minimal_example": {
+        "content": "semantic_value",
+        "file_ref": "current_readme"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "frozen SPEC + current project + allowlisted file refs",
+        "control_plane_fields_to_hide": [
+          "task_id",
+          "spec_id",
+          "path",
+          "project_root",
+          "expected_sha256"
+        ],
+        "current_required_fields": [
+          "task_id",
+          "spec_id",
+          "path",
+          "content"
+        ],
+        "expected_next_action": "reconcile_current_project",
+        "first_call_success": true,
+        "group": "workspace_project_maintenance",
+        "legacy_handler_fields": [
+          "task_id",
+          "spec_id",
+          "path",
+          "project_root",
+          "expected_sha256"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "content": "semantic_value",
+          "file_ref": "current_readme"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "semantic file ref",
+        "target_required_fields": [
+          "file_ref",
+          "content"
+        ]
+      },
+      "target_required_fields": [
+        "file_ref",
+        "content"
+      ],
+      "tool_name": "aota_project_file_write",
+      "toolset": "aota_coder_file_mutation",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "file_ref",
+        "find",
+        "replace"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "file_ref": "current_readme",
+        "find": "semantic_value",
+        "replace": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "file_ref",
+        "find",
+        "replace"
+      ],
+      "official_minimal_example": {
+        "file_ref": "current_readme",
+        "find": "semantic_value",
+        "replace": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "frozen SPEC + current project + control-plane digest",
+        "control_plane_fields_to_hide": [
+          "task_id",
+          "spec_id",
+          "path",
+          "project_root",
+          "expected_sha256"
+        ],
+        "current_required_fields": [
+          "task_id",
+          "spec_id",
+          "path",
+          "find",
+          "replace",
+          "expected_sha256"
+        ],
+        "expected_next_action": "reconcile_current_project",
+        "first_call_success": true,
+        "group": "workspace_project_maintenance",
+        "legacy_handler_fields": [
+          "task_id",
+          "spec_id",
+          "path",
+          "project_root",
+          "expected_sha256"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "file_ref": "current_readme",
+          "find": "semantic_value",
+          "replace": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "semantic file ref",
+        "target_required_fields": [
+          "file_ref",
+          "find",
+          "replace"
+        ]
+      },
+      "target_required_fields": [
+        "file_ref",
+        "find",
+        "replace"
+      ],
+      "tool_name": "aota_project_file_patch",
+      "toolset": "aota_coder_file_mutation",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "command_id"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "command_id": "python_compileall"
+      },
+      "model_semantic_fields": [
+        "command_id"
+      ],
+      "official_minimal_example": {
+        "command_id": "python_compileall"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "frozen SPEC validation command allowlist + current project",
+        "control_plane_fields_to_hide": [
+          "task_id",
+          "spec_id",
+          "project_root",
+          "args"
+        ],
+        "current_required_fields": [
+          "task_id",
+          "spec_id",
+          "command_id",
+          "args"
+        ],
+        "expected_next_action": "none",
+        "first_call_success": true,
+        "group": "workspace_project_maintenance",
+        "legacy_handler_fields": [
+          "task_id",
+          "spec_id",
+          "project_root",
+          "args"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "command_id": "python_compileall"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "fixed command vector",
+        "target_required_fields": [
+          "command_id"
+        ]
+      },
+      "target_required_fields": [
+        "command_id"
+      ],
+      "tool_name": "aota_project_command_run",
+      "toolset": "aota_coder_command",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "project_name",
+        "summary"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "summary"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "project_name": "semantic_value",
+        "summary": "semantic_value"
+      },
+      "model_semantic_fields": [
+        "canonical_parent",
+        "capabilities",
+        "project_kind",
+        "project_name"
+      ],
+      "official_minimal_example": {
+        "project_name": "semantic_value",
+        "summary": "semantic_value"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "trusted workspace registry + canonical parent selection",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "source_root",
+          "manifest_path",
+          "registry_path"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id",
+          "project_name",
+          "project_kind",
+          "project_root",
+          "summary"
+        ],
+        "expected_next_action": "confirm_project_initialization",
+        "first_call_success": true,
+        "group": "project_initialization",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "project_root",
+          "source_root",
+          "manifest_path",
+          "registry_path"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "project_name": "semantic_value",
+          "summary": "semantic_value"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "semantic project intent; derive slug/root",
+        "target_required_fields": [
+          "project_name",
+          "summary"
+        ]
+      },
+      "target_required_fields": [
+        "project_name",
+        "summary"
+      ],
+      "tool_name": "aota_project_initialize_core",
+      "toolset": "aota_project_steward",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": false,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [
+        "max_items",
+        "status"
+      ],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "target_required_fields": [],
+      "tool_name": "aota_workspace_list",
+      "toolset": "aota_workspace_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {},
+      "model_semantic_fields": [],
+      "official_minimal_example": {},
+      "operation_kind": "read",
+      "phase_3_migration": {
+        "authority_source": "trusted runtime workspace context + workspace registry",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "registry_path"
+        ],
+        "current_required_fields": [
+          "workspace_id"
+        ],
+        "expected_next_action": "select_current_project",
+        "first_call_success": true,
+        "group": "workspace_project_governance",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "registry_path"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {},
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "current trusted workspace",
+        "target_required_fields": []
+      },
+      "target_required_fields": [],
+      "tool_name": "aota_workspace_open",
+      "toolset": "aota_workspace_readonly",
+      "trusted_runtime_fields": []
+    },
+    {
+      "authority_source": {
+        "canonical_artifact": "AOTA workspace, Plan, SPEC, approval, handoff, or task artifact",
+        "derived_defaults": "canonical projection from planning depth, gate, delivery path, risk and SPEC kind",
+        "human_decision": "explicit user/operator checkpoint only",
+        "trusted_runtime": "Hermes registry kwargs / gateway session ContextVars / AOTA trusted environment"
+      },
+      "control_plane_fields": [],
+      "current_required_fields": [
+        "source_type",
+        "relationship"
+      ],
+      "derived_default_fields": [],
+      "first_call_result": "success_or_expected_deterministic_checkpoint",
+      "human_decision_fields": [
+        "rationale",
+        "relationship",
+        "source_type"
+      ],
+      "legacy_compatibility": true,
+      "legacy_compatibility_fields": [],
+      "migration_status": "migrated",
+      "minimal_example": {
+        "relationship": "existing",
+        "source_type": "user_supplied"
+      },
+      "model_semantic_fields": [
+        "project_ref",
+        "project_selector"
+      ],
+      "official_minimal_example": {
+        "relationship": "existing",
+        "source_type": "user_supplied"
+      },
+      "operation_kind": "mutation_or_control",
+      "phase_3_migration": {
+        "authority_source": "task-main decision + exact registry binding",
+        "control_plane_fields_to_hide": [
+          "workspace_id",
+          "project_id",
+          "registry_path",
+          "project_root",
+          "recommendation_id"
+        ],
+        "current_required_fields": [
+          "workspace_id",
+          "project_id",
+          "source_type",
+          "relationship"
+        ],
+        "expected_next_action": "continue_governance",
+        "first_call_success": true,
+        "group": "workspace_project_governance",
+        "legacy_handler_fields": [
+          "workspace_id",
+          "project_id",
+          "registry_path",
+          "project_root",
+          "recommendation_id"
+        ],
+        "migration_status": "migrated_this_phase",
+        "minimal_example": {
+          "relationship": "existing",
+          "source_type": "user_supplied"
+        },
+        "remaining_exception": "legacy explicit fields remain handler-only compatibility",
+        "semantic_selector": "bounded human project selector",
+        "target_required_fields": [
+          "source_type",
+          "relationship"
+        ]
+      },
+      "target_required_fields": [
+        "source_type",
+        "relationship"
+      ],
+      "tool_name": "aota_workspace_selection_record",
+      "toolset": "aota_orchestration",
+      "trusted_runtime_fields": []
+    }
+  ],
+  "toolset_count": 28
+}

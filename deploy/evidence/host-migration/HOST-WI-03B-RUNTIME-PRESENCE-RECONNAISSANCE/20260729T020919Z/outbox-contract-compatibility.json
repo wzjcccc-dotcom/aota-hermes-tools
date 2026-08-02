@@ -1,0 +1,24 @@
+{
+  "producer_source_runtime_hash_parity": "PASS",
+  "producer_files": {
+    "_delivery_outbox.py": "2b74ff3970adc181c758e37f24b923f95d99d8555c71c2df01bdac75eca8e166",
+    "_profile_task_start.py": "5cd65a60679535ee31dbd72a1d52752e89e57c1c60ade15effde657b51412719",
+    "_profile_task_finalize.py": "f9b3cf0e1ef440cd0a180e078618c614f0cee85fe2b9f96f1428dabda714435a",
+    "_delivery_adapter.py": "c6d36a192c95f2a2e69daefc5463daec3b1f4d6eecceca32e33bc4c8867bd201"
+  },
+  "schema_version": 2,
+  "event_type": "aota_profile_task_terminal",
+  "terminal_statuses_compatible": true,
+  "required_identity_and_pointer_fields_present": true,
+  "atomic_pending_write": true,
+  "producer_workspace": "aota-hermes-tools",
+  "adapter_default_workspace": "aota-runtime",
+  "adapter_pending_path": "/home/latios/.hermes/aota-runtime/outbox/aota-runtime/pending",
+  "producer_pending_path": "/home/latios/.hermes/aota-runtime/outbox/aota-hermes-tools/pending",
+  "producer_pending_file_count": 69,
+  "adapter_default_pending_file_count": 0,
+  "latest_pending_event_contract": "compatible; identifiers redacted",
+  "schema_compatibility": "PASS",
+  "workspace_path_compatibility": "DRIFT",
+  "classification": "OUTBOX_PATH_DRIFT"
+}

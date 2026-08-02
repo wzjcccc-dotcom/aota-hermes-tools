@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-01T07:34:43+08:00",
+  "deployment": {
+    "backup": "/home/latios/workspace/aota-hermes-tools/.deploy-backups/20260731T232116Z",
+    "receipt": "/home/latios/workspace/aota-hermes-tools/.deploy-receipts/aota-forge-plan/20260731T232118Z/deployment.json",
+    "deploy_verify": "pass",
+    "profile_assembly_post_activation": "pass",
+    "profile_assembly_runtime": "pass"
+  },
+  "model": "glm-5.2",
+  "sample_contract": "same-six-profile-minimal-sample",
+  "per_task_llm_plus_tool_limit": 100,
+  "transport_preflight": {
+    "excluded_session": "20260801_072434_c7800c",
+    "reason": "sandbox network connection failed before a model response; the authorized unsandboxed rerun is the scored session",
+    "connection_retries": 3
+  },
+  "previous_aggregate": {
+    "input_tokens": 522671,
+    "model_response_turns": 32,
+    "tool_calls": 38
+  },
+  "current_aggregate": {
+    "input_tokens": 304172,
+    "input_token_reduction_percent": 41.8,
+    "model_response_turns": 32,
+    "tool_calls": 39,
+    "domain_tool_calls": 18,
+    "meta_tool_calls": 21,
+    "max_llm_plus_tool_calls_in_one_scored_session": 19
+  },
+  "profiles": [
+    {
+      "profile": "project-steward",
+      "previous_session": "20260801_052614_9e49e7",
+      "session": "20260801_072514_e3c175",
+      "outcome": "pass",
+      "input_tokens_previous": 48388,
+      "input_tokens": 51367,
+      "model_response_turns": 6,
+      "tool_calls": 8,
+      "tool_limit_in_prompt": 3,
+      "skill_views": 2,
+      "tool_describes": 3,
+      "domain_tool_calls": 3,
+      "notes": [
+        "project registry refresh and current project open succeeded",
+        "total tool calls exceeded the prompt budget because two Skills and three tool schemas were loaded"
+      ]
+    },
+    {
+      "profile": "task-main",
+      "previous_session": "20260801_052650_f725da",
+      "session": "20260801_072619_02ed91",
+      "outcome": "failed_before_dispatch",
+      "input_tokens_previous": 349372,
+      "input_tokens": 109147,
+      "model_response_turns": 8,
+      "tool_calls": 11,
+      "tool_limit_in_prompt": 12,
+      "skill_views": 1,
+      "tool_describes": 5,
+      "domain_tool_calls": 5,
+      "notes": [
+        "only the compact routing index was loaded instead of three long reference Skills",
+        "input tokens fell by 68.8 percent",
+        "aota_task_spec_create returned same_call_retryable=false and flow_disposition=stop",
+        "the model changed arguments and retried aota_task_spec_create twice, violating the stop contract",
+        "architecture SPEC still required a subject plan or spec reference that the semantic-only model call could not derive"
+      ]
+    },
+    {
+      "profile": "architect",
+      "previous_session": "20260801_052919_8707e3",
+      "session": "20260801_072732_b2c34a",
+      "outcome": "pass",
+      "input_tokens_previous": 23989,
+      "input_tokens": 19241,
+      "model_response_turns": 3,
+      "tool_calls": 3,
+      "tool_limit_in_prompt": 4,
+      "skill_views": 0,
+      "tool_describes": 1,
+      "domain_tool_calls": 2,
+      "notes": [
+        "two bounded aota_read_file calls returned the correct project comparison",
+        "input tokens fell by 19.8 percent"
+      ]
+    },
+    {
+      "profile": "reviewer",
+      "previous_session": "20260801_052950_2df92e",
+      "session": "20260801_072805_bb484a",
+      "outcome": "pass",
+      "input_tokens_previous": 23776,
+      "input_tokens": 18900,
+      "model_response_turns": 3,
+      "tool_calls": 3,
+      "tool_limit_in_prompt": 4,
+      "skill_views": 0,
+      "tool_describes": 1,
+      "domain_tool_calls": 2,
+      "notes": [
+        "two bounded aota_read_file calls returned the correct version comparison",
+        "input tokens fell by 20.5 percent"
+      ]
+    },
+    {
+      "profile": "coder",
+      "previous_session": "20260801_053019_b386d6",
+      "session": "20260801_072829_571457",
+      "outcome": "safe_stop_without_requested_answer",
+      "input_tokens_previous": 41382,
+      "input_tokens": 24730,
+      "model_response_turns": 3,
+      "tool_calls": 5,
+      "tool_limit_in_prompt": 4,
+      "skill_views": 1,
+      "tool_describes": 2,
+      "domain_tool_calls": 2,
+      "notes": [
+        "the model selected aota_search_files instead of directly reading the supplied exact path",
+        "both parallel searches returned path_not_authorized and same_call_retryable=false",
+        "the model correctly stopped without another retry",
+        "input tokens fell by 40.2 percent but task completion regressed"
+      ]
+    },
+    {
+      "profile": "debugger",
+      "previous_session": "20260801_053045_ee0330",
+      "session": "20260801_072908_31fa6c",
+      "outcome": "incomplete_without_final_answer",
+      "input_tokens_previous": 35764,
+      "input_tokens": 80787,
+      "model_response_turns": 9,
+      "tool_calls": 9,
+      "tool_limit_in_prompt": 4,
+      "skill_views": 1,
+      "tool_describes": 2,
+      "domain_tool_calls": 4,
+      "notes": [
+        "the target fixture was read successfully",
+        "the model then searched and read implementation files instead of diagnosing the three directly visible invalid fields",
+        "the session ended after the fourth domain tool result without a final answer",
+        "input tokens increased by 125.9 percent"
+      ]
+    }
+  ],
+  "score": {
+    "outcome_completion_rate_percent": 50.0,
+    "correct_tool_and_parameter_path_rate_percent": 66.7,
+    "retry_stop_safety_rate_percent": 83.3,
+    "total_tool_budget_pass_rate_percent": 50.0,
+    "minimal_skill_and_tool_description_rate_percent": 33.3,
+    "weights": {
+      "outcome_completion": 0.30,
+      "correct_tool_and_parameter_path": 0.25,
+      "retry_stop_safety": 0.20,
+      "total_tool_budget": 0.10,
+      "minimal_skill_and_tool_description": 0.15
+    },
+    "composite_efficiency_percent": 58.3,
+    "target_percent": 90.0,
+    "target_met": false
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "log": "/home/latios/.hermes/logs/gateway.log",
+  "startup_evidence": "AVAILABLE",
+  "adapter_startup_evidence": "AVAILABLE",
+  "armed_message_observed": true,
+  "startup_error_message_observed": false,
+  "claim_or_delivery_message_observed": false,
+  "native_wake_message_observed": false,
+  "automatic_parent_resume_observed": false,
+  "last_observed_backend_state": "graceful stop after an armed startup",
+  "currently_running": "NOT_PROVEN",
+  "runtime_live_verification": "NOT_PERFORMED_BY_THIS_READ_ONLY_RECONNAISSANCE"
+}

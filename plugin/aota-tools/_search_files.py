@@ -58,7 +58,7 @@ SCHEMA = {
             },
             "path": {
                 "type": "string",
-                "description": "Workspace-relative directory to search in (default: workspace root)",
+                "description": "Workspace-relative file or directory to search in (default: workspace root)",
             },
             "mode": {
                 "type": "string",
@@ -122,6 +122,19 @@ def _walk_bounded(root: Path, max_file_bytes: int):
                 continue
 
 
+def _iter_search_files(search_root: Path, max_file_bytes: int):
+    """Yield one exact file or a bounded directory walk."""
+    if search_root.is_file():
+        try:
+            size = search_root.stat().st_size
+        except OSError:
+            return
+        if size <= max_file_bytes:
+            yield search_root, size
+        return
+    yield from _walk_bounded(search_root, max_file_bytes)
+
+
 def handle(args: dict, **_kwargs) -> str:
     workspace_id = args.get("workspace_id", "")
     query = args.get("query", "")
@@ -149,8 +162,8 @@ def handle(args: dict, **_kwargs) -> str:
     except WorkspaceError as e:
         return json.dumps({"error": str(e)}, sort_keys=True)
 
-    if not search_root.is_dir():
-        return json.dumps({"error": f"search path is not a directory: {path_str}"}, sort_keys=True)
+    if not search_root.is_dir() and not search_root.is_file():
+        return json.dumps({"error": f"search path is not a regular file or directory: {path_str}"}, sort_keys=True)
 
     search_query = query if case_sensitive else query.lower()
 
@@ -161,7 +174,7 @@ def handle(args: dict, **_kwargs) -> str:
     matched_file_count = 0
     match_count = 0
 
-    for fp, fsize in _walk_bounded(search_root, max_file_bytes):
+    for fp, fsize in _iter_search_files(search_root, max_file_bytes):
         fname = fp.name
 
         # Apply glob filter

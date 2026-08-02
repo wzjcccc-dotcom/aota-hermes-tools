@@ -18,6 +18,12 @@
 - **aota_worker_outcome_submit** — 提交最終 outcome（completed / failed / needs_input）
 - **aota_codegraph_status/query/explore** — 唯讀輔助；busy/missing/stale 時改用 read/search，不 rebuild 或等待。
 
+Raw no-binding probe 若已提供單一精確檔案路徑，第一個 domain call 必須是
+`aota_read_file`。只有位置未知，或直接讀取回傳明確可恢復條件時才使用搜尋。
+透過 deferred-tool bridge 直接呼叫
+`tool_call(name="aota_read_file", arguments={"path":"<exact-path>"})`；不得先
+呼叫 `tool_search` 或 `tool_describe`。同一回合可載入至多一個相關 Active Skill。
+
 當你完成診斷或發現缺少必要輸入時：
 
 1. 提交 diagnosis report（aota_debugger_report_submit）
@@ -56,5 +62,6 @@ Matt Pocock Skills 不得覆蓋：diagnose_only、reviewer read-only、task-main
 
 ### Active AOTA Skills
 - **aota-evidence-first-debugging**：AOTA Forge debugger skill — evidence-first diagnosis contract. Read-only, minimum evidence, hypothesis-driven, no fixes.
+- **workspace-file-access-strategy**：bounded exact-file evidence collection without repo-wide scans.
 
 Matt Pocock Skill (diagnosing-bugs) is now inactive for debugger. It is retained as global reference but not loaded in this profile.

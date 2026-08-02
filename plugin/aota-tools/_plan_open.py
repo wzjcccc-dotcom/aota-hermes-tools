@@ -24,6 +24,8 @@ from ._plan_common import (
     validate_plan_id,
 )
 from ._workspace import WorkspaceError, resolve_workspace
+from ._session_active_spec_binding import trusted_session_context
+from ._reference_resolver import ReferenceError, resolve_current_plan
 
 TOOL_NAME = "aota_plan_open"
 TOOLSET_NAME = "aota_plan_read"
@@ -46,14 +48,7 @@ SCHEMA = {
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
-                "type": "string",
-                "description": "Registered workspace identifier",
-            },
-            "plan_id": {
-                "type": "string",
-                "description": "Exact canonical Plan ID (plan_<identifier>)",
-            },
+            "plan_ref": {"type": "string", "enum": ["current_plan"], "description": "Optional semantic reference to the current Plan."},
             "view": {
                 "type": "string",
                 "enum": ["compact", "full"],
@@ -61,7 +56,7 @@ SCHEMA = {
                 "description": "compact current-work summary or full canonical projection",
             },
         },
-        "required": ["workspace_id", "plan_id"],
+        "required": [],
         "additionalProperties": False,
     },
 }
@@ -317,7 +312,17 @@ def _do_open(args: dict) -> dict[str, Any]:
 
 def handle(args: dict, **_kwargs: Any) -> str:
     """Return a bounded, sanitized JSON response for one exact Plan artifact."""
-    return json.dumps(_do_open(args), ensure_ascii=False, sort_keys=True)
+    try:
+        context = trusted_session_context(_kwargs)
+        if not context.workspace_id:
+            return json.dumps({"status": "rejected", "operation_result": "plan_open", "error": "trusted_session_context_missing", "retryable": False, "human_action_required": False, "next_action": "stop_and_report_runtime_context_missing"}, sort_keys=True)
+        plan = resolve_current_plan(context.workspace_id)
+        normalized = {"workspace_id": context.workspace_id, "plan_id": plan["plan_id"], "view": args.get("view", "compact")}
+        result = _do_open(normalized)
+        result.update({"operation_result": "plan_opened", "resolved_context": {"binding": "current_plan", "planning_depth": plan.get("planning_depth")}, "retryable": False, "human_action_required": False, "next_action": "continue_governance"})
+        return json.dumps(result, ensure_ascii=False, sort_keys=True)
+    except ReferenceError as exc:
+        return json.dumps({"status": "rejected", "operation_result": "plan_open", "error": exc.code, "detail": exc.detail, "choices": exc.choices, "retryable": False, "human_action_required": bool(exc.choices), "next_action": "select_governance_subject" if exc.choices else "create_plan"}, sort_keys=True)
 
 
 def run_isolated_smoke() -> dict[str, str]:

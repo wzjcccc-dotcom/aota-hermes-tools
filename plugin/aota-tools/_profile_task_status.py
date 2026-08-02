@@ -20,6 +20,15 @@ from pathlib import Path
 from typing import Any, Optional
 
 from ._profile_task_common import validate_task_id
+from ._completion_observation import (
+    BOUNDED_RECOVERY_REASONS,
+    COMPLETION_TRANSPORT_LEGACY_DURABLE,
+    NEXT_ACTION_OPEN_COMPLETION_HANDOFF,
+    NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+    completion_observation_context,
+    is_origin_orchestrator,
+)
+from ._session_active_spec_binding import trusted_session_context
 from ._task_spec_common import (
     acquire_lock,
     compute_sha256,
@@ -31,29 +40,59 @@ from ._task_spec_common import (
     write_json,
 )
 from ._workspace import WorkspaceError
+from ._completion_subject_resolver import (
+    CompletionSubjectError,
+    _result_error,
+    resolve_current_completion_subject,
+    resolved_context,
+)
 
 TOOL_NAME = "aota_profile_task_status"
 TOOLSET_NAME = "aota_profile_task"
 
+
+def _legacy_delivery_state(workspace_id: str, task_id: str, start_id: str) -> str:
+    """Project legacy outbox state without claiming or mutating an event."""
+    try:
+        from ._delivery_outbox import (
+            build_event_id,
+            get_outbox_delivered_dir,
+            get_outbox_pending_dir,
+        )
+        event_id = build_event_id(task_id, start_id)
+        delivered = get_outbox_delivered_dir(workspace_id) / f"{event_id}.json"
+        if delivered.is_file() and not delivered.is_symlink():
+            return "delivered"
+        pending = get_outbox_pending_dir(workspace_id) / f"{event_id}.json"
+        if pending.is_file() and not pending.is_symlink():
+            return "pending"
+    except Exception:
+        return "unknown"
+    return "missing"
+
 SCHEMA = {
     "name": TOOL_NAME,
-    "description": (
-        "Query the status of an AOTA Profile Task with lifecycle reconciliation. "
-        "Returns current task state, terminal status, receipt status, registry "
-        "status, and reconciliation metadata. For running tasks, attempts to "
-        "reconcile via completion receipt or process registry. "
-        "Idempotent: does not mutate terminal tasks."
+        "description": (
+            "Query the status of an AOTA Profile Task with lifecycle reconciliation. "
+            "Returns current task state, terminal status, receipt status, registry "
+            "status, and reconciliation metadata. For running tasks, attempts to "
+            "reconcile via completion receipt or process registry. "
+            "After a wakeup-capable start, wait for completion delivery; do not "
+            "use this as progress polling. One bounded recovery is allowed only "
+            "after the returned recovery_allowed_after and only from the origin "
+            "orchestrator session. Idempotent: does not mutate terminal tasks."
     ),
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
+            "task_ref": {
                 "type": "string",
-                "description": "Registered workspace identifier (e.g. 'aota-runtime')",
+                "description": "Semantic selector; omit for current_completed_task.",
             },
-            "task_id": {
+            "view": {
                 "type": "string",
-                "description": "Existing AOTA task ID to query",
+                "enum": ["closure"],
+                "description": "Return the aggregated terminal closure projection.",
             },
             "retrieval_reason": {
                 "type": "string",
@@ -62,15 +101,12 @@ SCHEMA = {
                     "Required for running tasks to prevent progress polling. "
                     "Ignored for terminal/draft tasks. "
                     "Must be one of: completion_notification_timeout, "
-                    "lost_notification, suspected_runtime_failure, "
+                    "lost_completion_delivery, suspected_runtime_failure, "
                     "non_wakeup_reentry, user_requested, isolated_probe."
                 ),
             },
         },
-        "required": [
-            "workspace_id",
-            "task_id",
-        ],
+        "required": [],
         "additionalProperties": False,
     },
 }
@@ -79,7 +115,7 @@ SCHEMA = {
 RETRIEVAL_REASONS = frozenset(
     {
         "completion_notification_timeout",
-        "lost_notification",
+        "lost_completion_delivery",
         "suspected_runtime_failure",
         "non_wakeup_reentry",
         "user_requested",
@@ -307,6 +343,40 @@ def _build_status_dict(
     result["timeout_triggered"] = execution.get("timeout_triggered", False)
     result["timeout_at"] = execution.get("timeout_at")
     result["timeout_exit_code"] = execution.get("timeout_exit_code")
+
+    # Completion delivery / bounded recovery contract.  These are projections
+    # of the existing execution record, not a second lifecycle authority.
+    result["completion_transport"] = execution.get(
+        "completion_transport", execution.get("transport", "")
+    )
+    result["completion_delivery_expected"] = bool(
+        execution.get("completion_delivery_expected", False)
+    )
+    result["delivery_state"] = execution.get(
+        "delivery_state",
+        "pending" if result["completion_delivery_expected"] else "not_expected",
+    )
+    if (
+        meta.get("status") in _TERMINAL_STATUSES
+        and result["completion_transport"] == COMPLETION_TRANSPORT_LEGACY_DURABLE
+    ):
+        result["delivery_state"] = _legacy_delivery_state(
+            workspace_id, task_id, result["start_id"] or task_id
+        )
+    result["recovery_allowed_after"] = execution.get("recovery_allowed_after", "")
+    result["recovery_consumed"] = bool(execution.get("recovery_consumed", False))
+    if meta.get("status") in _TERMINAL_STATUSES:
+        if (
+            result["completion_transport"] == COMPLETION_TRANSPORT_LEGACY_DURABLE
+            and result["delivery_state"] != "delivered"
+        ):
+            result["next_action"] = NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY
+        else:
+            result["next_action"] = NEXT_ACTION_OPEN_COMPLETION_HANDOFF
+    else:
+        result["next_action"] = execution.get(
+            "next_action", "retrieve_after_reentry"
+        )
 
     # P8-A: scope postflight
     scope_compliance = execution.get("scope_compliance", {"status": "unknown", "violations": []})
@@ -716,15 +786,42 @@ def _try_acquire_status_lock(
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_profile_task_status tool invocation."""
     try:
-        result_dict = _do_status(args)
+        if not {"workspace_id", "task_id"} & set(args):
+            subject = resolve_current_completion_subject(
+                args,
+                _kwargs,
+                ref=args.get("task_ref", "current_completed_task"),
+            )
+            status_result = _do_status(
+                {
+                    "workspace_id": subject["workspace_id"],
+                    "task_id": subject["task_id"],
+                    "retrieval_reason": args.get("retrieval_reason", ""),
+                }
+            )
+            result = _build_terminal_closure(subject, status_result)
+            return json.dumps(result, sort_keys=True)
+        context = trusted_session_context(_kwargs)
+        result_dict = _do_status(
+            args,
+            observer_session_id=context.session_id,
+            observer_principal=context.principal,
+        )
         return json.dumps(result_dict, sort_keys=True)
     except WorkspaceError as e:
         return json.dumps({"status": "error", "error": str(e)}, sort_keys=True)
+    except CompletionSubjectError as exc:
+        return json.dumps(_result_error(exc, operation="terminal_closure"), sort_keys=True)
     except Exception as e:
         return json.dumps({"status": "error", "error": str(e)}, sort_keys=True)
 
 
-def _do_status(args: dict) -> dict[str, Any]:
+def _do_status(
+    args: dict,
+    *,
+    observer_session_id: str = "",
+    observer_principal: str = "",
+) -> dict[str, Any]:
     """Core status logic: validate, locate, load, reconcile, return."""
     workspace_id: str = args.get("workspace_id", "")
     task_id: str = args.get("task_id", "")
@@ -782,6 +879,16 @@ def _do_status(args: dict) -> dict[str, Any]:
     # 6. Terminal status — meta is authority (retrieval_reason NOT required)
     if meta_status in _TERMINAL_STATUSES:
         execution = meta.get("execution", {})
+        if retrieval_reason in BOUNDED_RECOVERY_REASONS and execution.get(
+            "recovery_consumed", False
+        ):
+            return {
+                "status": "rejected",
+                "error": "recovery_already_consumed",
+                "task_id": task_id,
+                "workspace_id": workspace_id,
+                "next_action": NEXT_ACTION_OPEN_COMPLETION_HANDOFF,
+            }
         receipt_path_str: str = execution.get("completion_receipt_path", "")
         receipt_present = bool(
             receipt_path_str
@@ -814,7 +921,15 @@ def _do_status(args: dict) -> dict[str, Any]:
 
     # 8. Running status — enforce anti-poll guards, then attempt reconciliation
     if meta_status == "running":
-        return _handle_running_status(meta, task_id, workspace_id, task_dir, retrieval_reason)
+        return _handle_running_status(
+            meta,
+            task_id,
+            workspace_id,
+            task_dir,
+            retrieval_reason,
+            observer_session_id=observer_session_id,
+            observer_principal=observer_principal,
+        )
 
     # Unknown status
     return _build_status_dict(
@@ -828,12 +943,77 @@ def _do_status(args: dict) -> dict[str, Any]:
     )
 
 
+def _build_terminal_closure(
+    subject: dict[str, Any], status_result: dict[str, Any]
+) -> dict[str, Any]:
+    """Aggregate existing terminal authorities into one model-facing result."""
+    decision = subject.get("decision") or {}
+    ack = subject.get("ack") or {}
+    acknowledged = bool(ack)
+    decided = bool(decision)
+    ack_closure_state = ack.get("closure_state", "closed") if ack else "pending"
+    closure_closed = acknowledged and decided and ack_closure_state == "closed"
+    next_action = "none" if closure_closed else (
+        "record_current_decision" if not decided else "ack_current_handoff"
+    )
+    card = subject.get("card") if isinstance(subject.get("card"), dict) else {}
+    scope_observation = card.get("scope_observation") if isinstance(card.get("scope_observation"), dict) else {}
+    closure = {
+        "terminal_status": status_result.get("status", subject["meta"].get("status")),
+        "exit_code": status_result.get("exit_code"),
+        "worker_outcome": status_result.get("worker_outcome") or subject.get("outcome"),
+        "completion_receipt": status_result.get("receipt_present", bool(subject.get("receipt"))),
+        "handoff_state": subject.get("handoff", {}).get("state"),
+        "decision_state": decision.get("state") if decision else None,
+        "ack_state": "acknowledged" if acknowledged else "pending",
+        "closure_state": "closed" if closure_closed else ack_closure_state,
+        "closure_receipt": {
+            "ref": ack.get("closure_receipt_ref"),
+            "closed_at": ack.get("closed_at") or ack.get("acknowledged_at"),
+            "closed_pointers": ack.get("closed_pointers", {}),
+        } if acknowledged else None,
+        "pointer_consumption": subject.get("closure_lookup", "CURRENT_ACTIVE_BINDING"),
+        "process_reconciliation": {
+            "state": status_result.get("reconciliation_state"),
+            "source": status_result.get("reconciliation_source"),
+            "registry_state": status_result.get("registry_state"),
+        },
+        "finalizer_reconciliation": {
+            "authority": "durable_reconciliation_meta_then_completion_receipt",
+            "state": status_result.get("reconciliation_state"),
+            "source": status_result.get("reconciliation_source"),
+            "receipt_present": status_result.get("receipt_present", False),
+        },
+        "card_generation_snapshot": {
+            "finalizer_pending": scope_observation.get("finalizer_pending"),
+            "authority": scope_observation.get("authority", "worker_observation"),
+            "not_terminal_reconciliation_authority": True,
+        },
+        "scope_compliance": status_result.get("scope_compliance"),
+        "unexpected_paths": status_result.get("violated_path_count", 0),
+        "spec_hash": subject.get("meta", {}).get("spec_hash"),
+        "spec_sha256": subject.get("meta", {}).get("spec_sha256"),
+    }
+    return {
+        "status": "closed" if next_action == "none" else "open",
+        "operation_result": "terminal_closure_aggregated",
+        "closure": closure,
+        "resolved_context": resolved_context(subject, selector="current_completed_task"),
+        "next_action": next_action,
+        "retryable": False,
+        "human_action_required": False,
+    }
+
+
 def _handle_running_status(
     meta: dict[str, Any],
     task_id: str,
     workspace_id: str,
     task_dir: Path,
     retrieval_reason: str = "",
+    *,
+    observer_session_id: str = "",
+    observer_principal: str = "",
 ) -> dict[str, Any]:
     """Handle status query for a running task with reconciliation attempts.
 
@@ -852,7 +1032,61 @@ def _handle_running_status(
     """
     execution = meta.get("execution", {})
 
-    # 8a. Enforce retrieval_reason guard for running tasks
+    # 8a. A wakeup-capable task is a delivery wait, not a query surface.
+    observation = completion_observation_context(meta, task_id)
+    if observation["active"]:
+        if not observation["recovery_due"]:
+            return {
+                "status": "rejected",
+                "error": "completion_delivery_pending",
+                "task_id": task_id,
+                "workspace_id": workspace_id,
+                "next_action": NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+                "recovery_allowed_after": observation["recovery_allowed_after"],
+                "completion_transport": observation["completion_transport"],
+                "completion_delivery_expected": True,
+            }
+        if not retrieval_reason:
+            return {
+                "status": "rejected",
+                "reject_reason": _REJECT_NORMAL_PATH_PROGRESS_POLL_FORBIDDEN,
+                "task_id": task_id,
+                "workspace_id": workspace_id,
+                "next_action": "perform_one_bounded_recovery",
+                "recovery_allowed_after": observation["recovery_allowed_after"],
+            }
+        if retrieval_reason not in BOUNDED_RECOVERY_REASONS:
+            return {
+                "status": "rejected",
+                "error": "completion_recovery_reason_forbidden",
+                "task_id": task_id,
+                "workspace_id": workspace_id,
+                "next_action": NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+                "recovery_allowed_after": observation["recovery_allowed_after"],
+            }
+        if observation["recovery_consumed"]:
+            return {
+                "status": "rejected",
+                "error": "recovery_already_consumed",
+                "task_id": task_id,
+                "workspace_id": workspace_id,
+                "next_action": NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+                "recovery_allowed_after": observation["recovery_allowed_after"],
+            }
+        if not is_origin_orchestrator(
+            origin_session_id=observation["origin_session_id"],
+            observer_session_id=observer_session_id,
+            observer_principal=observer_principal,
+        ):
+            return {
+                "status": "rejected",
+                "error": "origin_session_recovery_forbidden",
+                "task_id": task_id,
+                "workspace_id": workspace_id,
+                "next_action": NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+            }
+
+    # 8b. Enforce retrieval_reason guard for running tasks
     if not retrieval_reason:
         return {
             "status": "rejected",
@@ -866,7 +1100,7 @@ def _handle_running_status(
             ),
         }
 
-    # 8b. Acquire lock (bounded 5s timeout)
+    # 8c. Acquire lock (bounded 5s timeout)
     lock_fd = _try_acquire_status_lock(workspace_id, task_id, timeout=5.0)
 
     if lock_fd is None:
@@ -882,12 +1116,12 @@ def _handle_running_status(
         )
 
     try:
-        # 8c. Reload meta under lock (finalizer may have reconciled)
+        # 8d. Reload meta under lock (finalizer may have reconciled)
         meta = load_meta(task_dir)
         meta_status = meta.get("status", "")
         execution = meta.get("execution", {})
 
-        # 8d. If now terminal — retrieval_reason not needed for terminal tasks
+        # 8e. If now terminal — retrieval_reason not needed for terminal tasks
         if meta_status in _TERMINAL_STATUSES:
             return _build_status_dict(
                 meta,
@@ -916,7 +1150,7 @@ def _handle_running_status(
                 reconciliation_source="meta",
             )
 
-        # 8e. Record status query and detect repeated polling
+        # 8f. Record status query and detect repeated polling
         status_queries = _record_status_query(meta, task_dir, retrieval_reason)
         if _detect_repeated_poll(status_queries):
             return {
@@ -931,7 +1165,36 @@ def _handle_running_status(
                 ),
             }
 
-        # 8f. Check for completion receipt
+        # Consume the one authorized completion recovery before inspecting
+        # receipt/registry evidence.  This makes a running result fail closed
+        # against a later fixed-interval retry, even when it remains running.
+        live_observation = completion_observation_context(meta, task_id)
+        if live_observation["active"] and retrieval_reason in BOUNDED_RECOVERY_REASONS:
+            if live_observation["recovery_consumed"]:
+                return {
+                    "status": "rejected",
+                    "error": "recovery_already_consumed",
+                    "task_id": task_id,
+                    "workspace_id": workspace_id,
+                    "next_action": NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+                    "recovery_allowed_after": live_observation["recovery_allowed_after"],
+                }
+            updated_meta = dict(meta)
+            updated_execution = dict(meta.get("execution") or {})
+            updated_execution["status_queries"] = status_queries
+            updated_execution["recovery_consumed"] = True
+            updated_execution["recovery_consumed_at"] = utc_now_iso()
+            updated_execution["recovery_reason"] = retrieval_reason
+            updated_execution["next_action"] = NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY
+            updated_meta["execution"] = updated_execution
+            try:
+                write_json(task_dir / "meta.json", updated_meta)
+            except Exception:
+                pass
+            meta = updated_meta
+            execution = updated_execution
+
+        # 8g. Check for completion receipt
         reconciled = _reconcile_from_receipt(meta, task_dir)
         if reconciled is not None:
             # Receipt valid — reconcile meta atomically
@@ -958,7 +1221,7 @@ def _handle_running_status(
             and (task_dir / receipt_path_str).exists()
         )
 
-        # 8g. No valid receipt — query ProcessRegistry
+        # 8h. No valid receipt — query ProcessRegistry
         registry_state = "unavailable"
         try:
             from tools.process_registry import process_registry  # type: ignore[import-untyped]
@@ -1012,6 +1275,6 @@ def _handle_running_status(
         )
 
     finally:
-        # 8h. Release lock
+        # 8i. Release lock
         if lock_fd is not None:
             release_lock(lock_fd)

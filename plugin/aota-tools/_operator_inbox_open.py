@@ -48,33 +48,43 @@ from ._task_spec_common import (
     STATUS_DRAFT,
     read_json,
 )
+from ._completion_observation import (
+    NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+    completion_observation_context,
+)
+from ._completion_subject_resolver import (
+    CompletionSubjectError,
+    _result_error,
+    resolve_current_completion_subject,
+    resolved_context,
+)
 
 TOOL_NAME = "aota_operator_inbox_open"
 TOOLSET_NAME = "aota_operator"
 
 SCHEMA = {
     "name": TOOL_NAME,
-    "description": (
-        "Open an exact operator inbox item by item_id. "
+        "description": (
+        "Open the current relevant operator inbox item. Canonical invocation "
+        "uses no internal item ID; the control plane resolves the durable "
+        "completion binding. "
         "Resolves item_id deterministically to find the exact handoff, decision, "
         "task, or approval artifact. Returns compact metadata plus relevant "
         "evidence projection (different for each item_type). "
         "Accepts no path/task_id/handoff_id/decision_id overrides. "
-        "Read-only: no file mutations."
+        "Read-only: no file mutations. For task-main completion observation, "
+        "pass observation_purpose=completion; normal operator inbox opening is "
+        "unchanged."
     ),
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
+            "inbox_ref": {
                 "type": "string",
-                "description": "Registered workspace identifier",
-            },
-            "item_id": {
-                "type": "string",
-                "description": "Exact operator inbox item ID (oi_handoff_<hid>, oi_decision_<did>, oi_task_<tid>_<reason>, oi_approval_<tid>)",
+                "description": "Semantic selector; omit for the current relevant completion item.",
             },
         },
-        "required": ["workspace_id", "item_id"],
+        "required": [],
         "additionalProperties": False,
     },
 }
@@ -83,8 +93,32 @@ SCHEMA = {
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_operator_inbox_open tool invocation."""
     try:
+        if not {"workspace_id", "item_id"} & set(args):
+            subject = resolve_current_completion_subject(
+                args, _kwargs, ref=args.get("inbox_ref", "current_relevant_item")
+            )
+            result = _do_open(
+                {
+                    "workspace_id": subject["workspace_id"],
+                    "item_id": build_handoff_item_id(subject["handoff_id"]),
+                }
+            )
+            result.update(
+                {
+                    "operation_result": "inbox_item_opened",
+                    "resolved_context": resolved_context(
+                        subject, selector=args.get("inbox_ref", "current_relevant_item")
+                    ),
+                    "next_action": "review_card_and_record_decision",
+                    "retryable": False,
+                    "human_action_required": False,
+                }
+            )
+            return json.dumps(result, sort_keys=True)
         result = _do_open(args)
         return json.dumps(result, sort_keys=True)
+    except CompletionSubjectError as exc:
+        return json.dumps(_result_error(exc, operation="operator_inbox_open"), sort_keys=True)
     except Exception as e:
         return json.dumps({"status": "error", "error": str(e)}, sort_keys=True)
 
@@ -92,6 +126,7 @@ def handle(args: dict, **_kwargs) -> str:
 def _do_open(args: dict) -> dict[str, Any]:
     workspace_id: str = args.get("workspace_id", "")
     item_id: str = args.get("item_id", "")
+    observation_purpose: Optional[str] = args.get("observation_purpose")
 
     # 1. Validate inputs
     err = validate_workspace_id(workspace_id)
@@ -109,6 +144,39 @@ def _do_open(args: dict) -> dict[str, Any]:
     item_type = parsed.get("type", "")
     inner_id = parsed.get("id", "")
     suffix = parsed.get("suffix", "")
+
+    if observation_purpose not in (None, "completion"):
+        return {"status": "error", "error": "invalid_observation_purpose"}
+    if item_type == "task" and observation_purpose == "completion":
+        task_dir = get_task_dir(workspace_id, inner_id)
+        if task_dir.is_dir():
+            observation = completion_observation_context(load_meta(task_dir), inner_id)
+            if observation["active"]:
+                if not observation["recovery_due"]:
+                    return {
+                        "status": "rejected",
+                        "error": "completion_delivery_pending",
+                        "task_id": inner_id,
+                        "workspace_id": workspace_id,
+                        "next_action": NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+                        "recovery_allowed_after": observation["recovery_allowed_after"],
+                    }
+                if observation["recovery_consumed"]:
+                    return {
+                        "status": "rejected",
+                        "error": "recovery_already_consumed",
+                        "task_id": inner_id,
+                        "workspace_id": workspace_id,
+                        "next_action": NEXT_ACTION_WAIT_FOR_COMPLETION_DELIVERY,
+                    }
+                return {
+                    "status": "rejected",
+                    "error": "completion_recovery_requires_status",
+                    "task_id": inner_id,
+                    "workspace_id": workspace_id,
+                    "next_action": "perform_one_bounded_recovery",
+                    "recovery_allowed_after": observation["recovery_allowed_after"],
+                }
 
     # 2. Resolve by type
     if item_type == "handoff":

@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-01T22:13:00+08:00",
+  "status": "DEPLOYED_RELOAD_AND_RERUN_COMPLETE_TARGET_NOT_MET",
+  "deployment": {
+    "method": "scripts/aota_forge_plan_package.py deploy --allow-known-secret-false-positive",
+    "runtime_root": "/home/latios/.hermes",
+    "source_version": "0.17.6",
+    "receipt": ".deploy-receipts/aota-forge-plan/20260801T133417Z/deployment.json",
+    "receipt_sha256": "08705233164782fe1c37b4d613a30fee7820fbb31363fac18300c83a7771f075",
+    "backup": ".deploy-backups/20260801T133415Z",
+    "reload": {
+      "stop": "hermes-host serve --stop",
+      "process": "/home/latios/.venvs/hermes-agent-host/bin/hermes serve --skip-build --port 0",
+      "pid": 2526573,
+      "port": 44827,
+      "hermes_home": "/home/latios/.hermes",
+      "sqlite_loaded": "/home/latios/.local/opt/sqlite-3.53.4/lib/libsqlite3.so.3.53.4",
+      "proxy_health": "pass"
+    }
+  },
+  "sample_contract": {
+    "plan": "fixtures/aota-profile-efficiency-r5-30-sample-plan.json",
+    "formal_samples": 30,
+    "profiles": 6,
+    "repetitions_per_profile": 5,
+    "model": "glm-5.2",
+    "provider": "ollama-cloud",
+    "per_task_llm_plus_tool_limit": 100,
+    "new_session_per_sample": true,
+    "task_main_transport": "chat persistent start -> terminal_background completion receipt -> chat resume",
+    "raw_profile_transport": "hermes -p <profile> -z",
+    "score_transport_failures": false,
+    "retry_failed_scored_session": false
+  },
+  "minimal_smoke": {
+    "samples": 6,
+    "session_ids": {
+      "project-steward": "20260801_214046_c7a067",
+      "task-main": "20260801_214110_05f595",
+      "architect": "20260801_214142_152d6a",
+      "reviewer": "20260801_214202_8e8f35",
+      "coder": "20260801_214301_c23c5b",
+      "debugger": "20260801_214353_b1b449"
+    },
+    "task_main_completion_task_id": "pt_20260801T134527_82e4e32a",
+    "result": "five raw/domain probes completed directly; task-main completed after terminal completion receipt re-entry; no stateless wake failure counted as a formal sample"
+  },
+  "evaluation_contract": {
+    "weights": {
+      "outcome_completion": 0.30,
+      "correct_tool_and_parameter_path": 0.25,
+      "retry_stop_safety": 0.20,
+      "total_tool_budget": 0.10,
+      "minimal_skill_and_tool_description": 0.15
+    },
+    "minimal_invocation": "skill_view <= 1 and tool_describe <= 1",
+    "prompt_budget_authority": "sessions.tool_call_count, including meta-tool calls",
+    "call_cap_authority": "parent api_call_count + parent tool_call_count + worker api_call_count + worker tool_call_count"
+  },
+  "profiles": [
+    {
+      "profile": "project-steward",
+      "score_percent": 75.0,
+      "sample_scores": [75, 75, 75, 75, 75],
+      "session_ids": ["20260801_214819_2971b1", "20260801_214855_ba8cf4", "20260801_214914_922622", "20260801_214935_64085c", "20260801_214958_21fb74"],
+      "finding": "All five domain tasks completed safely, but all exceeded the three-tool prompt budget and repeated skill discovery."
+    },
+    {
+      "profile": "task-main",
+      "score_percent": 64.0,
+      "sample_scores": [75, 75, 65, 30, 75],
+      "session_ids": ["20260801_215022_30d3a6", "20260801_215142_c73ad5", "20260801_215351_e46a9a", "20260801_215555_c50917", "20260801_215757_df2b8a"],
+      "task_ids": ["pt_20260801T135045_e3ce0486", "pt_20260801T135254_06d652b6", "pt_20260801T135415_4cbe2654", "pt_20260801T135635_1cf73021", "pt_20260801T135839_cc7be0eb"],
+      "finding": "All five workers reached done and all five parent resumes closed. Samples 1/3/5 used invalid decision parameters; sample 4 called status again after completion_subject_reference_invalid (retryable=false); samples 2-4 exceeded the 12-tool parent budget."
+    },
+    {
+      "profile": "architect",
+      "score_percent": 100.0,
+      "sample_scores": [100, 100, 100, 100, 100],
+      "session_ids": ["20260801_215942_7ea646", "20260801_220013_0d401f", "20260801_220042_a3901b", "20260801_220116_3cf7c1", "20260801_220306_b8a47f"],
+      "finding": "All five exact-file read probes used the direct read path within the four-tool budget."
+    },
+    {
+      "profile": "reviewer",
+      "score_percent": 95.0,
+      "sample_scores": [100, 75, 100, 100, 100],
+      "session_ids": ["20260801_220337_121442", "20260801_220354_f29d6d", "20260801_220414_7ebc6a", "20260801_220429_abbf03", "20260801_220446_c49fcc"],
+      "finding": "One sample searched instead of directly reading the known plugin file; other samples were direct and bounded."
+    },
+    {
+      "profile": "coder",
+      "score_percent": 55.0,
+      "sample_scores": [75, 50, 50, 50, 50],
+      "session_ids": ["20260801_220505_a87748", "20260801_220602_d8a0a0", "20260801_220642_94f2ac", "20260801_220732_480cf9", "20260801_220824_80bd46"],
+      "finding": "All five completed, but all searched before reading the exact known path; four also exceeded the four-tool prompt budget and repeated tool descriptions."
+    },
+    {
+      "profile": "debugger",
+      "score_percent": 95.0,
+      "sample_scores": [100, 100, 100, 100, 75],
+      "session_ids": ["20260801_220933_c51e21", "20260801_220959_de9d35", "20260801_221020_125616", "20260801_221049_7601d4", "20260801_221118_735279"],
+      "finding": "Four direct reads were clean; one added a second read and unnecessary codegraph query."
+    }
+  ],
+  "aggregate": {
+    "formal_samples": 30,
+    "parent_api_calls": 156,
+    "parent_tool_calls": 159,
+    "worker_api_calls": 33,
+    "worker_tool_calls": 46,
+    "end_to_end_llm_plus_tool_calls": 394,
+    "average_end_to_end_llm_plus_tool_calls_per_sample": 13.13,
+    "max_end_to_end_llm_plus_tool_calls_in_one_sample": 51,
+    "samples_over_100_call_cap": 0,
+    "outcome_completion_passes": 30,
+    "correct_tool_and_parameter_path_passes": 19,
+    "safety_passes": 29,
+    "budget_passes": 18,
+    "minimal_invocation_passes": 19
+  },
+  "score": {
+    "outcome_completion_rate_percent": 100.0,
+    "correct_tool_and_parameter_path_rate_percent": 63.3,
+    "safety_rate_percent": 96.7,
+    "budget_rate_percent": 60.0,
+    "minimal_invocation_rate_percent": 63.3,
+    "composite_efficiency_percent": 80.7,
+    "target_percent": 90.0,
+    "target_met": false,
+    "previous_r6_percent": 69.0,
+    "delta_from_r6_points": 11.7
+  },
+  "conclusion": {
+    "target_met": false,
+    "primary_finding": "Native terminal_background completion delivery is operational: all five task-main workers completed and all five parent sessions closed after re-entry.",
+    "remaining_bottlenecks": [
+      "task-main still emits invalid decision parameters and one post-nonretryable status retry",
+      "coder still searches before exact-path reads",
+      "project-steward repeats Skill discovery and exceeds its deliberately small tool budget",
+      "raw probes remain sensitive to stochastic redundant discovery"
+    ],
+    "interpretation": "The reload/wake path is no longer the dominant task-main failure mode; model routing discipline and prompt/tool-description minimization are now dominant."
+  },
+  "validation": [
+    "PROFILE_ASSEMBLY_POST_ACTIVATION_PASS",
+    "AOTA_PARENT_WAKE_RETIREMENT_PASS",
+    "AOTA_NATIVE_TERMINAL_COMPLETION_CHAIN_PASS",
+    "AOTA_NATIVE_TERMINAL_HANDOFF_GATE_PASS",
+    "Proxy /health pass",
+    "Host PID 2526573 loaded SQLite 3.53.4 and HERMES_HOME=/home/latios/.hermes"
+  ],
+  "limitations": [
+    "Thirty sequential samples are one stochastic run, not a confidence interval.",
+    "Task-main was measured with a persistent CLI start plus explicit resume after the native completion receipt because -z is intentionally stateless and terminal_background-ineligible.",
+    "Raw session IDs and task IDs are authoritative in Hermes state.db and aota-runtime; this evidence stores bounded identifiers and aggregate metrics, not prompts or secrets."
+  ]
+}

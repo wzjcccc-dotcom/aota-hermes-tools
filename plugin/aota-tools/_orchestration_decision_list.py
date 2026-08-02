@@ -16,6 +16,7 @@ from ._orchestration_common import (
     read_decision,
     validate_workspace_id,
 )
+from ._session_active_spec_binding import trusted_session_context
 
 TOOL_NAME = "aota_orchestration_decision_list"
 TOOLSET_NAME = "aota_orchestration"
@@ -28,7 +29,7 @@ _FILTER_STATES = frozenset(
 SCHEMA = {
     "name": TOOL_NAME,
     "description": (
-        "List orchestration decisions for a workspace. "
+        "List orchestration decisions in the trusted current operator scope. "
         "Returns compact metadata only — no full artifact, reason, or task SPEC. "
         "By default only lists active decisions (awaiting_user, ready_for_followup, "
         "recorded). Does NOT list closed decisions by default. "
@@ -37,10 +38,6 @@ SCHEMA = {
     "parameters": {
         "type": "object",
         "properties": {
-            "workspace_id": {
-                "type": "string",
-                "description": "Registered workspace identifier (e.g. 'aota-runtime')",
-            },
             "state": {
                 "type": "string",
                 "enum": list(sorted(_FILTER_STATES)),
@@ -58,7 +55,7 @@ SCHEMA = {
                 "maximum": 50,
             },
         },
-        "required": ["workspace_id"],
+        "required": [],
         "additionalProperties": False,
     },
 }
@@ -67,7 +64,24 @@ SCHEMA = {
 def handle(args: dict, **_kwargs) -> str:
     """Handle aota_orchestration_decision_list tool invocation."""
     try:
+        if "workspace_id" not in args:
+            context = trusted_session_context(_kwargs)
+            if not context.workspace_id:
+                return json.dumps({
+                    "status": "rejected",
+                    "operation_result": "decision_list",
+                    "error": "trusted_session_context_missing",
+                    "retryable": False,
+                    "human_action_required": False,
+                    "next_action": "stop_and_report_runtime_context_missing",
+                }, sort_keys=True)
+            args = dict(args)
+            args["workspace_id"] = context.workspace_id
         result = _do_list(args)
+        result.setdefault("operation_result", "decision_list")
+        result.setdefault("retryable", False)
+        result.setdefault("human_action_required", False)
+        result.setdefault("next_action", "continue_operator_review")
         return json.dumps(result, sort_keys=True)
     except Exception as e:
         return json.dumps({"status": "error", "error": str(e)}, sort_keys=True)

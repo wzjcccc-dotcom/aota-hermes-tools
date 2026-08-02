@@ -38,6 +38,12 @@ Completion states are separate: `PASS_SOURCE_TOOL_LIFECYCLE`,
 
 `AOTA_PLUGIN_TOOL_DEVELOPMENT_SKILL_PASS`
 
+Canonical model-facing tool schemas expose semantic intent only. Never require
+a model to invent, copy, or retry control-plane identifiers, paths, revisions,
+hashes, sessions, profiles, or lifecycle bindings; use existing authority
+resolvers and the deterministic `next_action`. Legacy explicit handler fields
+may remain only as compatibility inputs.
+
 ## Plugin Import Validation
 
 Before claiming `PASS_SOURCE_TOOL_LIFECYCLE`, the coder MUST validate that
@@ -125,3 +131,9 @@ violation.
   source. They must not be added to the managed manifest or committed to Git.
 - No generic `/aota-runtime` file access. All runtime reads use bounded tools
   (`aota_runtime_info`, `aota_active_task_artifact_open`).
+
+Phase 3 artifact/project tools expose semantic references only. Reuse the
+shared trusted-context/project/artifact resolver, preserve explicit legacy
+fields only in handler compatibility, and add isolated fixtures for missing,
+ambiguous, traversal, symlink, and first-call-success cases. Do not create a
+second registry or claim lifecycle/runtime success from source evidence.

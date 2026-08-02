@@ -1,0 +1,17 @@
+{
+  "launcher": "/home/latios/.local/bin/hermes-host",
+  "launcher_target": "/home/latios/.venvs/hermes-agent-host/bin/hermes",
+  "venv": "/home/latios/.venvs/hermes-agent-host",
+  "distribution": "hermes-agent",
+  "install_mode": "editable",
+  "editable_source": "/home/latios/workspace/hermes-agent-host",
+  "resolved_modules": {
+    "gateway.aota_parent_wake": "/home/latios/workspace/hermes-agent-host/gateway/aota_parent_wake.py",
+    "gateway.run": "/home/latios/workspace/hermes-agent-host/gateway/run.py",
+    "gateway.wake": "/home/latios/workspace/hermes-agent-host/gateway/wake.py"
+  },
+  "old_checkout_present": true,
+  "old_checkout_adapter_present": false,
+  "import_shadowing": false,
+  "classification": "SOURCE_RUNTIME_PARITY"
+}

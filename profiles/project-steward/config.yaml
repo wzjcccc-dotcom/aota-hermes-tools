@@ -1,7 +1,7 @@
 _config_version: 33
 model:
-  default: deepseek-v4-flash
-  provider: opencode-go
+  default: glm-5.2
+  provider: ollama-cloud
 agent:
   max_turns: 40
   disabled_toolsets:
@@ -38,6 +38,7 @@ toolsets:
   - aota_workspace_readonly
   - aota_webui_attachment_read
   - aota_active_task_context
+  - skills-readonly
 platform_toolsets:
   api_server:
     - aota_core
@@ -50,6 +51,7 @@ platform_toolsets:
     - aota_workspace_readonly
     - aota_webui_attachment_read
     - aota_active_task_context
+    - skills-readonly
   cli:
     - aota_core
     - aota_fs_readonly
@@ -61,6 +63,7 @@ platform_toolsets:
     - aota_workspace_readonly
     - aota_webui_attachment_read
     - aota_active_task_context
+    - skills-readonly
 plugins:
   enabled: [aota-tools]
   disabled: []
@@ -78,6 +81,11 @@ providers:
       - deepseek-v4-flash
       - deepseek-v4-pro
       - kimi-k2.6
+  ollama-cloud:
+    api: http://100.123.10.71:8792/v1
+    key_env: OLLAMA_API_KEY
+    models:
+      - glm-5.2
 delegation:
   max_concurrent_children: 0
   max_spawn_depth: 0
@@ -86,6 +94,16 @@ memory:
   memory_enabled: false
   user_profile_enabled: false
 skills:
+  allowlist:
+    - aota-pcf-project-steward
+    - aota-workspace-model
+    - aota-workspace-diagnostics
+    - aota-task-lifecycle
+    - aota-tool-failure-fallback
+    - workspace-file-access-strategy
+  reference_allowlist:
+    - aota-profile-task-orchestration
+    - aota-skill-development
   disabled:
     - aota-evidence-first-debugging
     - aota-implementation-review

@@ -1,0 +1,15 @@
+{
+  "aota_forge_manifest": "/home/latios/workspace/aota-hermes-tools/deploy/aota-forge-plan-files.yaml",
+  "aota_deployment_receipt_present": true,
+  "aota_deployment_receipt": "/home/latios/workspace/aota-hermes-tools/.deploy-receipts/aota-forge-plan/20260727T022959Z/deployment.json",
+  "aota_managed_entries": 730,
+  "aota_producer_runtime_hash_parity": "PASS",
+  "hermes_core_in_aota_forge_manifest": false,
+  "hermes_core_files_in_prior_wi03b_record": ["gateway/aota_parent_wake.py", "gateway/run.py"],
+  "canonical_hermes_source_present": true,
+  "hermes_core_managed_by_aota_forge": false,
+  "managed_hash_parity": "PARTIAL",
+  "update_overwrote_managed_hermes_file": "NO_EVIDENCE",
+  "pre_existing_dirty_changes_preserved": true,
+  "classification": "MANAGED_INVENTORY_PARTIAL_FOR_HERMES_CORE"
+}

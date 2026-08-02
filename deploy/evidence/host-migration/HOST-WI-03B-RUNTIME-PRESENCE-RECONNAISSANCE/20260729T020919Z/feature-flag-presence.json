@@ -1,0 +1,13 @@
+{
+  "config_file": "/home/latios/.config/hermes-host/runtime.env",
+  "flag": "AOTA_PARENT_WAKE_ENABLED",
+  "declared": true,
+  "effective_in_isolated_import": true,
+  "adapter_default": false,
+  "last_backend_startup_armed": true,
+  "workspace_override_declared": false,
+  "outbox_root_override_declared": false,
+  "current_runtime_running": "not proven",
+  "configuration_assessment": "Feature flag is enabled, but the workspace selector falls back to aota-runtime while the producer's active workspace is aota-hermes-tools.",
+  "classification": "FEATURE_FLAG_PRESENT_WITH_WORKSPACE_SELECTOR_GAP"
+}

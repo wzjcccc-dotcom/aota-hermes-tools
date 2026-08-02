@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-08-01T10:33:13+08:00",
+  "scope": "zero_llm_contract_and_deployment_gate",
+  "llm_calls": 0,
+  "tool_calls_to_hermes_profiles": 0,
+  "contract_fixture_pass_rate_percent": 100.0,
+  "llm_efficiency_score_percent": null,
+  "fixtures": {
+    "semantic_architecture_subject": "pass",
+    "scoped_semantic_repair": "pass",
+    "exact_path_first_posture": "pass",
+    "next_schema_after_classification": "pass",
+    "next_schema_after_spec_create": "pass",
+    "next_schema_after_freeze": "pass",
+    "legacy_trusted_subject_compatibility": "pass"
+  },
+  "control_boundaries": {
+    "model_supplies_semantic_subject": true,
+    "control_plane_resolves_subject_artifact_id": true,
+    "same_call_retryable_false_blocks_identical_replay_only": true,
+    "same_tool_global_latch_added": false,
+    "flow_stop_is_operation_branch_scoped": true,
+    "exact_path_search_hard_ban_added": false,
+    "next_tool_is_auto_invoked": false
+  },
+  "validation": {
+    "zero_llm_fixture": "pass",
+    "python_compileall": "pass",
+    "git_diff_check": "pass",
+    "tool_lifecycle": "pass",
+    "skill_lifecycle": "pass",
+    "profile_assembly_source": "pass",
+    "work_classification_session_binding": "pass",
+    "minimal_invocation_chain": "pass",
+    "spec_handoff_contract": "pass",
+    "spec_preflight_and_failure_contract": "pass",
+    "high_frequency_schema_usability": "pass",
+    "phase3_control_plane": "pass",
+    "phase4_control_plane": "pass"
+  },
+  "deployment": {
+    "method": "aota_forge_plan_package",
+    "backup": "/home/latios/workspace/aota-hermes-tools/.deploy-backups/20260801T023201Z",
+    "receipt": "/home/latios/workspace/aota-hermes-tools/.deploy-receipts/aota-forge-plan/20260801T023203Z/deployment.json",
+    "managed_entry_count": 804,
+    "deploy_verify": "pass",
+    "profile_assembly_pre_activation": "pass",
+    "restart_executed": false,
+    "live_smoke_executed": false,
+    "host_backend_at_capture": "not_running"
+  },
+  "hermes_host_source": {
+    "modified_in_this_change": false,
+    "existing_customization_recovery_doc": "/home/latios/workspace/aota-hermes-tools/docs/HERMES_AGENT_UPDATE_AOTA_PARENT_WAKE_RECOVERY.md"
+  },
+  "limitations": [
+    "Zero-LLM fixtures prove deterministic contracts, not live model behavior or the 90-percent efficiency target.",
+    "The same six-profile sample was not rerun in this stage.",
+    "A new Hermes process/session is required for the next live sample; no active Host backend needed restarting at capture time."
+  ]
+}

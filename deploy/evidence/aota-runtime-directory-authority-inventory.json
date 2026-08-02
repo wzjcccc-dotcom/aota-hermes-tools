@@ -1,0 +1,210 @@
+{
+  "derived_index_root": "/aota-runtime/indexes",
+  "durable_history_root": "/aota-runtime/profile-tasks",
+  "entries": [
+    {
+      "authority_type": "durable_history",
+      "current_resolver_usage": "legacy compatibility only; current semantic refs use session-state",
+      "derived_index": false,
+      "durable_history": true,
+      "migration_required": false,
+      "mutability": "control-plane lifecycle",
+      "path_pattern": "profile-tasks/",
+      "reader": [
+        "reference_resolver",
+        "status",
+        "completion_subject_resolver"
+      ],
+      "responsibility": "durable SPEC, task, receipt, outcome, card/report artifacts",
+      "session_scoped": false,
+      "writer": [
+        "task_spec_create",
+        "task_spec_update",
+        "profile_task_start",
+        "finalizer"
+      ]
+    },
+    {
+      "authority_type": "session_state_authority",
+      "current_resolver_usage": "canonical first authority; classification is session-scoped and consumed after SPEC draft publication",
+      "derived_index": false,
+      "durable_history": false,
+      "migration_required": false,
+      "mutability": "atomic control-plane pointer writes",
+      "path_pattern": "session-state/<workspace>/<project-or-standalone>/<session_digest>/",
+      "reader": [
+        "reference_resolver",
+        "task_spec_create",
+        "completion_subject_resolver",
+        "lifecycle handlers"
+      ],
+      "responsibility": "current semantic subject pointers, including current_work_classification",
+      "session_scoped": true,
+      "writer": [
+        "session_state_authority",
+        "work_classifier",
+        "task_spec_create",
+        "task_spec_freeze",
+        "profile_task_start",
+        "finalizer",
+        "decision_record",
+        "handoff_ack"
+      ]
+    },
+    {
+      "authority_type": "legacy_session_pointer",
+      "current_resolver_usage": "legacy fallback after canonical pointer",
+      "derived_index": false,
+      "durable_history": false,
+      "migration_required": true,
+      "mutability": "compatibility writer",
+      "path_pattern": "session-active-spec/<workspace>/<session>/",
+      "reader": [
+        "reference_resolver"
+      ],
+      "responsibility": "legacy active frozen SPEC binding",
+      "session_scoped": true,
+      "writer": [
+        "task_spec_freeze"
+      ]
+    },
+    {
+      "authority_type": "durable_history",
+      "current_resolver_usage": "exact artifact named by current-handoff/current-completion pointer",
+      "derived_index": false,
+      "durable_history": true,
+      "migration_required": false,
+      "mutability": "append/move/acknowledge",
+      "path_pattern": "handoffs/<workspace>/{pending,acknowledged}/",
+      "reader": [
+        "handoff_open",
+        "completion_subject_resolver"
+      ],
+      "responsibility": "durable completion handoff history",
+      "session_scoped": false,
+      "writer": [
+        "finalizer",
+        "handoff_ack"
+      ]
+    },
+    {
+      "authority_type": "durable_history",
+      "current_resolver_usage": "exact artifact named by current-decision pointer",
+      "derived_index": false,
+      "durable_history": true,
+      "migration_required": false,
+      "mutability": "append/update state",
+      "path_pattern": "decisions/<workspace>/",
+      "reader": [
+        "decision_open",
+        "completion_subject_resolver"
+      ],
+      "responsibility": "durable orchestration decision history",
+      "session_scoped": false,
+      "writer": [
+        "decision_record",
+        "decision_resume"
+      ]
+    },
+    {
+      "authority_type": "durable_history",
+      "current_resolver_usage": "validated through current completion binding",
+      "derived_index": false,
+      "durable_history": true,
+      "migration_required": false,
+      "mutability": "append",
+      "path_pattern": "receipts/",
+      "reader": [
+        "completion_subject_resolver",
+        "status"
+      ],
+      "responsibility": "delivery/finalizer receipt transport",
+      "session_scoped": false,
+      "writer": [
+        "finalizer",
+        "delivery_adapter"
+      ]
+    },
+    {
+      "authority_type": "derived_index",
+      "current_resolver_usage": "never current authority",
+      "derived_index": true,
+      "durable_history": false,
+      "migration_required": false,
+      "mutability": "future rebuild only",
+      "path_pattern": "indexes/",
+      "reader": [],
+      "responsibility": "reserved rebuildable derived indexes",
+      "session_scoped": false,
+      "writer": []
+    },
+    {
+      "authority_type": "coordination",
+      "current_resolver_usage": "none",
+      "derived_index": false,
+      "durable_history": false,
+      "migration_required": false,
+      "mutability": "ephemeral",
+      "path_pattern": "locks/",
+      "reader": [
+        "atomic writers"
+      ],
+      "responsibility": "per-artifact and per-pointer concurrency locks",
+      "session_scoped": false,
+      "writer": [
+        "atomic writers"
+      ]
+    },
+    {
+      "authority_type": "diagnostic",
+      "current_resolver_usage": "never selects current subject",
+      "derived_index": false,
+      "durable_history": true,
+      "migration_required": false,
+      "mutability": "append/rotate",
+      "path_pattern": "logs/",
+      "reader": [
+        "status",
+        "operator diagnostics"
+      ],
+      "responsibility": "bounded launcher/worker diagnostics",
+      "session_scoped": false,
+      "writer": [
+        "launcher",
+        "worker",
+        "finalizer"
+      ]
+    },
+    {
+      "authority_type": "ephemeral",
+      "current_resolver_usage": "never",
+      "derived_index": false,
+      "durable_history": false,
+      "migration_required": false,
+      "mutability": "temporary",
+      "path_pattern": "temporary artifacts",
+      "reader": [],
+      "responsibility": "same-directory atomic write temps",
+      "session_scoped": true,
+      "writer": [
+        "atomic writers"
+      ]
+    }
+  ],
+  "generated_from": {
+    "handoff_common": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_handoff_common.py",
+    "orchestration_common": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_orchestration_common.py",
+    "session_state_module": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_session_state_authority.py",
+    "task_spec_common": "/home/latios/workspace/aota-hermes-tools/plugin/aota-tools/_task_spec_common.py"
+  },
+  "maintenance_root": "/aota-runtime/maintenance",
+  "runtime_root": "/aota-runtime",
+  "schema_version": 1,
+  "session_state_root": "/aota-runtime/session-state",
+  "source_constants": {
+    "decision_root_name": "decisions",
+    "handoff_root": "/aota-runtime/handoffs",
+    "legacy_session_active_spec_root": "/aota-runtime/session-active-spec",
+    "profile_task_root": "/aota-runtime/profile-tasks"
+  }
+}

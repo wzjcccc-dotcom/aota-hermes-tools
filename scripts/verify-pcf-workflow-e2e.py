@@ -65,6 +65,7 @@ class Fixture:
         os.environ.update({
             "AOTA_WORKSPACE_REGISTRY_PATH": str(self.registry),
             "AOTA_PROFILE_TASK_ROOT": str(self.tasks), "AOTA_RUNTIME_ROOT": str(self.runtime),
+            "AOTA_SESSION_STATE_ROOT": str(self.runtime / "session-state"),
         })
         load_plugin()
         self.create = importlib.import_module("aota_tools._task_spec_create")
@@ -196,7 +197,7 @@ constraints: [temporary-only]
         if meta["status"] == "running":
             return meta
         assert meta["status"] == "frozen" and meta["spec"]["status"] == "frozen"
-        meta.update({"status": "running", "execution": {"start_id": task_id, "profile": meta["resolved_profile"], "spec_revision": meta["revision"], "spec_sha256": meta["spec_sha256"], "transport": "fixture_worker"}})
+        meta.update({"status": "running", "origin_session_id": "fixture-session", "parent_session_ref": "fixture-session", "execution": {"start_id": task_id, "profile": meta["resolved_profile"], "spec_revision": meta["revision"], "spec_sha256": meta["spec_sha256"], "transport": "fixture_worker", "parent_session_ref": "fixture-session"}})
         path.write_text(json.dumps(meta, sort_keys=True), encoding="utf-8")
         return meta
 
@@ -262,7 +263,7 @@ def run_scenarios() -> None:
         f = Fixture(Path(raw))
         classifier = importlib.import_module("aota_tools._work_classifier")
         facts = {name: False for name in classifier._BOOL_FACTS}; facts.update({name: 1 for name in classifier._INT_BOUNDS}); facts.update({"requirements_ambiguity": "low", "technical_uncertainty": "low", "write_scope": "local", "validation_scope": "isolated", "estimated_duration_days": 0, "services_touched": 0, "human_checkpoints_expected": 0})
-        assert response(classifier.handle({"workspace_id": WS, "title": "P0", "summary": "small", "facts": facts}))["planning_depth"] == "P0"
+        assert classifier._classify({"workspace_id": WS, "title": "P0", "summary": "small", "facts": facts})["planning_depth"] == "P0"
 
         # E1: P0 uses only frozen implementation SPEC -> Coder bounded tools.
         p0 = f.spec("implementation"); meta = f.promote(p0); f.env(p0, "coder")

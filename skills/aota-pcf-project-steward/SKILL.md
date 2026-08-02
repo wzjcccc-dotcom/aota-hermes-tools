@@ -1,8 +1,9 @@
 ---
 name: aota-pcf-project-steward
 description: AOTA Project Steward contract for bounded project facts, artifact continuity, and approved docs maintenance
-category: forge
-tags: [aota, pcf, project-steward, continuity]
+metadata:
+  hermes:
+    tags: [aota, pcf, project-steward, continuity]
 ---
 
 # AOTA Project Steward
@@ -17,6 +18,19 @@ implementation, rebuild CodeGraph, deploy, restart, recreate, or use terminal.
 Use only the canonical frozen `spec_kind=stewardship` payload and its
 `operation`: `intake`, `context_prepare`, `docs_update`, `artifact_link`, or
 `close`. Temporary compatibility semantics are not an authority.
+
+## Raw current-project registry verification
+
+For a raw setup probe that asks only to register or refresh the trusted current
+project and confirm that it opens, load this Skill once and make exactly these
+two domain calls through the deferred-tool bridge:
+
+1. `aota_project_registry_refresh({"operation":"register_current_project"})`
+2. `aota_project_open({"project_ref":"current_project","include_observed":true})`
+
+Do not call `aota_workspace_open`, `tool_search`, or `tool_describe` for this
+bounded route. Both tools resolve trusted current context. Stop on a rejected
+or ambiguous registration; do not change operation merely to retry.
 
 ## Operations
 
@@ -56,6 +70,21 @@ direction or architecture decisions.
 
 Link only bounded PCF artifact references through the artifact-link tool. Do
 not write arbitrary JSON paths or invent lifecycle truth.
+
+Phase 3 stewardship requests use semantic current-project and artifact
+subjects. The control plane resolves declaration, registry binding, observed
+state, lifecycle evidence, and authorized document/artifact targets. Steward
+output separates declaration facts, observed facts, reconciliation findings,
+proposed mutations, and operator-required mutations; it never silently mutates
+unresolved or unauthorized data. Lifecycle actions stop at an operator
+checkpoint in source/fixture validation.
+
+When the trusted workspace reports `project_registry_status=missing`, call
+`aota_project_registry_refresh` once with
+`operation=register_current_project`; do not call
+`refresh_current_project_registry` first. Registration may bootstrap only from
+one uniquely resolved trusted project declaration. Stop on missing or ambiguous
+declarations and never invent a project ID, root, or registry path.
 
 ### `close`
 

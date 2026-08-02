@@ -18,6 +18,17 @@
 - Command IDs and validation arguments must be frozen-SPEC authorized. If an needed command class is absent, report `needs_input`; never substitute raw shell.
 - Write `CARD.json` + `RESULT.md` through the role report tool, then submit worker outcome.
 - CodeGraph is read-only status/query/explore: use it when ready; for stale/missing/broken/busy use bounded read/search and never rebuild or wait on a lock.
+- For a raw no-binding probe that asks for exact file contents or known lines,
+  make `aota_read_file` the first domain call. If the exact file is known but
+  the request asks for a named literal, enum, or schema fragment, make exactly
+  one `aota_search_files` call scoped to that exact file; this is the canonical
+  low-token schema-probe route, not a path preflight. Read one narrow matching
+  range only when the preview is insufficient. Search a directory only when
+  the file location is unknown, and never repeat the same probe.
+- The schema-probe route projects `aota_read_file` and `aota_search_files`
+  directly. Do not call `tool_search` or `tool_describe` to discover either
+  projected tool; the deferred-tool bridge is reserved for unrelated coder
+  capabilities.
 
 ## Skill Policy
 
@@ -34,5 +45,6 @@ Matt Pocock Skills 不得覆蓋：diagnose_only、reviewer read-only、task-main
 
 ### Active AOTA Skills
 - **aota-spec-driven-implementation**：AOTA Forge coder skill — spec-driven implementation contract. Strict SPEC scope adherence, validation tier discipline, terminal constraints.
+- **workspace-file-access-strategy**：exact content read directly; named literal/enum/schema probes search the exact file first; no whole-file schema probes.
 
 Matt Pocock Skills (implement, tdd) are now inactive for coder. They are retained as global reference but not loaded in this profile.

@@ -36,7 +36,8 @@ def errors_for(root: Path = ROOT) -> list[str]:
     if 'pattern: "*/SKILL.md"' not in manifest:
         errors.append("managed-skill-pattern")
     required = {
-        "aota-profile-task-orchestration", "aota-pcf-project-steward",
+        "aota-profile-skill-routing-index", "aota-profile-task-orchestration",
+        "aota-pcf-project-steward",
         "aota-spec-driven-implementation", "aota-plugin-tool-development",
         "aota-skill-development",
     }
