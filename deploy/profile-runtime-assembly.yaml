@@ -1,3 +1,4 @@
+# W2 Deployment Projection — Deterministic AF Skill projection for progressive disclosure
 # W0 Deployment Projection — Not Authority
 # ```text
 # AOTA_SKILL_CANONICAL_SOURCE=aota_forge
@@ -31,6 +32,7 @@ profiles:
     # not loaded in the active prompt context.  They provide detailed contract
     # content that the orchestration Skill routes to without duplicating.
     reference_skills:
+      - aota-workspace-operations
       - aota-canonical-spec-contract
       - aota-canonical-spec-pitfalls
       - aota-work-classify-and-plan-gate
@@ -68,6 +70,7 @@ profiles:
     active_skills:
       - aota-spec-driven-implementation
     reference_skills:
+      - aota-workspace-operations
       - aota-plugin-tool-development
       - aota-skill-development
   debugger:
@@ -76,12 +79,16 @@ profiles:
     plugin: plugin/aota-tools
     active_skills:
       - aota-evidence-first-debugging
+    reference_skills:
+      - aota-workspace-operations
   reviewer:
     config: profiles/reviewer/config.yaml
     soul: profiles/reviewer/SOUL.md
     plugin: plugin/aota-tools
     active_skills:
       - aota-implementation-review
+    reference_skills:
+      - aota-workspace-operations
 
 # Exact Host runtime projections.  These five profile-local plugin roots are
 # intentionally symlinks to the one canonical global plugin root.  The
