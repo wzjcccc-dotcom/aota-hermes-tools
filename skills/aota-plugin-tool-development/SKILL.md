@@ -4,6 +4,20 @@ description: Canonical AOTA Forge workflow for plugin Tool, toolset, Profile exp
 category: forge
 tags: [aota, forge, tool, toolset, lifecycle]
 ---
+> **W0 Legacy Projection — Non-Authoritative**
+>
+> ```text
+> AOTA_SKILL_CANONICAL_SOURCE=aota_forge
+> AOTA_HERMES_TOOLS_SKILL_AUTHORITY=no
+> CANONICAL_SOURCE=aota_forge/skills/aota-plugin-tool-development/SKILL.md
+> THIS_FILE_IS_PROJECTION=yes
+> SKILL_IS_AUTHORITY=no
+> ```
+>
+> This file remains as **thin projection / host glue / historical evidence** after M1/W0.
+> Canonical semantic authority is `aota_forge/skills/aota-plugin-tool-development/SKILL.md`.
+> Do not use this file as independent authority; it is parity-checked against AF.
+
 
 # AOTA Plugin Tool Development
 
@@ -125,3 +139,7 @@ violation.
   source. They must not be added to the managed manifest or committed to Git.
 - No generic `/aota-runtime` file access. All runtime reads use bounded tools
   (`aota_runtime_info`, `aota_active_task_artifact_open`).
+
+
+---
+*Projection provenance: canonical migrated to `aota_forge` (W0). Legacy retention is deployment projection, not authority.*

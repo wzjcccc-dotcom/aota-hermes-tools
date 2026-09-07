@@ -1,3 +1,16 @@
+# W0 Legacy Projection — Non-Authoritative
+# ```text
+# AOTA_TOOL_CANONICAL_SOURCE=aota_forge
+# AOTA_HERMES_TOOLS_TOOL_AUTHORITY=no
+# CANONICAL_TOOL_SOURCE=aota_forge/.aota/contracts/operations.yaml + work_plane/* + core/contracts/*
+# THIS_FILE_IS_PROJECTION=yes
+# TOOL_SCHEMA_SECOND_AUTHORITY=no
+# ```
+# This file is a thin deployment projection / compatibility surface.
+# Canonical Tool/operation schema authority is AF (`OperationContractDescriptor`, `.aota/contracts/operations.yaml`, `work_plane/*`).
+# This file must be parity-checked against AF descriptors; hand-maintained divergence is a drift failure.
+# See `scripts/verify_w0_tool_parity.py` (AF) for deterministic parity guard.
+
 name: aota-tools
 version: 0.17.6
 description: "AOTA narrow tools + delivery outbox bridge (P11-L.1B)."

@@ -4,6 +4,20 @@ description: AOTA Forge reviewer skill — post-implementation review contract f
 category: forge
 tags: [aota, forge, reviewer, review, implementation-review]
 ---
+> **W0 Legacy Projection — Non-Authoritative**
+>
+> ```text
+> AOTA_SKILL_CANONICAL_SOURCE=aota_forge
+> AOTA_HERMES_TOOLS_SKILL_AUTHORITY=no
+> CANONICAL_SOURCE=aota_forge/skills/aota-implementation-review/SKILL.md
+> THIS_FILE_IS_PROJECTION=yes
+> SKILL_IS_AUTHORITY=no
+> ```
+>
+> This file remains as **thin projection / host glue / historical evidence** after M1/W0.
+> Canonical semantic authority is `aota_forge/skills/aota-implementation-review/SKILL.md`.
+> Do not use this file as independent authority; it is parity-checked against AF.
+
 
 # AOTA Implementation Review
 
@@ -168,3 +182,7 @@ Before opening subject artifacts or project evidence, call
 three identities and frozen subject binding before continuing. If the reader
 fails, stop without guessing or using terminal/file fallback and submit
 `needs_input` or `blocked` with the machine-readable error.
+
+
+---
+*Projection provenance: canonical migrated to `aota_forge` (W0). Legacy retention is deployment projection, not authority.*

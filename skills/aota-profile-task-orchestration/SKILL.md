@@ -4,6 +4,20 @@ description: AOTA Forge task-main orchestration: bounded intake, classification,
 category: orchestration
 tags: [aota, task-main, plan, spec, intake, handoff]
 ---
+> **W0 Legacy Projection — Non-Authoritative**
+>
+> ```text
+> AOTA_SKILL_CANONICAL_SOURCE=aota_forge
+> AOTA_HERMES_TOOLS_SKILL_AUTHORITY=no
+> CANONICAL_SOURCE=aota_forge/skills/aota-profile-task-orchestration/SKILL.md
+> THIS_FILE_IS_PROJECTION=yes
+> SKILL_IS_AUTHORITY=no
+> ```
+>
+> This file remains as **thin projection / host glue / historical evidence** after M1/W0.
+> Canonical semantic authority is `aota_forge/skills/aota-profile-task-orchestration/SKILL.md`.
+> Do not use this file as independent authority; it is parity-checked against AF.
+
 
 # AOTA Profile Task Orchestration
 
@@ -474,3 +488,7 @@ this orchestration Skill routes to without duplicating.
   (`aota_runtime_info`, `aota_active_task_artifact_open`). Architect/reviewer
   subject review uses `aota_subject_task_artifact_open` with only
   `SPEC.md`, `scope.json`, and `meta.json`; it never accepts a runtime path.
+
+
+---
+*Projection provenance: canonical migrated to `aota_forge` (W0). Legacy retention is deployment projection, not authority.*

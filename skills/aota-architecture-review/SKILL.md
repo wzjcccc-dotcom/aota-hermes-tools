@@ -4,6 +4,20 @@ description: AOTA Forge architect skill — pre-construction design and spec rev
 category: architecture
 tags: [aota, architecture, design-review, spec-preflight, architect, pre-construction]
 ---
+> **W0 Legacy Projection — Non-Authoritative**
+>
+> ```text
+> AOTA_SKILL_CANONICAL_SOURCE=aota_forge
+> AOTA_HERMES_TOOLS_SKILL_AUTHORITY=no
+> CANONICAL_SOURCE=aota_forge/skills/aota-architecture-review/SKILL.md
+> THIS_FILE_IS_PROJECTION=yes
+> SKILL_IS_AUTHORITY=no
+> ```
+>
+> This file remains as **thin projection / host glue / historical evidence** after M1/W0.
+> Canonical semantic authority is `aota_forge/skills/aota-architecture-review/SKILL.md`.
+> Do not use this file as independent authority; it is parity-checked against AF.
+
 
 # AOTA Architecture Review
 
@@ -225,3 +239,7 @@ At entry, read the own frozen context through
 workspace/task/start/profile/spec identity before reading the bound subject.
 Any reader failure is fail-closed: do not guess, modify, or use terminal/file
 fallback; submit `needs_input` or `blocked` with the machine-readable error.
+
+
+---
+*Projection provenance: canonical migrated to `aota_forge` (W0). Legacy retention is deployment projection, not authority.*

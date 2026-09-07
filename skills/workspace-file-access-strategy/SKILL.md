@@ -4,6 +4,18 @@ description: Canonical AOTA workspace file access strategy — bounded read tool
 category: orchestration
 tags: [aota, workspace, file-access, strategy, readonly]
 ---
+> **W0 Replaced by AF — Non-Authoritative**
+>
+> ```text
+> AOTA_SKILL_CANONICAL_SOURCE=aota_forge
+> REPLACE_BY_FORGE=yes
+> AF_CANONICAL=aota_forge/work_plane/workspace_tools.py (BoundedWorkspaceToolProvider)
+> THIS_FILE_IS_RETAINED_AS_HISTORICAL_EVIDENCE_ONLY=yes
+> ```
+>
+> This Skill is **superseded** by AF `work_plane/workspace_tools.py` and `mcp_transport.py`.
+> Retained only as historical evidence / compatibility reference, not authority.
+
 
 # Workspace File Access Strategy
 

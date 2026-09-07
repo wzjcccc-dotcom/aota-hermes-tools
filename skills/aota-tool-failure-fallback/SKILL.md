@@ -3,6 +3,20 @@ name: aota-tool-failure-fallback
 description: Safe AOTA fallback guidance without privilege escalation.
 category: forge
 ---
+> **W0 Legacy Projection — Non-Authoritative**
+>
+> ```text
+> AOTA_SKILL_CANONICAL_SOURCE=aota_forge
+> AOTA_HERMES_TOOLS_SKILL_AUTHORITY=no
+> CANONICAL_SOURCE=aota_forge/skills/aota-tool-failure-fallback/SKILL.md
+> THIS_FILE_IS_PROJECTION=yes
+> SKILL_IS_AUTHORITY=no
+> ```
+>
+> This file remains as **thin projection / host glue / historical evidence** after M1/W0.
+> Canonical semantic authority is `aota_forge/skills/aota-tool-failure-fallback/SKILL.md`.
+> Do not use this file as independent authority; it is parity-checked against AF.
+
 
 # AOTA Tool Failure Fallback
 
@@ -113,3 +127,7 @@ If the evidence-backed retry fails, submit `needs_input`.
 - Runtime-generated files (logs, snapshots, receipts, backups) are not managed
   source.
 - No generic `/aota-runtime` access; use bounded runtime tools.
+
+
+---
+*Projection provenance: canonical migrated to `aota_forge` (W0). Legacy retention is deployment projection, not authority.*

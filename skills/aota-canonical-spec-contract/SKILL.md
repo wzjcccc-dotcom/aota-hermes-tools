@@ -4,6 +4,20 @@ description: Canonical AOTA SPEC contract — field matrix, artifact reference s
 category: orchestration
 tags: [aota, spec, contract, freeze, approval, binding]
 ---
+> **W0 Legacy Projection — Non-Authoritative**
+>
+> ```text
+> AOTA_SKILL_CANONICAL_SOURCE=aota_forge
+> AOTA_HERMES_TOOLS_SKILL_AUTHORITY=no
+> CANONICAL_SOURCE=aota_forge/skills/aota-canonical-spec-contract/SKILL.md
+> THIS_FILE_IS_PROJECTION=yes
+> SKILL_IS_AUTHORITY=no
+> ```
+>
+> This file remains as **thin projection / host glue / historical evidence** after M1/W0.
+> Canonical semantic authority is `aota_forge/skills/aota-canonical-spec-contract/SKILL.md`.
+> Do not use this file as independent authority; it is parity-checked against AF.
+
 
 # AOTA Canonical SPEC Contract
 
@@ -247,3 +261,6 @@ itself.
   commit, no CodeGraph mutation performed by this Skill.
 
 `AOTA_CANONICAL_SPEC_CONTRACT_SKILL_PASS`
+
+---
+*Projection provenance: canonical migrated to `aota_forge` (W0). Legacy retention is deployment projection, not authority.*

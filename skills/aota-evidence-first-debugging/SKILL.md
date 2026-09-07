@@ -4,6 +4,20 @@ description: AOTA Forge debugger skill — evidence-first diagnosis contract for
 category: forge
 tags: [aota, forge, debugger, diagnosis, evidence-first]
 ---
+> **W0 Legacy Projection — Non-Authoritative**
+>
+> ```text
+> AOTA_SKILL_CANONICAL_SOURCE=aota_forge
+> AOTA_HERMES_TOOLS_SKILL_AUTHORITY=no
+> CANONICAL_SOURCE=aota_forge/skills/aota-evidence-first-debugging/SKILL.md
+> THIS_FILE_IS_PROJECTION=yes
+> SKILL_IS_AUTHORITY=no
+> ```
+>
+> This file remains as **thin projection / host glue / historical evidence** after M1/W0.
+> Canonical semantic authority is `aota_forge/skills/aota-evidence-first-debugging/SKILL.md`.
+> Do not use this file as independent authority; it is parity-checked against AF.
+
 
 # AOTA Evidence-First Debugging
 
@@ -136,3 +150,7 @@ At entry, call `aota_active_task_artifact_open` for `SPEC`, `SCOPE`, and
 `BINDING`, then verify their workspace/task/start/profile/spec identity. A
 reader error is a fail-closed stop: do not guess or use terminal fallback;
 submit `needs_input` or `blocked` with the machine-readable error.
+
+
+---
+*Projection provenance: canonical migrated to `aota_forge` (W0). Legacy retention is deployment projection, not authority.*

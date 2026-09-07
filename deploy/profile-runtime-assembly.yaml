@@ -1,3 +1,12 @@
+# W0 Deployment Projection — Not Authority
+# ```text
+# AOTA_SKILL_CANONICAL_SOURCE=aota_forge
+# DEPLOYMENT_PROJECTION_IS_AUTHORITY=no
+# HOST_RUNTIME_LOCATION_IS_AUTHORITY=no
+# ```
+# This file is deployment/runtime projection only. Skill semantic authority is `aota_forge/skills/`.
+# It may reference AF canonical Skills via projection; it does not define independent Skill authority.
+
 schema_version: 1
 assembly_version: 2
 projection_contract_schema_version: 1
