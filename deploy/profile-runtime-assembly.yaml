@@ -44,6 +44,7 @@ profiles:
       - aota-tool-failure-fallback
       - aota-plugin-tool-development
       - aota-skill-development
+      - aota-result-hydration
   project-steward:
     config: profiles/project-steward/config.yaml
     soul: profiles/project-steward/SOUL.md
@@ -57,12 +58,15 @@ profiles:
     reference_skills:
       - aota-profile-task-orchestration
       - aota-skill-development
+      - aota-result-hydration
   architect:
     config: profiles/architect/config.yaml
     soul: profiles/architect/SOUL.md
     plugin: plugin/aota-tools
     active_skills:
       - aota-architecture-review
+    reference_skills:
+      - aota-result-hydration
   coder:
     config: profiles/coder/config.yaml
     soul: profiles/coder/SOUL.md
@@ -73,6 +77,8 @@ profiles:
       - aota-workspace-operations
       - aota-plugin-tool-development
       - aota-skill-development
+      - aota-result-hydration
+      - aota-restricted-shell
   debugger:
     config: profiles/debugger/config.yaml
     soul: profiles/debugger/SOUL.md
@@ -81,6 +87,7 @@ profiles:
       - aota-evidence-first-debugging
     reference_skills:
       - aota-workspace-operations
+      - aota-result-hydration
   reviewer:
     config: profiles/reviewer/config.yaml
     soul: profiles/reviewer/SOUL.md
@@ -89,6 +96,7 @@ profiles:
       - aota-implementation-review
     reference_skills:
       - aota-workspace-operations
+      - aota-result-hydration
 
 # Exact Host runtime projections.  These five profile-local plugin roots are
 # intentionally symlinks to the one canonical global plugin root.  The
