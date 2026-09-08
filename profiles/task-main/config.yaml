@@ -1,26 +1,24 @@
-_config_version: 33
+_config_version: 41
 model:
-  default: glm-5.2
-  provider: ollama-cloud
+  default: deepseek-v4-flash
+  provider: opencode-go
 agent:
   max_turns: 60
   disabled_toolsets:
-    - aota_fs_copy
-    - aota_architect_artifact
-    - aota_coder_artifact
-    - aota_coder_command
-    - aota_coder_file_mutation
-    - aota_debugger_artifact
-    - aota_project_readonly
-    - aota_project_steward
-    - aota_project_steward_artifact
-    - aota_reviewer_artifact
-    - aota_worker_outcome
-    - file
-    - terminal
-  reasoning_effort: max
-  task_completion_guidance: true
-toolsets:
+  - aota_fs_copy
+  - aota_architect_artifact
+  - aota_coder_artifact
+  - aota_coder_command
+  - aota_coder_file_mutation
+  - aota_debugger_artifact
+  - aota_project_readonly
+  - aota_project_steward
+  - aota_project_steward_artifact
+  - aota_reviewer_artifact
+  - aota_worker_outcome
+  - file
+  - terminal
+  - all
   - aota_work_intake
   - aota_plan_read
   - aota_plan_write
@@ -38,50 +36,70 @@ toolsets:
   - aota_codegraph_rebuild
   - aota_workspace_readonly
   - aota_active_task_context
+  reasoning_effort: max
+  task_completion_guidance: true
+toolsets:
+- aota_work_intake
+- aota_plan_read
+- aota_plan_write
+- aota_core
+- aota_fs_readonly
+- aota_webui_attachment_read
+- aota_repo_readonly
+- aota_web_readonly
+- aota_task_spec
+- aota_profile_task
+- aota_handoff
+- aota_orchestration
+- aota_operator
+- aota_codegraph_readonly
+- aota_codegraph_rebuild
+- aota_workspace_readonly
+- aota_active_task_context
 platform_toolsets:
   api_server:
-    - aota_work_intake
-    - aota_plan_read
-    - aota_plan_write
-    - aota_core
-    - aota_fs_readonly
-    - aota_webui_attachment_read
-    - aota_repo_readonly
-    - aota_web_readonly
-    - aota_task_spec
-    - aota_profile_task
-    - aota_handoff
-    - aota_orchestration
-    - aota_operator
-    - aota_codegraph_readonly
-    - aota_codegraph_rebuild
-    - aota_workspace_readonly
-    - aota_active_task_context
+  - aota_work_intake
+  - aota_plan_read
+  - aota_plan_write
+  - aota_core
+  - aota_fs_readonly
+  - aota_webui_attachment_read
+  - aota_repo_readonly
+  - aota_web_readonly
+  - aota_task_spec
+  - aota_profile_task
+  - aota_handoff
+  - aota_orchestration
+  - aota_operator
+  - aota_codegraph_readonly
+  - aota_codegraph_rebuild
+  - aota_workspace_readonly
+  - aota_active_task_context
   cli:
-    - aota_work_intake
-    - aota_plan_read
-    - aota_plan_write
-    - aota_core
-    - aota_fs_readonly
-    - aota_webui_attachment_read
-    - aota_repo_readonly
-    - aota_web_readonly
-    - aota_task_spec
-    - aota_profile_task
-    - aota_handoff
-    - aota_orchestration
-    - aota_operator
-    - aota_codegraph_readonly
-    - aota_codegraph_rebuild
-    - aota_workspace_readonly
-    - aota_active_task_context
+  - aota_work_intake
+  - aota_plan_read
+  - aota_plan_write
+  - aota_core
+  - aota_fs_readonly
+  - aota_webui_attachment_read
+  - aota_repo_readonly
+  - aota_web_readonly
+  - aota_task_spec
+  - aota_profile_task
+  - aota_handoff
+  - aota_orchestration
+  - aota_operator
+  - aota_codegraph_readonly
+  - aota_codegraph_rebuild
+  - aota_workspace_readonly
+  - aota_active_task_context
 mcp_servers:
   aota:
     command: /usr/bin/python3
     args:
-      - -m
-      - aota_forge.composition.worker_vertical_slice
-      - --mcp-server
+    - -m
+    - aota_forge.composition.worker_vertical_slice
+    - --mcp-server
     env:
       PYTHONPATH: ${AOTA_FORGE_REPO_ROOT}
       AOTA_W3_MCP_ROOT: ${AOTA_W3_MCP_ROOT}
@@ -95,27 +113,27 @@ mcp_servers:
     enabled: true
 plugins:
   enabled:
-    - aota-tools
+  - aota-tools
   disabled: []
 providers:
   agnes:
     api: http://100.123.10.71:8792/v1
     key_env: AMF_PROXY_AGNES_KEY
     models:
-      - agnes-2.0-flash
+    - agnes-2.0-flash
     name: Agnes AI via AOTA Proxy
   opencode-go:
     key_env: OPENCODE_GO_API_KEY
     api: http://100.123.10.71:8792/v1
     models:
-      - deepseek-v4-flash
-      - deepseek-v4-pro
-      - kimi-k2.6
+    - deepseek-v4-flash
+    - deepseek-v4-pro
+    - kimi-k2.6
   ollama-cloud:
     api: http://100.123.10.71:8792/v1
     key_env: OLLAMA_API_KEY
     models:
-      - glm-5.2
+    - glm-5.2
 terminal:
   backend: local
   timeout: 600
@@ -133,33 +151,88 @@ compression:
   enabled: false
 skills:
   disabled:
-    - aota-evidence-first-debugging
-    - aota-implementation-review
-    - aota-spec-driven-implementation
-    - ask-matt
-    - code-review
-    - codebase-design
-    - design-an-interface
-    - diagnosing-bugs
-    - domain-modeling
-    - grill-with-docs
-    - implement
-    - improve-codebase-architecture
-    - prototype
-    - qa
-    - request-refactor-plan
-    - research
-    - resolving-merge-conflicts
-    - setup-matt-pocock-skills
-    - tdd
-    - to-spec
-    - to-tickets
-    - triage
-    - ubiquitous-language
-    - wayfinder
-    - aota-architecture-review
+  - airtable
+  - aota-architecture-review
+  - aota-evidence-first-debugging
+  - aota-implementation-review
+  - aota-spec-driven-implementation
+  - architecture-diagram
+  - arxiv
+  - ascii-video
+  - ask-matt
+  - baoyu-infographic
+  - blocked-page-recovery
+  - box
+  - claude-code
+  - claude-design
+  - code-review
+  - codebase-design
+  - codebase-inspection
+  - codex
+  - competitor-news-monitor
+  - computer-use
+  - design-an-interface
+  - design-md
+  - diagnosing-bugs
+  - document-to-action-items
+  - docx
+  - dogfood
+  - domain-modeling
+  - email-inbox-triage
+  - gif-search
+  - github
+  - google-workspace
+  - grill-with-docs
+  - grounded-citations
+  - hermes-agent-skill-authoring
+  - himalaya
+  - humanizer
+  - implement
+  - improve-codebase-architecture
+  - inspecting-hermes-desktop-dom
+  - llm-wiki
+  - manim-video
+  - maps
+  - meeting-action-items
+  - node-inspect-debugger
+  - notion
+  - obsidian
+  - opencode
+  - p5js
+  - pdf
+  - popular-web-designs
+  - powerpoint
+  - product-price-monitor
+  - prototype
+  - python-debugpy
+  - qa
+  - reddit-reading
+  - request-refactor-plan
+  - requesting-code-review
+  - research
+  - resolving-merge-conflicts
+  - rss-feeds
+  - setup-matt-pocock-skills
+  - simplify-code
+  - songsee
+  - songwriting-and-ai-music
+  - spike
+  - systematic-debugging
+  - tdd
+  - teams-meeting-pipeline
+  - test-driven-development
+  - to-spec
+  - to-tickets
+  - triage
+  - ubiquitous-language
+  - wayfinder
+  - weekly-review-planning
+  - xlsx
+  - xurl
+  - youtube-content
   write_approval: false
   guard_agent_created: false
+  platform_disabled: {}
 display:
   interface: cli
   streaming: true
@@ -177,3 +250,71 @@ tool_output:
   max_lines: 2000
   max_line_length: 2000
 timezone: Asia/Taipei
+database:
+  journal_mode: wal
+runtime:
+  nofile_soft_limit: 4096
+browser:
+  inactivity_timeout: 120
+  extension_control:
+    enabled: false
+prompt_caching:
+  cache_ttl: 5m
+stt:
+  enabled: true
+  language: en
+  local:
+    model: base
+  openai:
+    model: whisper-1
+    language: ''
+kanban:
+  review_dispatch: true
+code_execution:
+  timeout: 300
+  max_tool_calls: 50
+gateway:
+  signal_interrupt_grace_timeout: 1
+  delivery_ledger: true
+  platform_connect_timeout: 30
+  loop_watchdog: true
+  loop_watchdog_probe_interval_s: 30
+  loop_watchdog_probe_timeout_s: 10
+  loop_watchdog_max_strikes: 3
+  startup_watchdog: true
+  startup_watchdog_timeout_seconds: 300
+  write_sessions_json: true
+  scale_to_zero:
+    idle_timeout_minutes: 2
+  restart_loop_guard:
+    max_restarts: 3
+    window_seconds: 60
+    max_gap_seconds: 300
+  respawn_storm:
+    max_starts: 5
+    window_seconds: 120
+  message_timestamps:
+    enabled: false
+  max_inbound_media_bytes: 134217728
+  trust_env: true
+  strict: false
+  media_delivery_allow_dirs: []
+  trust_recent_files: true
+  trust_recent_files_seconds: 600
+  api_server:
+    max_concurrent_runs: 10
+streaming:
+  enabled: false
+telemetry:
+  shared_metrics:
+    enabled: false
+    send: false
+updates:
+  pre_update_backup: false
+  backup_keep: 5
+  non_interactive_local_changes: stash
+session_reset:
+  mode: none
+  idle_minutes: 1440
+  at_hour: 4
+group_sessions_per_user: true

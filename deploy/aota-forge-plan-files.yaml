@@ -41,8 +41,20 @@ groups:
     source_root: ${AOTA_SOURCE_ROOT}/profiles
     runtime_root: ${AOTA_HERMES_HOME_HOST}/profiles
     files:
+      # W3 Thin-Host: Hermes is thin host (model+session+executor+MCP only).
+      # AF Role/SOUL/Tool/Skill authority is exclusively AF via role.bootstrap.
+      # ```text
+      # HERMES_IS_THIN_HOST=yes
+      # HERMES_ROLE_SOUL_AUTHORITY=no
+      # HERMES_ROLE_TOOL_AUTHORITY=no
+      # HERMES_ROLE_SKILL_AUTHORITY=no
+      # AF_ROLE_SOUL_SOURCE=exclusive
+      # AF_ROLE_TOOL_AUTHORITY=exclusive
+      # AF_ROLE_SKILL_SOURCE=exclusive
+      # ```
       # Runtime profile mapping explicit: logical task-main (source) → runtime aota-task-main
       # TASK_MAIN_RUNTIME_PROFILE_ID=aota-task-main, TASK_MAIN_RUNTIME_PROFILE_MAPPING_EXPLICIT=yes
+      # WORKER_RUNTIME_PROFILE_ID=aota-worker (shared worker, toolsets=["aota"] only)
       - source: task-main/config.yaml
         destination: aota-task-main/config.yaml
         file_type: yaml
@@ -51,6 +63,18 @@ groups:
         managed: true
       - source: task-main/SOUL.md
         destination: aota-task-main/SOUL.md
+        file_type: markdown
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: aota-worker/config.yaml
+        destination: aota-worker/config.yaml
+        file_type: yaml
+        required: true
+        expected_mode: preserve
+        managed: true
+      - source: aota-worker/SOUL.md
+        destination: aota-worker/SOUL.md
         file_type: markdown
         required: true
         expected_mode: preserve

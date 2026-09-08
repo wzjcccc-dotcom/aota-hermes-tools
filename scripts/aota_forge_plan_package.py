@@ -872,10 +872,16 @@ def readiness(
         errors.append("worker-sanitizer")
     if "child_env = dict(parent_env)" not in start_text:
         errors.append("parent-env-copy")
+    # W3 Thin-Host: legacy WORKER_PROFILES (coder etc.) remain deny-checked,
+    # but task-main and shared aota-worker now use thin-host (all native disabled via "all").
+    # For thin-host profiles, "all" covers every toolset, so explicit PLAN_TOOLSETS subset check is satisfied via "all".
     for profile in WORKER_PROFILES:
         try:
             config = yaml.safe_load(source_text(REPO_ROOT / "profiles" / profile / "config.yaml"))
             disabled = set(config.get("agent", {}).get("disabled_toolsets", []))
+            # Thin-host shortcut: "all" or "*" in disabled means every toolset is disabled
+            if "all" in disabled or "*" in disabled:
+                continue
             if not set(PLAN_TOOLSETS).issubset(disabled):
                 errors.append(f"worker-deny:{profile}")
         except Exception:
@@ -884,15 +890,27 @@ def readiness(
         coder = yaml.safe_load(source_text(REPO_ROOT / "profiles" / "coder" / "config.yaml"))
         coder_tools = set(coder.get("toolsets", []))
         coder_disabled = set(coder.get("agent", {}).get("disabled_toolsets", []))
-        if not {"aota_coder_file_mutation", "aota_coder_command"}.issubset(coder_tools) or not {"file", "terminal"}.issubset(coder_disabled):
-            errors.append("coder-terminal-boundary")
+        # Thin-host coder still has file/terminal disabled via "all" if migrated; treat "all" as covering
+        if not ({"all", "*" } & coder_disabled):
+            if not {"aota_coder_file_mutation", "aota_coder_command"}.issubset(coder_tools) or not {"file", "terminal"}.issubset(coder_disabled):
+                errors.append("coder-terminal-boundary")
     except Exception:
         errors.append("coder-terminal-boundary")
     try:
         task_main = yaml.safe_load(source_text(REPO_ROOT / "profiles" / "task-main" / "config.yaml"))
-        available = set(task_main.get("toolsets", []))
-        if not set(PLAN_TOOLSETS).issubset(available):
-            errors.append("task-main-retain")
+        # W3 Thin-Host: task-main is now thin host (model+session+executor+MCP only).
+        # Legacy PLAN_TOOLSETS (aota_work_intake etc.) are no longer task-main tool surface;
+        # they are disabled via "all" and not required to be in available. Task-main thin-host
+        # is valid when agent.disabled_toolsets contains "all" (or "*") and mcp_servers.aota.enabled=true
+        # and HERMES_IS_THIN_HOST semantics apply.
+        task_disabled = set(task_main.get("agent", {}).get("disabled_toolsets", []))
+        task_mcp = task_main.get("mcp_servers", {}).get("aota", {}).get("enabled") if isinstance(task_main.get("mcp_servers"), dict) else None
+        if {"all", "*"} & task_disabled and task_mcp is True:
+            pass  # thin-host valid
+        else:
+            available = set(task_main.get("toolsets", []))
+            if not set(PLAN_TOOLSETS).issubset(available):
+                errors.append("task-main-retain")
     except Exception:
         errors.append("task-main")
     security_text = source_text(REPO_ROOT / "plugin" / "aota-tools" / "_orchestrator_security_context.py")

@@ -12,14 +12,27 @@ schema_version: 1
 assembly_version: 2
 projection_contract_schema_version: 1
 
-# This is the canonical Named Profile runtime assembly.  Profile config and
-# SOUL remain the behavioral authorities; this file only declares the runtime
-# projection required to make those declarations loadable and verifiable.
+# W3 Thin-Host Cutover — Hermes is now a thin host (model+session+executor+MCP only).
+# AF Role/SOUL/Tool/Skill authority is exclusively AF via role.bootstrap.
+# Profile config/SOUL are host configuration only, not AF Role semantic authority.
+# ```text
+# HERMES_IS_THIN_HOST=yes
+# HERMES_ROLE_SOUL_AUTHORITY=no
+# HERMES_ROLE_TOOL_AUTHORITY=no
+# HERMES_ROLE_SKILL_AUTHORITY=no
+# AF_ROLE_SOUL_SOURCE=exclusive
+# AF_ROLE_TOOL_AUTHORITY=exclusive
+# AF_ROLE_SKILL_SOURCE=exclusive
+# AF_SKILL_CANONICAL_SOURCE=aota_forge
+# HERMES_PROFILE_LOCAL_AOTA_SKILL_PROJECTION_REQUIRED=no
+# HERMES_NATIVE_SKILL_LOADER_REQUIRED=no
+# ```
+# For task-main (runtime aota-task-main) and aota-worker, native Tool/Skill/SOUL
+# projection is removed. Active/reference Skills are empty: AF production Skills
+# are delivered exclusively via AF role.bootstrap/skill.open, not via Hermes
+# native/profile-local projection. Physical Skill assets may remain on disk
+# (historical) but are not runtime-loaded or authoritative.
 #
-# Schema extension (assembly_version 2): reference_skills and
-# profile_specific_skills are backward-compatible additions.  Profiles that
-# do not declare them behave as before (only active_skills are projected).
-# No second assembly system is created.
 # Hermes runtime profile mapping:
 # LOGICAL_AF_PROFILE_ID=task-main
 # RUNTIME_HERMES_PROFILE_ID=aota-task-main
@@ -31,27 +44,8 @@ profiles:
     soul: profiles/task-main/SOUL.md
     plugin: plugin/aota-tools
     hermes_runtime_profile: aota-task-main
-    active_skills:
-      - aota-profile-task-orchestration
-      - aota-runtime-smoke-verification
-    # Reference Skills are available to task-main for routing lookup but are
-    # not loaded in the active prompt context.  They provide detailed contract
-    # content that the orchestration Skill routes to without duplicating.
-    reference_skills:
-      - aota-workspace-operations
-      - aota-canonical-spec-contract
-      - aota-canonical-spec-pitfalls
-      - aota-work-classify-and-plan-gate
-      - workspace-file-access-strategy
-      - aota-multi-phase-doc-closure
-      - aota-task-lifecycle
-      - aota-workspace-model
-      - aota-workspace-diagnostics
-      - aota-tool-failure-fallback
-      - aota-plugin-tool-development
-      - aota-skill-development
-      - aota-result-hydration
-      - aota-task-main-control
+    active_skills: []
+    reference_skills: []
   project-steward:
     config: profiles/project-steward/config.yaml
     soul: profiles/project-steward/SOUL.md
