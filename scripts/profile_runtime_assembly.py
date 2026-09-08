@@ -22,6 +22,27 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSEMBLY = ROOT / "deploy" / "profile-runtime-assembly.yaml"
 PROFILES = {"task-main", "project-steward", "architect", "coder", "debugger", "reviewer"}
 
+# Hermès runtime profile mapping: logical task-main → runtime aota-task-main (explicit)
+# LOGICAL_AF_PROFILE_ID=task-main
+# RUNTIME_HERMES_PROFILE_ID=aota-task-main
+# TASK_MAIN_RUNTIME_PROFILE_MAPPING_EXPLICIT=yes
+LOGICAL_TO_RUNTIME_PROFILE = {"task-main": "aota-task-main"}
+
+def _runtime_profile_for(logical: str, spec: dict[str, Any]) -> str:
+    """Return the Hermes runtime profile name for a logical profile.
+
+    For task-main the runtime name is aota-task-main (explicit mapping);
+    all other profiles are identity.
+    """
+    # Prefer explicit hermes_runtime_profile field if present
+    explicit = spec.get("hermes_runtime_profile")
+    if isinstance(explicit, str) and explicit.strip():
+        if logical == "task-main" and explicit.strip() != "aota-task-main":
+            raise ValueError(f"task-main hermes_runtime_profile must be aota-task-main, got {explicit!r}")
+        return explicit.strip()
+    # Fallback to global alias map
+    return LOGICAL_TO_RUNTIME_PROFILE.get(logical, logical)
+
 
 def load_assembly() -> dict[str, Any]:
     data = yaml.safe_load(ASSEMBLY.read_text(encoding="utf-8"))
@@ -30,6 +51,16 @@ def load_assembly() -> dict[str, Any]:
     profiles = data.get("profiles")
     if not isinstance(profiles, dict) or set(profiles) != PROFILES:
         raise ValueError("profile runtime assembly must declare exactly the canonical profiles")
+    # Validate explicit runtime mapping for task-main
+    task_main_spec = profiles.get("task-main", {})
+    if isinstance(task_main_spec, dict):
+        runtime = task_main_spec.get("hermes_runtime_profile")
+        if runtime is not None and runtime != "aota-task-main":
+            raise ValueError(f"task-main hermes_runtime_profile must be aota-task-main, got {runtime!r}")
+        # If alias map says task-main → aota-task-main, ensure logical still task-main but runtime is aota-task-main
+        # This is the single deterministic truth: logical task-main projection → runtime aota-task-main
+        if _runtime_profile_for("task-main", task_main_spec) != "aota-task-main":
+            raise ValueError("task-main runtime profile mapping must be explicit aota-task-main")
     runner = data.get("profile_task_runner")
     expected_runner = {
         "contract_version": 2,
@@ -316,7 +347,8 @@ def projection_errors(runtime_root: Path) -> list[str]:
     if global_plugin.is_dir() and path_escapes(global_plugin, runtime_root):
         errors.append("runtime:global-plugin-escape")
     for profile, spec in data["profiles"].items():
-        profile_root = runtime_root / "profiles" / profile
+        runtime_profile = _runtime_profile_for(profile, spec)
+        profile_root = runtime_root / "profiles" / runtime_profile
         local_plugin = profile_root / "plugins" / "aota-tools"
         declared_projection = next((item for item in projection.load_projection_contract(data) if item["profile"] == profile), None)
         if declared_projection is not None and local_plugin.is_symlink():
@@ -359,7 +391,8 @@ def snapshot_errors(runtime_root: Path) -> list[str]:
     except Exception:
         return errors
     for profile, spec in data["profiles"].items():
-        snapshot = runtime_root / "profiles" / profile / ".skills_prompt_snapshot.json"
+        runtime_profile = _runtime_profile_for(profile, spec)
+        snapshot = runtime_root / "profiles" / runtime_profile / ".skills_prompt_snapshot.json"
         if not snapshot.is_file() or path_escapes(snapshot, runtime_root):
             errors.append(f"runtime:{profile}:bootstrap-snapshot")
             continue
@@ -401,7 +434,8 @@ def _copy_fixture_runtime(runtime: Path, snapshots: dict[str, str] | None = None
     shutil.copytree(source_plugin, runtime / "plugins" / "aota-tools")
     assembly = load_assembly()
     for profile, spec in assembly["profiles"].items():
-        profile_root = runtime / "profiles" / profile
+        runtime_profile = _runtime_profile_for(profile, spec)
+        profile_root = runtime / "profiles" / runtime_profile
         local_plugin = profile_root / "plugins" / "aota-tools"
         local_plugin.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(source_plugin, local_plugin)
@@ -411,6 +445,8 @@ def _copy_fixture_runtime(runtime: Path, snapshots: dict[str, str] | None = None
             shutil.copytree(ROOT / "skills" / str(skill), target, dirs_exist_ok=True)
         if profile in snapshots:
             (profile_root / ".skills_prompt_snapshot.json").write_text(snapshots[profile], encoding="utf-8")
+        if runtime_profile in snapshots:
+            (profile_root / ".skills_prompt_snapshot.json").write_text(snapshots[runtime_profile], encoding="utf-8")
 
 
 def _fixture_snapshot(skills: list[str]) -> str:

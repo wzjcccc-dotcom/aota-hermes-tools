@@ -41,14 +41,16 @@ groups:
     source_root: ${AOTA_SOURCE_ROOT}/profiles
     runtime_root: ${AOTA_HERMES_HOME_HOST}/profiles
     files:
+      # Runtime profile mapping explicit: logical task-main (source) → runtime aota-task-main
+      # TASK_MAIN_RUNTIME_PROFILE_ID=aota-task-main, TASK_MAIN_RUNTIME_PROFILE_MAPPING_EXPLICIT=yes
       - source: task-main/config.yaml
-        destination: task-main/config.yaml
+        destination: aota-task-main/config.yaml
         file_type: yaml
         required: true
         expected_mode: preserve
         managed: true
       - source: task-main/SOUL.md
-        destination: task-main/SOUL.md
+        destination: aota-task-main/SOUL.md
         file_type: markdown
         required: true
         expected_mode: preserve

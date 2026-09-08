@@ -62,7 +62,13 @@ def load_projection_contract(assembly: dict[str, Any]) -> list[dict[str, Any]]:
             raise ValueError(f"projection {index} has unknown profile")
         logical_path = _relative(item["logical_path"], "logical_path")
         target_path = _relative(item["target_path"], "target_path")
-        expected_logical = f"profiles/{profile}/plugins/aota-tools"
+        # Runtime profile mapping explicit: logical task-main → runtime aota-task-main
+        spec = profiles.get(profile, {}) if isinstance(profiles.get(profile), dict) else {}
+        runtime_profile = spec.get("hermes_runtime_profile") if isinstance(spec, dict) else None
+        if profile == "task-main" and runtime_profile == "aota-task-main":
+            expected_logical = f"profiles/aota-task-main/plugins/aota-tools"
+        else:
+            expected_logical = f"profiles/{profile}/plugins/aota-tools"
         if logical_path != expected_logical:
             raise ValueError(f"projection {index} logical path does not bind to profile")
         if target_path != "plugins/aota-tools":

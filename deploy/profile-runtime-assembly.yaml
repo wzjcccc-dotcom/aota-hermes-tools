@@ -20,11 +20,17 @@ projection_contract_schema_version: 1
 # profile_specific_skills are backward-compatible additions.  Profiles that
 # do not declare them behave as before (only active_skills are projected).
 # No second assembly system is created.
+# Hermes runtime profile mapping:
+# LOGICAL_AF_PROFILE_ID=task-main
+# RUNTIME_HERMES_PROFILE_ID=aota-task-main
+# TASK_MAIN_RUNTIME_PROFILE_MAPPING_EXPLICIT=yes
+# logical task-main deployment projection → runtime aota-task-main (single deterministic truth)
 profiles:
   task-main:
     config: profiles/task-main/config.yaml
     soul: profiles/task-main/SOUL.md
     plugin: plugin/aota-tools
+    hermes_runtime_profile: aota-task-main
     active_skills:
       - aota-profile-task-orchestration
       - aota-runtime-smoke-verification
@@ -103,10 +109,11 @@ profiles:
 # intentionally symlinks to the one canonical global plugin root.  The
 # deployment adapter accepts only these declarations; project-steward is an
 # ordinary managed directory and is therefore not a projection.
+# Runtime profile mapping: logical task-main → runtime aota-task-main (explicit)
 plugin_projections:
   - type: profile_plugin_global_projection
     profile: task-main
-    logical_path: profiles/task-main/plugins/aota-tools
+    logical_path: profiles/aota-task-main/plugins/aota-tools
     target_path: plugins/aota-tools
     write_mode: canonical_target_only
     verify_logical_path: true
