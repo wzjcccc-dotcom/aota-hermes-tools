@@ -75,6 +75,24 @@ platform_toolsets:
     - aota_codegraph_rebuild
     - aota_workspace_readonly
     - aota_active_task_context
+mcp_servers:
+  aota:
+    command: /usr/bin/python3
+    args:
+      - -m
+      - aota_forge.composition.worker_vertical_slice
+      - --mcp-server
+    env:
+      PYTHONPATH: ${AOTA_FORGE_REPO_ROOT}
+      AOTA_W3_MCP_ROOT: ${AOTA_W3_MCP_ROOT}
+      AOTA_W3_PROJECT_ID: ${AOTA_W3_PROJECT_ID}
+      AOTA_W3_WORKTREE_ID: ${AOTA_W3_WORKTREE_ID}
+      AOTA_W3_TASK_ID: ${AOTA_W3_TASK_ID}
+      AOTA_W3_HANDOFF_JSON: ${AOTA_W3_HANDOFF_JSON}
+      AOTA_W3_TOOL_TRACE: ${AOTA_W3_TOOL_TRACE}
+      AOTA_TASK_MAIN_BOOTSTRAP: ${AOTA_TASK_MAIN_BOOTSTRAP}
+      AOTA_TASK_MAIN_TRACE: ${AOTA_TASK_MAIN_TRACE}
+    enabled: true
 plugins:
   enabled:
     - aota-tools
