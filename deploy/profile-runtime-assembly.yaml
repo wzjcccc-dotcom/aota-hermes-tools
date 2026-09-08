@@ -45,6 +45,7 @@ profiles:
       - aota-plugin-tool-development
       - aota-skill-development
       - aota-result-hydration
+      - aota-task-main-control
   project-steward:
     config: profiles/project-steward/config.yaml
     soul: profiles/project-steward/SOUL.md
